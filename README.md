@@ -4,6 +4,13 @@
 
 Translation Versions: [ENGLISH](./README.md) | [简体中文](./README.zh-CN.md) | [繁體中文](./README.zh-TW.md) | [한국어](./README.ko.md) | [日本語](./README.ja.md)
 
+## inspector Project Documentation
+
+CS5351 Software Engineering · Group 2.
+
+- [开发 Todo](docs/TODO.md)
+- [技术规范](docs/TECH_SPEC.md)
+
 ## Bot Usage
 
 ❗️⚠️ `Due to cost considerations, BOT is only used for testing purposes and is currently deployed on AWS Lambda with ratelimit restrictions. Therefore, unstable situations are completely normal. It is recommended to deploy an app by yourself.`
