@@ -1,0 +1,78 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "CS5351 quality development case v0.1",
+  "type": "object",
+  "required": [
+    "case_id",
+    "family_id",
+    "split",
+    "code_variant",
+    "evaluation_layer",
+    "semantic_gold_eligible",
+    "label_status",
+    "input",
+    "gold_file"
+  ],
+  "additionalProperties": false,
+  "properties": {
+    "case_id": {
+      "type": "string",
+      "pattern": "^DEV-[0-9]{3}$"
+    },
+    "family_id": {
+      "type": "string",
+      "minLength": 1
+    },
+    "split": {
+      "const": "development"
+    },
+    "code_variant": {
+      "enum": [
+        "faulty",
+        "fixed",
+        "clean"
+      ]
+    },
+    "evaluation_layer": {
+      "const": "L2-input-preparation"
+    },
+    "semantic_gold_eligible": {
+      "const": true
+    },
+    "label_status": {
+      "const": "provisional"
+    },
+    "input": {
+      "type": "object",
+      "required": [
+        "base_dir",
+        "head_dir",
+        "changed_files",
+        "diff_file"
+      ],
+      "additionalProperties": false,
+      "properties": {
+        "base_dir": {
+          "type": "string"
+        },
+        "head_dir": {
+          "type": "string"
+        },
+        "changed_files": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "minItems": 1,
+          "uniqueItems": true
+        },
+        "diff_file": {
+          "type": "string"
+        }
+      }
+    },
+    "gold_file": {
+      "type": "string"
+    }
+  }
+}

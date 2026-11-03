@@ -1,0 +1,8 @@
+--- a/review.js
++++ b/review.js
+@@ -1,4 +1,4 @@
+ exports.readId = (items, index) => {
+-  if (index >= 0 && index < items.length) return items[index].id;
++  if (index >= 0 && index <= items.length) return items[index].id;
+   return null;
+ };

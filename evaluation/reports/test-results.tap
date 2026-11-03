@@ -1,0 +1,52 @@
+TAP version 13
+# Subtest: six families have real bug/fixed evidence and clean controls
+ok 1 - six families have real bug/fixed evidence and clean controls
+  ---
+  duration_ms: 23.293625
+  type: 'test'
+  ...
+# Subtest: rejects source tampering
+ok 2 - rejects source tampering
+  ---
+  duration_ms: 21.756666
+  type: 'test'
+  ...
+# Subtest: rejects a diff contradicting the head snapshot
+ok 3 - rejects a diff contradicting the head snapshot
+  ---
+  duration_ms: 23.112125
+  type: 'test'
+  ...
+# Subtest: rejects a missing defect answer
+ok 4 - rejects a missing defect answer
+  ---
+  duration_ms: 22.0885
+  type: 'test'
+  ...
+# Subtest: rejects a purported counterexample that also fails on the correct base
+ok 5 - rejects a purported counterexample that also fails on the correct base
+  ---
+  duration_ms: 31.254542
+  type: 'test'
+  ...
+# Subtest: rejects family variants crossing into holdout
+ok 6 - rejects family variants crossing into holdout
+  ---
+  duration_ms: 20.253417
+  type: 'test'
+  ...
+# Subtest: exports only allowed model input and labels full context as oracle
+ok 7 - exports only allowed model input and labels full context as oracle
+  ---
+  duration_ms: 0.647625
+  type: 'test'
+  ...
+1..7
+# tests 7
+# suites 0
+# pass 7
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 205.565667

@@ -1,0 +1,58 @@
+{
+  "family_id": "active-users",
+  "split": "development",
+  "category": "clean-only",
+  "language": "javascript",
+  "requirement": "For an array of user objects with boolean active, return active users' ids in input order, preserving numeric id 0.",
+  "context_required": false,
+  "context_rationale": null,
+  "entry_file": "review.js",
+  "entry_function": "activeIds",
+  "behavior_checks": [
+    {
+      "args": [
+        []
+      ],
+      "expected": []
+    },
+    {
+      "args": [
+        [
+          {
+            "id": 0,
+            "active": true
+          },
+          {
+            "id": 2,
+            "active": false
+          },
+          {
+            "id": 3,
+            "active": true
+          }
+        ]
+      ],
+      "expected": [
+        0,
+        3
+      ]
+    }
+  ],
+  "file_hashes": {
+    "base": {
+      "review.js": "758b1e749883cf4f7436a859ccea6f1656b5631a3b8f0b898ed1cf07683d255f"
+    },
+    "clean": {
+      "review.js": "e6d1d6796ffa87881edc936fcb26e28fd6501620abe39b623372a84ca41f2de5"
+    }
+  },
+  "provenance": {
+    "kind": "synthetic",
+    "authoring": "AI-assisted, created for CS5351 F MVP",
+    "license": "ISC (repository license)",
+    "external_code_copied": false,
+    "inspiration": "Project evaluation requirements; independently authored minimal example."
+  },
+  "label_status": "provisional",
+  "human_reviewers": []
+}

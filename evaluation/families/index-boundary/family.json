@@ -1,0 +1,85 @@
+{
+  "family_id": "index-boundary",
+  "split": "development",
+  "category": "diff-sufficient",
+  "language": "javascript",
+  "requirement": "For integer indices, readId returns the item id when 0 <= index < items.length and null otherwise. It must not throw for an out-of-range index.",
+  "context_required": false,
+  "context_rationale": null,
+  "entry_file": "review.js",
+  "entry_function": "readId",
+  "behavior_checks": [
+    {
+      "args": [
+        [
+          {
+            "id": "a"
+          }
+        ],
+        1
+      ],
+      "expected": null
+    },
+    {
+      "args": [
+        [],
+        0
+      ],
+      "expected": null
+    },
+    {
+      "args": [
+        [
+          {
+            "id": "a"
+          }
+        ],
+        0
+      ],
+      "expected": "a"
+    },
+    {
+      "args": [
+        [
+          {
+            "id": "a"
+          }
+        ],
+        -1
+      ],
+      "expected": null
+    }
+  ],
+  "file_hashes": {
+    "base": {
+      "review.js": "517609d56bafb43c72b832f2f7e26c3a0049d073ec4214cab5412022e2544424"
+    },
+    "faulty": {
+      "review.js": "818fd2882d2b9061070a5cbea6f2a26d2da04ebcac484cdfba86f462bf19929b"
+    },
+    "fixed": {
+      "review.js": "4d9d75491be73b0140a9759946bb59e827393956889a4dd782c351dba787b95f"
+    }
+  },
+  "provenance": {
+    "kind": "synthetic",
+    "authoring": "AI-assisted, created for CS5351 F MVP",
+    "license": "ISC (repository license)",
+    "external_code_copied": false,
+    "inspiration": "Project evaluation requirements; independently authored minimal example."
+  },
+  "label_status": "provisional",
+  "human_reviewers": [],
+  "expected_faulty_failures": [
+    {
+      "check_index": 0,
+      "error_name": "TypeError",
+      "error_message_contains": "undefined"
+    },
+    {
+      "check_index": 1,
+      "error_name": "TypeError",
+      "error_message_contains": "undefined"
+    }
+  ]
+}
