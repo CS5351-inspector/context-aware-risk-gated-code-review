@@ -1,5 +1,7 @@
 # 模型响应校验：避免错误 LGTM
 
+2026-11-03 续作：新增 C 模块独立入口（双模式、Finding/证据、共享预算与有限重试），详见 [代码原理与对接](C_MODEL_RELIABILITY_ZH.md)、[GitHub 工作流手册](C_GITHUB_WORKFLOW_ZH.md) 和 [文件地图](C_FILE_MAP_ZH.md)。下文保留 2026-10-26 的原始实现范围和验证记录；新入口尚待 A 接入统一 bot 流水线。
+
 对应 [TODO.md](TODO.md) 中“模型审查与 Findings”的输出校验子任务，以及 [TECH_SPEC.md](TECH_SPEC.md) 中空响应、无 findings、分析失败必须区分的约束。
 
 ## 行为
