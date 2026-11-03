@@ -1,0 +1,182 @@
+{
+  "id": "added-file",
+  "title": "新增 JS 文件，空旧侧与新增行号一致",
+  "owners": [
+    "a",
+    "c",
+    "f"
+  ],
+  "split": "development",
+  "purpose": "新增 JS 文件，空旧侧与新增行号一致",
+  "input": {
+    "schemaVersion": "1",
+    "runId": "fixture-added-file",
+    "repo": {
+      "owner": "sprint1-team",
+      "name": "inspector-demo"
+    },
+    "sourceRepo": {
+      "owner": "sprint1-team",
+      "name": "inspector-demo"
+    },
+    "prNumber": 42,
+    "author": "author-a",
+    "trigger": "pull_request.opened",
+    "baseSha": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+    "diffBaseSha": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+    "headSha": "cccccccccccccccccccccccccccccccccccccccc",
+    "mode": "diff-only",
+    "diff": "--- /dev/null\n+++ b/src/added.js\n@@ -0,0 +1,3 @@\n+export function sum(a, b) {\n+  return a + b;\n+}\n",
+    "changedFiles": [
+      {
+        "path": "src/added.js",
+        "status": "added",
+        "additions": 3,
+        "deletions": 0,
+        "patch": "--- /dev/null\n+++ b/src/added.js\n@@ -0,0 +1,3 @@\n+export function sum(a, b) {\n+  return a + b;\n+}\n",
+        "supported": true
+      }
+    ]
+  },
+  "config": {
+    "ruleVersion": "sprint1-v1",
+    "requiredApprovals": 1,
+    "mediumChangedLines": 200,
+    "mediumChangedFiles": 3,
+    "sensitivePaths": [
+      ".github/workflows/**",
+      "src/auth/**",
+      "src/permissions/**",
+      "inspector.config.json"
+    ],
+    "maxReportCharacters": 12000,
+    "budget": {
+      "maxFiles": 5,
+      "localWindowLines": 20,
+      "maxDefinitionsPerFile": 1,
+      "maxDefinitionLines": 80,
+      "maxInputTokens": 6000,
+      "reservedOutputTokens": 1000,
+      "maxCalls": 7,
+      "requestTimeoutMs": 30000,
+      "analysisTimeoutMs": 240000,
+      "publishReserveMs": 30000,
+      "maxRetries": 1
+    }
+  },
+  "snapshots": [
+    {
+      "file": "src/added.js",
+      "ref": "cccccccccccccccccccccccccccccccccccccccc",
+      "contentFile": "head/src/added.js.txt"
+    }
+  ],
+  "modelAttempts": [
+    {
+      "file": "src/added.js",
+      "outcome": "response",
+      "content": "{\"findings\": []}",
+      "choices": 1,
+      "elapsedMs": 10,
+      "usage": null
+    }
+  ],
+  "gateContext": {
+    "currentHeadSha": "cccccccccccccccccccccccccccccccccccccccc",
+    "reviews": [],
+    "configValid": true,
+    "reviewedHeadSha": "cccccccccccccccccccccccccccccccccccccccc",
+    "prAuthor": "author-a"
+  },
+  "preflight": {
+    "measuredInputTokens": null,
+    "remainingCalls": null
+  },
+  "github": {
+    "existingCommentId": null,
+    "publishError": null
+  },
+  "expected": {
+    "context": {
+      "snippets": [],
+      "omissions": []
+    },
+    "result": {
+      "schemaVersion": "1",
+      "runId": "fixture-added-file",
+      "repo": {
+        "owner": "sprint1-team",
+        "name": "inspector-demo"
+      },
+      "prNumber": 42,
+      "headSha": "cccccccccccccccccccccccccccccccccccccccc",
+      "mode": "diff-only",
+      "provider": "mock",
+      "analysisStatus": "COMPLETE",
+      "scope": {
+        "supportedFiles": [
+          "src/added.js"
+        ],
+        "analyzedFiles": [
+          "src/added.js"
+        ],
+        "excludedFiles": []
+      },
+      "snippets": [],
+      "omissions": [],
+      "findings": [],
+      "risk": {
+        "level": "LOW",
+        "factors": [
+          "NO_ESCALATION"
+        ],
+        "ruleVersion": "sprint1-v1"
+      },
+      "gate": {
+        "state": "PASS",
+        "reasons": [
+          "COMPLETE_LOW_MEDIUM"
+        ],
+        "requiredApprovals": 1,
+        "validApprovers": []
+      },
+      "metrics": {
+        "model": "scripted-sprint1",
+        "effectiveParameters": {
+          "temperature": 0
+        },
+        "promptVersion": "sprint1-v1",
+        "durationMs": 10,
+        "calls": 1,
+        "inputTokens": null,
+        "outputTokens": null
+      }
+    },
+    "publication": {
+      "status": "PUBLISHED",
+      "commentId": 900,
+      "commitStatus": "success",
+      "error": null
+    },
+    "report": {
+      "contains": [
+        "MOCK",
+        "cccccccccccccccccccccccccccccccccccccccc",
+        "COMPLETE",
+        "LOW",
+        "PASS"
+      ],
+      "mustNotContain": [
+        "代码绝对安全",
+        "生产环境已验证"
+      ],
+      "maxCharacters": 12000,
+      "action": "CREATE"
+    },
+    "shouldCallModel": true,
+    "configValid": true
+  },
+  "notes": [
+    "Fixed oracle for acceptance, not proof that risk/gate/model modules are implemented."
+  ]
+}

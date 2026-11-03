@@ -1,0 +1,253 @@
+{
+  "id": "approval-author",
+  "title": "作者不能批准自己的 PR",
+  "owners": [
+    "a",
+    "d",
+    "f"
+  ],
+  "split": "development",
+  "purpose": "作者不能批准自己的 PR",
+  "input": {
+    "schemaVersion": "1",
+    "runId": "fixture-approval-author",
+    "repo": {
+      "owner": "sprint1-team",
+      "name": "inspector-demo"
+    },
+    "sourceRepo": {
+      "owner": "sprint1-team",
+      "name": "inspector-demo"
+    },
+    "prNumber": 42,
+    "author": "author-a",
+    "trigger": "pull_request.opened",
+    "baseSha": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+    "diffBaseSha": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+    "headSha": "cccccccccccccccccccccccccccccccccccccccc",
+    "mode": "context",
+    "diff": "--- a/src/caller.ts\n+++ b/src/caller.ts\n@@ -1,5 +1,5 @@\n import { isAllowed } from \"./rules.js\";\n \n export function canDelete(role: string) {\n-  return isAllowed(role);\n+  return !isAllowed(role);\n }\n",
+    "changedFiles": [
+      {
+        "path": "src/caller.ts",
+        "status": "modified",
+        "additions": 1,
+        "deletions": 1,
+        "patch": "--- a/src/caller.ts\n+++ b/src/caller.ts\n@@ -1,5 +1,5 @@\n import { isAllowed } from \"./rules.js\";\n \n export function canDelete(role: string) {\n-  return isAllowed(role);\n+  return !isAllowed(role);\n }\n",
+        "supported": true
+      }
+    ]
+  },
+  "config": {
+    "ruleVersion": "sprint1-v1",
+    "requiredApprovals": 1,
+    "mediumChangedLines": 200,
+    "mediumChangedFiles": 3,
+    "sensitivePaths": [
+      ".github/workflows/**",
+      "src/auth/**",
+      "src/permissions/**",
+      "inspector.config.json"
+    ],
+    "maxReportCharacters": 12000,
+    "budget": {
+      "maxFiles": 5,
+      "localWindowLines": 20,
+      "maxDefinitionsPerFile": 1,
+      "maxDefinitionLines": 80,
+      "maxInputTokens": 6000,
+      "reservedOutputTokens": 1000,
+      "maxCalls": 7,
+      "requestTimeoutMs": 30000,
+      "analysisTimeoutMs": 240000,
+      "publishReserveMs": 30000,
+      "maxRetries": 1
+    }
+  },
+  "snapshots": [
+    {
+      "file": "src/caller.ts",
+      "ref": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+      "contentFile": "base/src/caller.ts.txt"
+    },
+    {
+      "file": "src/caller.ts",
+      "ref": "cccccccccccccccccccccccccccccccccccccccc",
+      "contentFile": "head/src/caller.ts.txt"
+    },
+    {
+      "file": "src/rules.ts",
+      "ref": "cccccccccccccccccccccccccccccccccccccccc",
+      "contentFile": "head/src/rules.ts.txt"
+    }
+  ],
+  "modelAttempts": [
+    {
+      "file": "src/caller.ts",
+      "outcome": "response",
+      "content": "{\"findings\": [{\"file\": \"src/caller.ts\", \"side\": \"RIGHT\", \"line\": 4, \"severity\": \"high\", \"message\": \"权限判断被反转：管理员返回 false，其他角色返回 true。\", \"evidenceIds\": [\"C1\"]}]}",
+      "choices": 1,
+      "elapsedMs": 10,
+      "usage": null
+    }
+  ],
+  "gateContext": {
+    "currentHeadSha": "cccccccccccccccccccccccccccccccccccccccc",
+    "reviews": [
+      {
+        "id": 1,
+        "login": "author-a",
+        "actorType": "User",
+        "permission": "write",
+        "commitSha": "cccccccccccccccccccccccccccccccccccccccc",
+        "state": "APPROVED",
+        "submittedAt": "2026-11-03T00:00:01Z"
+      }
+    ],
+    "configValid": true,
+    "reviewedHeadSha": "cccccccccccccccccccccccccccccccccccccccc",
+    "prAuthor": "author-a"
+  },
+  "preflight": {
+    "measuredInputTokens": null,
+    "remainingCalls": null
+  },
+  "github": {
+    "existingCommentId": null,
+    "publishError": null
+  },
+  "expected": {
+    "context": {
+      "snippets": [
+        {
+          "id": "C0",
+          "file": "src/caller.ts",
+          "ref": "cccccccccccccccccccccccccccccccccccccccc",
+          "startLine": 1,
+          "endLine": 5,
+          "code": "import { isAllowed } from \"./rules.js\";\n\nexport function canDelete(role: string) {\n  return !isAllowed(role);\n}",
+          "reason": "local-window"
+        },
+        {
+          "id": "C1",
+          "file": "src/rules.ts",
+          "ref": "cccccccccccccccccccccccccccccccccccccccc",
+          "startLine": 1,
+          "endLine": 3,
+          "code": "export function isAllowed(role: string) {\n  return role === \"admin\";\n}",
+          "reason": "direct-definition"
+        }
+      ],
+      "omissions": []
+    },
+    "result": {
+      "schemaVersion": "1",
+      "runId": "fixture-approval-author",
+      "repo": {
+        "owner": "sprint1-team",
+        "name": "inspector-demo"
+      },
+      "prNumber": 42,
+      "headSha": "cccccccccccccccccccccccccccccccccccccccc",
+      "mode": "context",
+      "provider": "mock",
+      "analysisStatus": "COMPLETE",
+      "scope": {
+        "supportedFiles": [
+          "src/caller.ts"
+        ],
+        "analyzedFiles": [
+          "src/caller.ts"
+        ],
+        "excludedFiles": []
+      },
+      "snippets": [
+        {
+          "id": "C0",
+          "file": "src/caller.ts",
+          "ref": "cccccccccccccccccccccccccccccccccccccccc",
+          "startLine": 1,
+          "endLine": 5,
+          "code": "import { isAllowed } from \"./rules.js\";\n\nexport function canDelete(role: string) {\n  return !isAllowed(role);\n}",
+          "reason": "local-window"
+        },
+        {
+          "id": "C1",
+          "file": "src/rules.ts",
+          "ref": "cccccccccccccccccccccccccccccccccccccccc",
+          "startLine": 1,
+          "endLine": 3,
+          "code": "export function isAllowed(role: string) {\n  return role === \"admin\";\n}",
+          "reason": "direct-definition"
+        }
+      ],
+      "omissions": [],
+      "findings": [
+        {
+          "id": "F1",
+          "validation": "VERIFIED",
+          "file": "src/caller.ts",
+          "side": "RIGHT",
+          "line": 4,
+          "severity": "high",
+          "message": "权限判断被反转：管理员返回 false，其他角色返回 true。",
+          "evidenceIds": [
+            "C1"
+          ]
+        }
+      ],
+      "risk": {
+        "level": "HIGH",
+        "factors": [
+          "VERIFIED_HIGH_FINDING"
+        ],
+        "ruleVersion": "sprint1-v1"
+      },
+      "gate": {
+        "state": "WAITING",
+        "reasons": [
+          "APPROVAL_REQUIRED"
+        ],
+        "requiredApprovals": 1,
+        "validApprovers": []
+      },
+      "metrics": {
+        "model": "scripted-sprint1",
+        "effectiveParameters": {
+          "temperature": 0
+        },
+        "promptVersion": "sprint1-v1",
+        "durationMs": 10,
+        "calls": 1,
+        "inputTokens": null,
+        "outputTokens": null
+      }
+    },
+    "publication": {
+      "status": "PUBLISHED",
+      "commentId": 900,
+      "commitStatus": "pending",
+      "error": null
+    },
+    "report": {
+      "contains": [
+        "MOCK",
+        "cccccccccccccccccccccccccccccccccccccccc",
+        "COMPLETE",
+        "HIGH",
+        "WAITING"
+      ],
+      "mustNotContain": [
+        "代码绝对安全",
+        "生产环境已验证"
+      ],
+      "maxCharacters": 12000,
+      "action": "CREATE"
+    },
+    "shouldCallModel": true,
+    "configValid": true
+  },
+  "notes": [
+    "Fixed oracle for acceptance, not proof that risk/gate/model modules are implemented."
+  ]
+}

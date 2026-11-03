@@ -1,0 +1,5 @@
+import { isAllowed } from "./rules.js";
+
+export function canDelete(role: string) {
+  return isAllowed(role);
+}

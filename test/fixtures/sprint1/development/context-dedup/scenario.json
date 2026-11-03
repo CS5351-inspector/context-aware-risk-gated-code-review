@@ -1,0 +1,212 @@
+{
+  "id": "context-dedup",
+  "title": "两个 hunk 的局部窗口重叠，只返回一份范围",
+  "owners": [
+    "b",
+    "f"
+  ],
+  "split": "development",
+  "purpose": "两个 hunk 的局部窗口重叠，只返回一份范围",
+  "input": {
+    "schemaVersion": "1",
+    "runId": "fixture-context-dedup",
+    "repo": {
+      "owner": "sprint1-team",
+      "name": "inspector-demo"
+    },
+    "sourceRepo": {
+      "owner": "sprint1-team",
+      "name": "inspector-demo"
+    },
+    "prNumber": 42,
+    "author": "author-a",
+    "trigger": "pull_request.opened",
+    "baseSha": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+    "diffBaseSha": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+    "headSha": "cccccccccccccccccccccccccccccccccccccccc",
+    "mode": "context",
+    "diff": "--- a/src/caller.ts\n+++ b/src/caller.ts\n@@ -1,5 +1,5 @@\n export const value1 = 1;\n-export const value2 = 2;\n+export const value2 = 20;\n export const value3 = 3;\n export const value4 = 4;\n export const value5 = 5;\n@@ -9,7 +9,7 @@\n export const value9 = 9;\n export const value10 = 10;\n export const value11 = 11;\n-export const value12 = 12;\n+export const value12 = 120;\n export const value13 = 13;\n export const value14 = 14;\n export const value15 = 15;\n",
+    "changedFiles": [
+      {
+        "path": "src/caller.ts",
+        "status": "modified",
+        "additions": 2,
+        "deletions": 2,
+        "patch": "--- a/src/caller.ts\n+++ b/src/caller.ts\n@@ -1,5 +1,5 @@\n export const value1 = 1;\n-export const value2 = 2;\n+export const value2 = 20;\n export const value3 = 3;\n export const value4 = 4;\n export const value5 = 5;\n@@ -9,7 +9,7 @@\n export const value9 = 9;\n export const value10 = 10;\n export const value11 = 11;\n-export const value12 = 12;\n+export const value12 = 120;\n export const value13 = 13;\n export const value14 = 14;\n export const value15 = 15;\n",
+        "supported": true
+      }
+    ]
+  },
+  "config": {
+    "ruleVersion": "sprint1-v1",
+    "requiredApprovals": 1,
+    "mediumChangedLines": 200,
+    "mediumChangedFiles": 3,
+    "sensitivePaths": [
+      ".github/workflows/**",
+      "src/auth/**",
+      "src/permissions/**",
+      "inspector.config.json"
+    ],
+    "maxReportCharacters": 12000,
+    "budget": {
+      "maxFiles": 5,
+      "localWindowLines": 20,
+      "maxDefinitionsPerFile": 1,
+      "maxDefinitionLines": 80,
+      "maxInputTokens": 6000,
+      "reservedOutputTokens": 1000,
+      "maxCalls": 7,
+      "requestTimeoutMs": 30000,
+      "analysisTimeoutMs": 240000,
+      "publishReserveMs": 30000,
+      "maxRetries": 1
+    }
+  },
+  "snapshots": [
+    {
+      "file": "src/caller.ts",
+      "ref": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+      "contentFile": "base/src/caller.ts.txt"
+    },
+    {
+      "file": "src/caller.ts",
+      "ref": "cccccccccccccccccccccccccccccccccccccccc",
+      "contentFile": "head/src/caller.ts.txt"
+    },
+    {
+      "file": "src/rules.ts",
+      "ref": "cccccccccccccccccccccccccccccccccccccccc",
+      "contentFile": "head/src/rules.ts.txt"
+    }
+  ],
+  "modelAttempts": [
+    {
+      "file": "src/caller.ts",
+      "outcome": "response",
+      "content": "{\"findings\": []}",
+      "choices": 1,
+      "elapsedMs": 10,
+      "usage": null
+    }
+  ],
+  "gateContext": {
+    "currentHeadSha": "cccccccccccccccccccccccccccccccccccccccc",
+    "reviews": [],
+    "configValid": true,
+    "reviewedHeadSha": "cccccccccccccccccccccccccccccccccccccccc",
+    "prAuthor": "author-a"
+  },
+  "preflight": {
+    "measuredInputTokens": null,
+    "remainingCalls": null
+  },
+  "github": {
+    "existingCommentId": null,
+    "publishError": null
+  },
+  "expected": {
+    "context": {
+      "snippets": [
+        {
+          "id": "C0",
+          "file": "src/caller.ts",
+          "ref": "cccccccccccccccccccccccccccccccccccccccc",
+          "startLine": 1,
+          "endLine": 15,
+          "code": "export const value1 = 1;\nexport const value2 = 20;\nexport const value3 = 3;\nexport const value4 = 4;\nexport const value5 = 5;\nexport const value6 = 6;\nexport const value7 = 7;\nexport const value8 = 8;\nexport const value9 = 9;\nexport const value10 = 10;\nexport const value11 = 11;\nexport const value12 = 120;\nexport const value13 = 13;\nexport const value14 = 14;\nexport const value15 = 15;",
+          "reason": "local-window"
+        }
+      ],
+      "omissions": []
+    },
+    "result": {
+      "schemaVersion": "1",
+      "runId": "fixture-context-dedup",
+      "repo": {
+        "owner": "sprint1-team",
+        "name": "inspector-demo"
+      },
+      "prNumber": 42,
+      "headSha": "cccccccccccccccccccccccccccccccccccccccc",
+      "mode": "context",
+      "provider": "mock",
+      "analysisStatus": "COMPLETE",
+      "scope": {
+        "supportedFiles": [
+          "src/caller.ts"
+        ],
+        "analyzedFiles": [
+          "src/caller.ts"
+        ],
+        "excludedFiles": []
+      },
+      "snippets": [
+        {
+          "id": "C0",
+          "file": "src/caller.ts",
+          "ref": "cccccccccccccccccccccccccccccccccccccccc",
+          "startLine": 1,
+          "endLine": 15,
+          "code": "export const value1 = 1;\nexport const value2 = 20;\nexport const value3 = 3;\nexport const value4 = 4;\nexport const value5 = 5;\nexport const value6 = 6;\nexport const value7 = 7;\nexport const value8 = 8;\nexport const value9 = 9;\nexport const value10 = 10;\nexport const value11 = 11;\nexport const value12 = 120;\nexport const value13 = 13;\nexport const value14 = 14;\nexport const value15 = 15;",
+          "reason": "local-window"
+        }
+      ],
+      "omissions": [],
+      "findings": [],
+      "risk": {
+        "level": "LOW",
+        "factors": [
+          "NO_ESCALATION"
+        ],
+        "ruleVersion": "sprint1-v1"
+      },
+      "gate": {
+        "state": "PASS",
+        "reasons": [
+          "COMPLETE_LOW_MEDIUM"
+        ],
+        "requiredApprovals": 1,
+        "validApprovers": []
+      },
+      "metrics": {
+        "model": "scripted-sprint1",
+        "effectiveParameters": {
+          "temperature": 0
+        },
+        "promptVersion": "sprint1-v1",
+        "durationMs": 10,
+        "calls": 1,
+        "inputTokens": null,
+        "outputTokens": null
+      }
+    },
+    "publication": {
+      "status": "PUBLISHED",
+      "commentId": 900,
+      "commitStatus": "success",
+      "error": null
+    },
+    "report": {
+      "contains": [
+        "MOCK",
+        "cccccccccccccccccccccccccccccccccccccccc",
+        "COMPLETE",
+        "LOW",
+        "PASS"
+      ],
+      "mustNotContain": [
+        "代码绝对安全",
+        "生产环境已验证"
+      ],
+      "maxCharacters": 12000,
+      "action": "CREATE"
+    },
+    "shouldCallModel": true,
+    "configValid": true
+  },
+  "notes": [
+    "Fixed oracle for acceptance, not proof that risk/gate/model modules are implemented.",
+    "The two changes are separated by >6 lines, creating two default unified diff hunks with overlapping 20-line windows."
+  ]
+}
