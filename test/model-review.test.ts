@@ -67,8 +67,13 @@ describe('Finding conversion and provenance', () => {
     expect(() => convertFindings(completion([{ ...raw(), ...change }]), input(), 'src/a.ts', patch, [snippet()]))
       .toThrow('invalid finding fields');
   });
-  test('mixed good/bad findings are rejected as a whole', () => {
-    expect(() => convertFindings(completion([raw(), { ...raw(), side: 'bad' }]), input(), 'src/a.ts', patch, [snippet()])).toThrow();
+  test.each([true, false])('retains a valid high finding when another entry is malformed (invalid first: %s)', invalidFirst => {
+    const invalid = { ...raw(), side: 'bad' };
+    const reviews = invalidFirst ? [invalid, raw()] : [raw(), invalid];
+    const result = convertFindings(completion(reviews), input(), 'src/a.ts', patch, [snippet()]);
+    expect(result.findings).toHaveLength(1);
+    expect(result.findings[0]).toMatchObject({ severity: 'high', validation: 'VERIFIED' });
+    expect(result.omissions).toContainEqual({ file: 'src/a.ts', stage: 'model', reason: 'INVALID_OUTPUT', required: true });
   });
   test('diff parser tracks deletion, addition and context independently', () => {
     const lines = patchLines('@@ -10,2 +20,2 @@\n-old\n+new\n common');
@@ -108,6 +113,12 @@ describe('controlled modes, coverage and resource limits', () => {
     const result = await reviewFiles(c, i, [snippet()], budget(), runtime);
     expect(deriveModelStatus(i, result)).toBe('PARTIAL'); expect(result.findings[0].severity).toBe('high');
     expect(result.metrics.inputTokens).toBeNull();
+  });
+  test('mixed response cannot hide a valid high finding or count as complete', async () => {
+    const c = client(); c.completeReview.mockResolvedValue(completion([null, raw()]));
+    const result = await reviewFiles(c, input(), [snippet()], budget(), runtime);
+    expect(deriveModelStatus(input(), result)).toBe('PARTIAL');
+    expect(result.findings[0].severity).toBe('high');
   });
   test('required context omission affects final status but optional trimming does not', async () => {
     const result = await reviewFiles(client(), input(), [], budget(), runtime);
@@ -218,5 +229,18 @@ describe('shared Chat adapter', () => {
     const signal = new AbortController().signal;
     await new Chat('test').completeReview('prompt', { signal, timeout: 500, maxRetries: 0, maxOutputTokens: 123 });
     expect(mockCreate).toHaveBeenCalledWith(expect.objectContaining({ max_tokens: 123 }), { signal, timeout: 500, maxRetries: 0 });
+  });
+  test.each(['o3-mini', 'openai/o3-mini', 'gpt-5.4'])('uses the completion token limit for reasoning model %s', async model => {
+    process.env.MODEL = model;
+    process.env.max_tokens = '250';
+    const chat = new Chat('test');
+    expect(chat.effectiveParameters).toMatchObject({ max_completion_tokens: 250 });
+    expect(chat.effectiveParameters).not.toHaveProperty('max_tokens');
+    const result = await reviewFiles(chat, input(), [], budget(), runtime);
+    const request = mockCreate.mock.calls[0][0];
+    expect(request.max_completion_tokens).toBe(200);
+    expect(request).not.toHaveProperty('max_tokens');
+    expect(result.metrics.effectiveParameters.max_completion_tokens).toBe(200);
+    expect(result.metrics.effectiveParameters).not.toHaveProperty('max_tokens');
   });
 });

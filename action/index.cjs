@@ -147510,7 +147510,7 @@ class Chat {
                 temperature: numericOption('temperature', 1, 2),
                 top_p: numericOption('top_p', 1, 1),
             }),
-            max_tokens: maxTokens,
+            [this.isReasoningModel ? 'max_completion_tokens' : 'max_tokens']: maxTokens,
             ...this.reasoningEffortOption,
             response_format: { type: 'json_object' },
         };
@@ -147523,7 +147523,7 @@ class Chat {
             messages: [{ role: 'user', content: prompt }],
             ...this.effectiveParameters,
             model: this.model,
-            ...(options ? { max_tokens: options.maxOutputTokens } : {}),
+            ...(options ? { [this.isReasoningModel ? 'max_completion_tokens' : 'max_tokens']: options.maxOutputTokens } : {}),
         };
         // SDK 类型在这里校验请求；effectiveParameters 也用于可审计的运行记录。
         const body = request;
