@@ -1,0 +1,186 @@
+{
+  "id": "size-boundary",
+  "title": "恰好 200 改动行也触发 MEDIUM",
+  "owners": [
+    "d",
+    "f"
+  ],
+  "split": "development",
+  "purpose": "恰好 200 改动行也触发 MEDIUM",
+  "input": {
+    "schemaVersion": "1",
+    "runId": "fixture-size-boundary",
+    "repo": {
+      "owner": "sprint1-team",
+      "name": "inspector-demo"
+    },
+    "sourceRepo": {
+      "owner": "sprint1-team",
+      "name": "inspector-demo"
+    },
+    "prNumber": 42,
+    "author": "author-a",
+    "trigger": "pull_request.opened",
+    "baseSha": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+    "diffBaseSha": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+    "headSha": "cccccccccccccccccccccccccccccccccccccccc",
+    "mode": "diff-only",
+    "diff": "--- a/src/large.ts\n+++ b/src/large.ts\n@@ -1,100 +1,100 @@\n-export const v0 = 1;\n-export const v1 = 1;\n-export const v2 = 1;\n-export const v3 = 1;\n-export const v4 = 1;\n-export const v5 = 1;\n-export const v6 = 1;\n-export const v7 = 1;\n-export const v8 = 1;\n-export const v9 = 1;\n-export const v10 = 1;\n-export const v11 = 1;\n-export const v12 = 1;\n-export const v13 = 1;\n-export const v14 = 1;\n-export const v15 = 1;\n-export const v16 = 1;\n-export const v17 = 1;\n-export const v18 = 1;\n-export const v19 = 1;\n-export const v20 = 1;\n-export const v21 = 1;\n-export const v22 = 1;\n-export const v23 = 1;\n-export const v24 = 1;\n-export const v25 = 1;\n-export const v26 = 1;\n-export const v27 = 1;\n-export const v28 = 1;\n-export const v29 = 1;\n-export const v30 = 1;\n-export const v31 = 1;\n-export const v32 = 1;\n-export const v33 = 1;\n-export const v34 = 1;\n-export const v35 = 1;\n-export const v36 = 1;\n-export const v37 = 1;\n-export const v38 = 1;\n-export const v39 = 1;\n-export const v40 = 1;\n-export const v41 = 1;\n-export const v42 = 1;\n-export const v43 = 1;\n-export const v44 = 1;\n-export const v45 = 1;\n-export const v46 = 1;\n-export const v47 = 1;\n-export const v48 = 1;\n-export const v49 = 1;\n-export const v50 = 1;\n-export const v51 = 1;\n-export const v52 = 1;\n-export const v53 = 1;\n-export const v54 = 1;\n-export const v55 = 1;\n-export const v56 = 1;\n-export const v57 = 1;\n-export const v58 = 1;\n-export const v59 = 1;\n-export const v60 = 1;\n-export const v61 = 1;\n-export const v62 = 1;\n-export const v63 = 1;\n-export const v64 = 1;\n-export const v65 = 1;\n-export const v66 = 1;\n-export const v67 = 1;\n-export const v68 = 1;\n-export const v69 = 1;\n-export const v70 = 1;\n-export const v71 = 1;\n-export const v72 = 1;\n-export const v73 = 1;\n-export const v74 = 1;\n-export const v75 = 1;\n-export const v76 = 1;\n-export const v77 = 1;\n-export const v78 = 1;\n-export const v79 = 1;\n-export const v80 = 1;\n-export const v81 = 1;\n-export const v82 = 1;\n-export const v83 = 1;\n-export const v84 = 1;\n-export const v85 = 1;\n-export const v86 = 1;\n-export const v87 = 1;\n-export const v88 = 1;\n-export const v89 = 1;\n-export const v90 = 1;\n-export const v91 = 1;\n-export const v92 = 1;\n-export const v93 = 1;\n-export const v94 = 1;\n-export const v95 = 1;\n-export const v96 = 1;\n-export const v97 = 1;\n-export const v98 = 1;\n-export const v99 = 1;\n+export const v0 = 2;\n+export const v1 = 2;\n+export const v2 = 2;\n+export const v3 = 2;\n+export const v4 = 2;\n+export const v5 = 2;\n+export const v6 = 2;\n+export const v7 = 2;\n+export const v8 = 2;\n+export const v9 = 2;\n+export const v10 = 2;\n+export const v11 = 2;\n+export const v12 = 2;\n+export const v13 = 2;\n+export const v14 = 2;\n+export const v15 = 2;\n+export const v16 = 2;\n+export const v17 = 2;\n+export const v18 = 2;\n+export const v19 = 2;\n+export const v20 = 2;\n+export const v21 = 2;\n+export const v22 = 2;\n+export const v23 = 2;\n+export const v24 = 2;\n+export const v25 = 2;\n+export const v26 = 2;\n+export const v27 = 2;\n+export const v28 = 2;\n+export const v29 = 2;\n+export const v30 = 2;\n+export const v31 = 2;\n+export const v32 = 2;\n+export const v33 = 2;\n+export const v34 = 2;\n+export const v35 = 2;\n+export const v36 = 2;\n+export const v37 = 2;\n+export const v38 = 2;\n+export const v39 = 2;\n+export const v40 = 2;\n+export const v41 = 2;\n+export const v42 = 2;\n+export const v43 = 2;\n+export const v44 = 2;\n+export const v45 = 2;\n+export const v46 = 2;\n+export const v47 = 2;\n+export const v48 = 2;\n+export const v49 = 2;\n+export const v50 = 2;\n+export const v51 = 2;\n+export const v52 = 2;\n+export const v53 = 2;\n+export const v54 = 2;\n+export const v55 = 2;\n+export const v56 = 2;\n+export const v57 = 2;\n+export const v58 = 2;\n+export const v59 = 2;\n+export const v60 = 2;\n+export const v61 = 2;\n+export const v62 = 2;\n+export const v63 = 2;\n+export const v64 = 2;\n+export const v65 = 2;\n+export const v66 = 2;\n+export const v67 = 2;\n+export const v68 = 2;\n+export const v69 = 2;\n+export const v70 = 2;\n+export const v71 = 2;\n+export const v72 = 2;\n+export const v73 = 2;\n+export const v74 = 2;\n+export const v75 = 2;\n+export const v76 = 2;\n+export const v77 = 2;\n+export const v78 = 2;\n+export const v79 = 2;\n+export const v80 = 2;\n+export const v81 = 2;\n+export const v82 = 2;\n+export const v83 = 2;\n+export const v84 = 2;\n+export const v85 = 2;\n+export const v86 = 2;\n+export const v87 = 2;\n+export const v88 = 2;\n+export const v89 = 2;\n+export const v90 = 2;\n+export const v91 = 2;\n+export const v92 = 2;\n+export const v93 = 2;\n+export const v94 = 2;\n+export const v95 = 2;\n+export const v96 = 2;\n+export const v97 = 2;\n+export const v98 = 2;\n+export const v99 = 2;\n",
+    "changedFiles": [
+      {
+        "path": "src/large.ts",
+        "status": "modified",
+        "additions": 100,
+        "deletions": 100,
+        "patch": "--- a/src/large.ts\n+++ b/src/large.ts\n@@ -1,100 +1,100 @@\n-export const v0 = 1;\n-export const v1 = 1;\n-export const v2 = 1;\n-export const v3 = 1;\n-export const v4 = 1;\n-export const v5 = 1;\n-export const v6 = 1;\n-export const v7 = 1;\n-export const v8 = 1;\n-export const v9 = 1;\n-export const v10 = 1;\n-export const v11 = 1;\n-export const v12 = 1;\n-export const v13 = 1;\n-export const v14 = 1;\n-export const v15 = 1;\n-export const v16 = 1;\n-export const v17 = 1;\n-export const v18 = 1;\n-export const v19 = 1;\n-export const v20 = 1;\n-export const v21 = 1;\n-export const v22 = 1;\n-export const v23 = 1;\n-export const v24 = 1;\n-export const v25 = 1;\n-export const v26 = 1;\n-export const v27 = 1;\n-export const v28 = 1;\n-export const v29 = 1;\n-export const v30 = 1;\n-export const v31 = 1;\n-export const v32 = 1;\n-export const v33 = 1;\n-export const v34 = 1;\n-export const v35 = 1;\n-export const v36 = 1;\n-export const v37 = 1;\n-export const v38 = 1;\n-export const v39 = 1;\n-export const v40 = 1;\n-export const v41 = 1;\n-export const v42 = 1;\n-export const v43 = 1;\n-export const v44 = 1;\n-export const v45 = 1;\n-export const v46 = 1;\n-export const v47 = 1;\n-export const v48 = 1;\n-export const v49 = 1;\n-export const v50 = 1;\n-export const v51 = 1;\n-export const v52 = 1;\n-export const v53 = 1;\n-export const v54 = 1;\n-export const v55 = 1;\n-export const v56 = 1;\n-export const v57 = 1;\n-export const v58 = 1;\n-export const v59 = 1;\n-export const v60 = 1;\n-export const v61 = 1;\n-export const v62 = 1;\n-export const v63 = 1;\n-export const v64 = 1;\n-export const v65 = 1;\n-export const v66 = 1;\n-export const v67 = 1;\n-export const v68 = 1;\n-export const v69 = 1;\n-export const v70 = 1;\n-export const v71 = 1;\n-export const v72 = 1;\n-export const v73 = 1;\n-export const v74 = 1;\n-export const v75 = 1;\n-export const v76 = 1;\n-export const v77 = 1;\n-export const v78 = 1;\n-export const v79 = 1;\n-export const v80 = 1;\n-export const v81 = 1;\n-export const v82 = 1;\n-export const v83 = 1;\n-export const v84 = 1;\n-export const v85 = 1;\n-export const v86 = 1;\n-export const v87 = 1;\n-export const v88 = 1;\n-export const v89 = 1;\n-export const v90 = 1;\n-export const v91 = 1;\n-export const v92 = 1;\n-export const v93 = 1;\n-export const v94 = 1;\n-export const v95 = 1;\n-export const v96 = 1;\n-export const v97 = 1;\n-export const v98 = 1;\n-export const v99 = 1;\n+export const v0 = 2;\n+export const v1 = 2;\n+export const v2 = 2;\n+export const v3 = 2;\n+export const v4 = 2;\n+export const v5 = 2;\n+export const v6 = 2;\n+export const v7 = 2;\n+export const v8 = 2;\n+export const v9 = 2;\n+export const v10 = 2;\n+export const v11 = 2;\n+export const v12 = 2;\n+export const v13 = 2;\n+export const v14 = 2;\n+export const v15 = 2;\n+export const v16 = 2;\n+export const v17 = 2;\n+export const v18 = 2;\n+export const v19 = 2;\n+export const v20 = 2;\n+export const v21 = 2;\n+export const v22 = 2;\n+export const v23 = 2;\n+export const v24 = 2;\n+export const v25 = 2;\n+export const v26 = 2;\n+export const v27 = 2;\n+export const v28 = 2;\n+export const v29 = 2;\n+export const v30 = 2;\n+export const v31 = 2;\n+export const v32 = 2;\n+export const v33 = 2;\n+export const v34 = 2;\n+export const v35 = 2;\n+export const v36 = 2;\n+export const v37 = 2;\n+export const v38 = 2;\n+export const v39 = 2;\n+export const v40 = 2;\n+export const v41 = 2;\n+export const v42 = 2;\n+export const v43 = 2;\n+export const v44 = 2;\n+export const v45 = 2;\n+export const v46 = 2;\n+export const v47 = 2;\n+export const v48 = 2;\n+export const v49 = 2;\n+export const v50 = 2;\n+export const v51 = 2;\n+export const v52 = 2;\n+export const v53 = 2;\n+export const v54 = 2;\n+export const v55 = 2;\n+export const v56 = 2;\n+export const v57 = 2;\n+export const v58 = 2;\n+export const v59 = 2;\n+export const v60 = 2;\n+export const v61 = 2;\n+export const v62 = 2;\n+export const v63 = 2;\n+export const v64 = 2;\n+export const v65 = 2;\n+export const v66 = 2;\n+export const v67 = 2;\n+export const v68 = 2;\n+export const v69 = 2;\n+export const v70 = 2;\n+export const v71 = 2;\n+export const v72 = 2;\n+export const v73 = 2;\n+export const v74 = 2;\n+export const v75 = 2;\n+export const v76 = 2;\n+export const v77 = 2;\n+export const v78 = 2;\n+export const v79 = 2;\n+export const v80 = 2;\n+export const v81 = 2;\n+export const v82 = 2;\n+export const v83 = 2;\n+export const v84 = 2;\n+export const v85 = 2;\n+export const v86 = 2;\n+export const v87 = 2;\n+export const v88 = 2;\n+export const v89 = 2;\n+export const v90 = 2;\n+export const v91 = 2;\n+export const v92 = 2;\n+export const v93 = 2;\n+export const v94 = 2;\n+export const v95 = 2;\n+export const v96 = 2;\n+export const v97 = 2;\n+export const v98 = 2;\n+export const v99 = 2;\n",
+        "supported": true
+      }
+    ]
+  },
+  "config": {
+    "ruleVersion": "sprint1-v1",
+    "requiredApprovals": 1,
+    "mediumChangedLines": 200,
+    "mediumChangedFiles": 3,
+    "sensitivePaths": [
+      ".github/workflows/**",
+      "src/auth/**",
+      "src/permissions/**",
+      "inspector.config.json"
+    ],
+    "maxReportCharacters": 12000,
+    "budget": {
+      "maxFiles": 5,
+      "localWindowLines": 20,
+      "maxDefinitionsPerFile": 1,
+      "maxDefinitionLines": 80,
+      "maxInputTokens": 6000,
+      "reservedOutputTokens": 1000,
+      "maxCalls": 7,
+      "requestTimeoutMs": 30000,
+      "analysisTimeoutMs": 240000,
+      "publishReserveMs": 30000,
+      "maxRetries": 1
+    }
+  },
+  "snapshots": [
+    {
+      "file": "src/large.ts",
+      "ref": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+      "contentFile": "base/src/large.ts.txt"
+    },
+    {
+      "file": "src/large.ts",
+      "ref": "cccccccccccccccccccccccccccccccccccccccc",
+      "contentFile": "head/src/large.ts.txt"
+    }
+  ],
+  "modelAttempts": [
+    {
+      "file": "src/large.ts",
+      "outcome": "response",
+      "content": "{\"findings\": []}",
+      "choices": 1,
+      "elapsedMs": 10,
+      "usage": null
+    }
+  ],
+  "gateContext": {
+    "currentHeadSha": "cccccccccccccccccccccccccccccccccccccccc",
+    "reviews": [],
+    "configValid": true,
+    "reviewedHeadSha": "cccccccccccccccccccccccccccccccccccccccc",
+    "prAuthor": "author-a"
+  },
+  "preflight": {
+    "measuredInputTokens": null,
+    "remainingCalls": null
+  },
+  "github": {
+    "existingCommentId": null,
+    "publishError": null
+  },
+  "expected": {
+    "context": {
+      "snippets": [],
+      "omissions": []
+    },
+    "result": {
+      "schemaVersion": "1",
+      "runId": "fixture-size-boundary",
+      "repo": {
+        "owner": "sprint1-team",
+        "name": "inspector-demo"
+      },
+      "prNumber": 42,
+      "headSha": "cccccccccccccccccccccccccccccccccccccccc",
+      "mode": "diff-only",
+      "provider": "mock",
+      "analysisStatus": "COMPLETE",
+      "scope": {
+        "supportedFiles": [
+          "src/large.ts"
+        ],
+        "analyzedFiles": [
+          "src/large.ts"
+        ],
+        "excludedFiles": []
+      },
+      "snippets": [],
+      "omissions": [],
+      "findings": [],
+      "risk": {
+        "level": "MEDIUM",
+        "factors": [
+          "CHANGE_SIZE"
+        ],
+        "ruleVersion": "sprint1-v1"
+      },
+      "gate": {
+        "state": "PASS",
+        "reasons": [
+          "COMPLETE_LOW_MEDIUM"
+        ],
+        "requiredApprovals": 1,
+        "validApprovers": []
+      },
+      "metrics": {
+        "model": "scripted-sprint1",
+        "effectiveParameters": {
+          "temperature": 0
+        },
+        "promptVersion": "sprint1-v1",
+        "durationMs": 10,
+        "calls": 1,
+        "inputTokens": null,
+        "outputTokens": null
+      }
+    },
+    "publication": {
+      "status": "PUBLISHED",
+      "commentId": 900,
+      "commitStatus": "success",
+      "error": null
+    },
+    "report": {
+      "contains": [
+        "MOCK",
+        "cccccccccccccccccccccccccccccccccccccccc",
+        "COMPLETE",
+        "MEDIUM",
+        "PASS"
+      ],
+      "mustNotContain": [
+        "代码绝对安全",
+        "生产环境已验证"
+      ],
+      "maxCharacters": 12000,
+      "action": "CREATE"
+    },
+    "shouldCallModel": true,
+    "configValid": true
+  },
+  "notes": [
+    "Fixed oracle for acceptance, not proof that risk/gate/model modules are implemented."
+  ]
+}
