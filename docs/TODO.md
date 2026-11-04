@@ -2,7 +2,7 @@
 
 项目：Context-Aware and Risk-Gated Code Review for GitHub Pull Requests。
 
-技术约定见 [TECH_SPEC.md](TECH_SPEC.md)。按模块认领任务，完成后填写对应 PR 或测试链接。保留已有的分页、diff 筛选、位置校验和测试，在此基础上扩展。
+技术约定见 [TECH_SPEC.md](TECH_SPEC.md)。当前模块成果与剩余接线见 [Sprint 1 接手说明](SPRINT1_HANDOFF.md)。按模块认领任务，完成后填写对应 PR 或测试链接。保留已有的分页、diff 筛选、位置校验和测试，在此基础上扩展。
 
 ## 基线与工程环境
 
@@ -20,7 +20,7 @@
 
 - [ ] 实现受控 Diff-only 与 Diff+Context 模式，共用模型适配器、有效参数及 prompt 主体。
 - [ ] 校验输出字段、位置和证据引用；对空响应、无效结果及必要 diff 被跳过的情况补测试，避免错误 LGTM。
-  - [x] 已完成子任务：模型空响应、截断和输出字段校验，防止无效结果成为 LGTM；见 [实现与验证说明](MODEL_RESPONSE_VALIDATION.md)、[响应测试](../test/review-validation.test.ts) 和 [PR 链路测试](../test/review-handler.test.ts)。证据引用与必要 diff 覆盖仍待完成。
+  - [x] 已完成子任务：模型空响应、截断和输出字段校验，防止无效结果成为 LGTM；见 [实现与验证说明](MODEL_RESPONSE_VALIDATION.md)、[响应测试](../test/review-validation.test.ts) 和 [PR 链路测试](../test/review-handler.test.ts)。C 的独立入口现已包含位置/证据校验、必要遗漏和重试；实际 Action 的增强链路仍待集成，不据此勾选整个任务。
 - [ ] 处理超时、限流和有限重试；将实际失败及覆盖范围传给风险和报告模块。
 
 ## Risk Management 与 Gate

@@ -1,5 +1,5 @@
 /**
- * Sprint 1 proposed shared domain model. Type declarations only: no network,
+ * Sprint 1 shared domain model v1; integrated from PR #5. Type declarations only: no network,
  * no runtime validator and no production bot integration.
  * JSON/network input is unknown until the owning module validates it.
  */
@@ -167,7 +167,7 @@ export interface PublicationReceipt {
   error: string | null;
 }
 
-// Module ports: these are signatures for a-f to implement, not working modules.
+// Module ports. See SPRINT1_HANDOFF.md for implemented adapters and remaining work.
 export type CollectInput = (event: unknown) => Promise<ReviewInput>;
 export type ReadFileAtRef = (file: string, ref: string) => Promise<string>;
 export type CollectContext = (

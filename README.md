@@ -10,6 +10,7 @@ CS5351 Software Engineering · Group 2.
 
 - [开发 Todo](docs/TODO.md)
 - [技术规范](docs/TECH_SPEC.md)
+- [Sprint 1 集成状态与各模块接手入口](docs/SPRINT1_HANDOFF.md)
 
 ## Bot Usage
 

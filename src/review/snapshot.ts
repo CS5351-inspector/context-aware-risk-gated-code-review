@@ -96,7 +96,7 @@ function classifyFile(file: SnapshotFile): ChangedFile {
   const knownStatus = ['added', 'modified', 'removed', 'renamed'].includes(file.status);
   const status: ChangedFile['status'] = knownStatus ? file.status as ChangedFile['status'] : 'other';
   const supportedStatus = status === 'added' || status === 'modified';
-  const supportedExtension = /\.(ts|js)$/i.test(file.path);
+  const supportedExtension = /\.(ts|js)$/.test(file.path);
   const supported = supportedStatus && supportedExtension;
   // Missing patches remain supported: the pipeline must report a required omission.
   return Object.freeze({

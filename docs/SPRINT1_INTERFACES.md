@@ -1,6 +1,6 @@
-# Sprint 1 模块契约候选 v1
+# Sprint 1 模块契约 v1（含原候选记录）
 
-状态：供小组评审，不是已经通过的团队决定。代码模型以 `src/review/contracts.ts` 为候选唯一来源；本 PR 不修改 bot/chat/workflow、不实现生产 gate，也不把 TODO 大任务标为完成。
+集成状态（2026-11-04）：当前集成将 `src/review/contracts.ts` 设为唯一代码来源，并适配 #2/#3。当前实现与剩余边界见 [SPRINT1_HANDOFF.md](SPRINT1_HANDOFF.md)。下文保留 #5 提出时的候选讨论；风险阈值与生产事件策略仍需 D 实现和验证。
 
 ## 接口与契约
 

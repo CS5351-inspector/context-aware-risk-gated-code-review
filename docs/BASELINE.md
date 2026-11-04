@@ -1,4 +1,4 @@
-# 基线记录（Baseline）
+# 基线记录（Baseline，原始环境快照）
 
 > 模块：基线与工程环境 · 任务 1
 > 记录日期：2026-10-28
@@ -59,3 +59,7 @@
 
 - [ ] `npm ci` 需修复 lock 文件（缺少 esbuild 可选依赖），或团队约定改用 `npm install`
 - [ ] 原版 PR 审查需 API key
+
+## 集成更新（2026-11-04）
+
+上文记录的是作者当时的基线执行，不是最新 CI 状态。#3 的 lock 修复已保留，本次干净安装 `npm ci --ignore-scripts --no-audit --no-fund` 成功（652 packages）。统一集成使用 `npm run typecheck`、Jest、evaluation 和构建检查；当前命令与范围见 [SPRINT1_HANDOFF.md](SPRINT1_HANDOFF.md)。原版真实模型审查仍未在本次复核中执行；依赖漏洞统计也未重新审计，不把旧数量当最新数量。
