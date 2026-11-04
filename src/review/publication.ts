@@ -28,7 +28,7 @@ export function createPublisher(port: PublicationPort): PublishResult {
       receipt.error = 'Mock results cannot publish a production risk gate';
       return receipt;
     }
-    if (!headSha || !Number.isSafeInteger(prNumber) || prNumber < 1 || !report.trim()
+    if (!/^[a-f0-9]{40}$/i.test(headSha) || !Number.isSafeInteger(prNumber) || prNumber < 1
       || !repo.owner || !repo.name || !runId) {
       receipt.error = 'Invalid publication input';
       return receipt;
@@ -38,7 +38,7 @@ export function createPublisher(port: PublicationPort): PublishResult {
       receipt.error = 'Invalid gate state';
       return receipt;
     }
-    const state = gateState === 'PASS' ? 'success' : gateState === 'WAITING' ? 'pending' : 'failure';
+    const initialState = gateState === 'ERROR' ? 'failure' : 'pending';
     const body = `${report}\n\n---\nInspector run: \`${runId}\` · reviewed commit: \`${headSha}\`.\nThis report applies only to that commit.\n`;
     let operation = 'read current PR head';
     try {
@@ -47,19 +47,33 @@ export function createPublisher(port: PublicationPort): PublishResult {
         return await port.readCurrentHead(repo, prNumber) === headSha;
       };
       if (!await fresh()) return { ...receipt, status: 'STALE' };
-      operation = 'create review report';
-      const comment = await port.createComment(repo, prNumber, body);
-      if (!Number.isSafeInteger(comment.id) || comment.id < 1) throw new Error('Invalid comment receipt');
-      receipt.commentId = comment.id;
-      // This is both the post-comment check and the pre-status check.
-      if (!await fresh()) return { ...receipt, status: 'STALE' };
+      // Clear an earlier PASS before attempting a report. A failed comment must
+      // never leave that earlier success active for a new restrictive decision.
       operation = 'create commit status';
       await port.createCommitStatus(repo, headSha, {
-        context: 'inspector/risk-gate', state,
-        description: `Inspector ${gateState.toLowerCase()} for reviewed commit`,
+        context: 'inspector/risk-gate', state: initialState,
+        description: gateState === 'PASS' ? 'Inspector publication in progress' : `Inspector ${gateState.toLowerCase()} for reviewed commit`,
       });
-      receipt.commitStatus = state;
+      receipt.commitStatus = initialState;
       if (!await fresh()) return { ...receipt, status: 'STALE' };
+      if (report.trim()) {
+        operation = 'create review report';
+        const comment = await port.createComment(repo, prNumber, body);
+        if (!Number.isSafeInteger(comment.id) || comment.id < 1) throw new Error('Invalid comment receipt');
+        receipt.commentId = comment.id;
+        if (!await fresh()) return { ...receipt, status: 'STALE' };
+      } else if (gateState === 'PASS') {
+        receipt.error = 'A passing gate requires a published report';
+        return receipt;
+      }
+      if (gateState === 'PASS') {
+        operation = 'create commit status';
+        await port.createCommitStatus(repo, headSha, {
+          context: 'inspector/risk-gate', state: 'success', description: 'Inspector pass for reviewed commit',
+        });
+        receipt.commitStatus = 'success';
+        if (!await fresh()) return { ...receipt, status: 'STALE' };
+      }
       return { ...receipt, status: 'PUBLISHED' };
     } catch {
       // Keep accepted partial-write receipts; avoid echoing API errors or source text.
