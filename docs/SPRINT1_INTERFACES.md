@@ -35,8 +35,8 @@ A 收集 ReviewInput → B.collectContext → C.reviewFiles → A.deriveAnalysis
 2. GateContext.reviewedHeadSha 必须与 ReviewInput.headSha 相同；prAuthor 必须与 input.author 相同；currentHeadSha 在发布前从 GitHub 重读。这样 D 才能排除作者自批、识别旧运行。
 3. Finding.validation 仅表示结构、位置、引用校验状态，不证明模型推理正确。line=null 的问题回退正文并披露；不能编造链接。运行结果中的 snippets 允许引用 head 或 diff 基准，但必须与 side/来源一致。
 4. 模型有效空 findings 与空响应完全不同。全成功返回空 findings 可 COMPLETE；必要分析未完成且有可用结果为 PARTIAL；没有可用分析为 FAILED；候选新增状态 NOT_APPLICABLE 用于无支持范围文件，需团队决定是否纳入规范。
-5. scope 分为 supportedFiles/analyzedFiles/excludedFiles。omissions 每项含阶段、原因和 required。裁剪可选上下文通常不降级；必要 diff/文件/调用失败必须影响状态。
-6. 风险 LOW/MEDIUM/HIGH/UNKNOWN 与门禁 PASS/WAITING/ERROR/STALE 独立；HIGH 经人工批准可 PASS，但仍是 HIGH。已知有效 HIGH 不被其他缺失覆盖为 UNKNOWN。
+5. scope 分为 supportedFiles/analyzedFiles/excludedFiles；聚合结果只在 scope 保存 analyzedFiles，C 的 ModelAnalysis 则在顶层返回 analyzedFiles。omissions 每项含阶段、原因和 required。裁剪可选上下文通常不降级；必要 diff/文件/调用失败必须影响状态。
+6. 风险 LOW/MEDIUM/HIGH/UNKNOWN 与门禁 PASS/WAITING/ERROR/STALE 独立；HIGH 经人工批准可 PASS，但仍是 HIGH。保留下来的 high finding 不因位置或证据未验证而被覆盖为 UNKNOWN；报告必须保留 validation，HIGH 不等于缺陷已证实。
 7. 严格演示批准只计当前 head、非作者的人类 Write+ 成员，按有效历史去重；COMMENTED 不清除批准，撤销/有效请求修改影响门禁。配置无效/过期不能靠批准覆盖。
 8. PublicationReceipt 是外部发布回执。Gate PASS 不代表 GitHub 已写入成功。发布失败必须明确；旧结果不得写新 head 的 success，也不能覆盖当前摘要。仅取消旧任务不足以证明不存在竞争。
 9. Budget 是候选上限，不是已实现的调度器。A 管整次 PR 剩余时间与发布预留，C 管整次 reviewFiles 的调用计数和重试，B 披露读取/裁剪；不能每个文件各自重复领满额预算。未知 usage 为 null。
@@ -62,3 +62,7 @@ A 收集 ReviewInput → B.collectContext → C.reviewFiles → A.deriveAnalysis
 补 GateContext 的作者/被审查 head；按 A基建/B上下文/C模型/D风险/E报告/F评测统一 owners；公开 holdout 改为 reserved；删除文件的 diff 使用 /dev/null；新增 base→head diff 重放及篡改数据的反例测试；检查人工批准的必要约束。
 
 test/support/sprint1-integrity.ts 是针对受控 LF 文本样例的检查，不是任意 Git diff 的生产解析器，也不是生产 Gate 算法。测试通过只证明这些数据和工具在覆盖范围内自洽。
+
+## 集成前复核修正
+
+修正 AnalysisResult 重复要求 analyzedFiles 的类型错误；对齐 C 的 invalid-evidence、invalid-file、invalid-line、显式无行号四类结果。可靠性样例仍为 55 个，额外反例测试检查批准阈值篡改、大小写账号去重、时区排序、LEFT/diffBase 证据、悬空引用和 HIGH 保留。这里验证的是受控样例的必要约束；生产 Gate、GitHub 权限查询与实际发布仍由所属模块实现并单独验收。

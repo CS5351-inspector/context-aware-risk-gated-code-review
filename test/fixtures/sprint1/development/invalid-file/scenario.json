@@ -176,18 +176,7 @@
           "required": true
         }
       ],
-      "findings": [
-        {
-          "id": "F1",
-          "file": "src/not-in-pr.ts",
-          "side": "RIGHT",
-          "line": 1,
-          "severity": "high",
-          "message": "Untrusted file reference",
-          "evidenceIds": [],
-          "validation": "UNVERIFIED"
-        }
-      ],
+      "findings": [],
       "risk": {
         "level": "UNKNOWN",
         "factors": [
@@ -240,6 +229,7 @@
     "configValid": true
   },
   "notes": [
-    "Fixed oracle for acceptance, not proof that risk/gate/model modules are implemented."
+    "Fixed oracle for acceptance, not proof that risk/gate/model modules are implemented.",
+    "Reviewed against the C model boundary: invalid envelope/file is rejected; retained high findings remain HIGH even when location/evidence needs human verification."
   ]
 }

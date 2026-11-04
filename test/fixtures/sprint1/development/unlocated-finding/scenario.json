@@ -141,7 +141,7 @@
       "headSha": "cccccccccccccccccccccccccccccccccccccccc",
       "mode": "context",
       "provider": "mock",
-      "analysisStatus": "PARTIAL",
+      "analysisStatus": "COMPLETE",
       "scope": {
         "supportedFiles": [
           "src/caller.ts"
@@ -176,7 +176,7 @@
           "file": "src/caller.ts",
           "stage": "model",
           "reason": "UNLOCATED_FINDING",
-          "required": true
+          "required": false
         }
       ],
       "findings": [
@@ -194,9 +194,9 @@
         }
       ],
       "risk": {
-        "level": "UNKNOWN",
+        "level": "HIGH",
         "factors": [
-          "ANALYSIS_UNAVAILABLE"
+          "RETAINED_HIGH_FINDING"
         ],
         "ruleVersion": "sprint1-v1"
       },
@@ -230,8 +230,8 @@
       "contains": [
         "MOCK",
         "cccccccccccccccccccccccccccccccccccccccc",
-        "PARTIAL",
-        "UNKNOWN",
+        "COMPLETE",
+        "HIGH",
         "WAITING"
       ],
       "mustNotContain": [
@@ -245,6 +245,7 @@
     "configValid": true
   },
   "notes": [
-    "Fixed oracle for acceptance, not proof that risk/gate/model modules are implemented."
+    "Fixed oracle for acceptance, not proof that risk/gate/model modules are implemented.",
+    "Reviewed against the C model boundary: invalid envelope/file is rejected; retained high findings remain HIGH even when location/evidence needs human verification."
   ]
 }

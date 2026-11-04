@@ -66,8 +66,8 @@ B 应返回 C0（本地窗口）和 C1（rules 中定义）；C 从原始模型�
 2. 试跑配置是最多 5 文件、局部前后各 20 行、每文件 1 定义/最多 80 行、输入 6000 token、输出预留 1000、最多 7 次调用、单次 30 秒、分析 240 秒、发布预留 30 秒、可重试一次。数字未经效果验证。
 3. 两个重叠局部窗口合并；超过 80 行的可选定义在本套样例里整体省略并记 CONTEXT_BUDGET。团队如选择截取，须同步更新预期。
 4. COMPLETE 表示必要分析完成，不代表没有 bug。没有支持文件用新增候选状态 NOT_APPLICABLE，默认人工确认。此状态尚未写入原技术规范。
-5. 有 VERIFIED HIGH 或敏感路径先判 HIGH；否则必要分析不全判 UNKNOWN；其次 medium finding 或规模阈值判 MEDIUM；其余 LOW。规模阈值 >=200 增删行、>=3 文件。
-6. UNVERIFIED/UNLOCATED 问题保留、披露并影响完整性，不直接算 VERIFIED HIGH。验证通过只说明结构/引用/位置有效，不说明模型论证一定正确。
+5. 保留下来的 high finding（包括 UNVERIFIED/UNLOCATED）或敏感路径先判 HIGH；否则必要分析不全判 UNKNOWN；其次 medium finding 或规模阈值判 MEDIUM；其余 LOW。HIGH 表示人工审查优先级，不证明缺陷真实存在。规模阈值 >=200 增删行、>=3 文件。
+6. 位置或证据有问题时保留可解析 finding 并披露 validation，清除无效证据 ID；必要校验失败产生 required omission，使分析 PARTIAL。显式 line=null 是允许的正文建议，UNLOCATED 披露本身不使分析不完整。无法归属本次输入文件或整个输出格式无效时拒绝该条；没有可用分析则 FAILED。验证通过只说明结构/引用/位置有效，不说明模型论证一定正确。
 7. Gate 顺序：无效配置 ERROR；旧 head STALE；有效请求修改 WAITING；HIGH/UNKNOWN/不完整/不适用须当前版本人工批准；其余 COMPLETE LOW/MEDIUM 自动通过。ERROR/STALE 不能靠批准数量覆盖。
 8. 作者、Bot、read/triage 权限和旧提交批准不计入。COMMENTED 保留先前有效批准；DISMISSED 撤销，CHANGES_REQUESTED 优先于其他人的批准。这里只规定团队严格演示策略，不概括 GitHub 所有默认行为。
 9. 人工接管后允许 Gate PASS，但 FAILED/PARTIAL 和 UNKNOWN/HIGH 仍保留。
@@ -125,7 +125,7 @@ const raw = await model.complete('src/caller.ts');
 - `empty-content`（c/d/f；development）：provider 返回空字符串，不能 LGTM。预期 `FAILED / UNKNOWN / WAITING`。
 - `invalid-json`（c/d/f；development）：provider 返回非 JSON。预期 `FAILED / UNKNOWN / WAITING`。
 - `invalid-fields`（c/d/f；development）：JSON 可解析但 severity 不合法。预期 `FAILED / UNKNOWN / WAITING`。
-- `invalid-evidence`（c/d/f；development）：引用不存在的 C404，不当成有效 HIGH。预期 `FAILED / UNKNOWN / WAITING`。
+- `invalid-evidence`（c/d/f；development）：引用不存在的 C404 时清除引用、标记 UNVERIFIED，保留高风险提示。预期 `PARTIAL / HIGH / WAITING`。
 - `unknown-human-override`（a/d/e；development）：失败后人工接管，状态仍 FAILED 和 UNKNOWN。预期 `FAILED / UNKNOWN / PASS`。
 - `timeout`（a/c/f；development）：请求超时且有限重试用完。预期 `FAILED / UNKNOWN / WAITING`。
 - `rate-limit-recovered`（c/f；development）：429 后一次重试成功。预期 `COMPLETE / LOW / PASS`。
@@ -136,7 +136,7 @@ const raw = await model.complete('src/caller.ts');
 - `context-budget`（b/f；development）：可选定义超过 80 行上限，裁剪并记录。预期 `COMPLETE / LOW / PASS`。
 - `context-dedup`（b/f；development）：两个 hunk 的局部窗口重叠，只返回一份范围。预期 `COMPLETE / LOW / PASS`。
 - `partial-high`（a/c/d/e/f；development）：一个文件成功 HIGH，另一文件失败，保留已知 HIGH。预期 `PARTIAL / HIGH / WAITING`。
-- `unlocated-finding`（c/d/e；development）：问题不能定位时保留正文并标记不完整。预期 `PARTIAL / UNKNOWN / WAITING`。
+- `unlocated-finding`（c/d/e；development）：显式 line=null 的建议保留正文并标记 UNLOCATED；可用分析已完成。预期 `COMPLETE / HIGH / WAITING`。
 - `not-applicable`（a/d/e/f；development）：只有 Markdown，未分析不等于 LGTM。预期 `NOT_APPLICABLE / LOW / WAITING`。
 - `sensitive-path`（a/d/e/f；development）：只有 workflow 变更，仍扫描敏感路径。预期 `NOT_APPLICABLE / HIGH / WAITING`。
 - `removed-file`（a/d/f；development）：删除 TS 文件不进入 Sprint 1 模型范围。预期 `NOT_APPLICABLE / LOW / WAITING`。
@@ -157,7 +157,7 @@ const raw = await model.complete('src/caller.ts');
 - `distinct-diff-base`（a/b/f；development）：目标分支快照不同于真正 diff 基准，不能混用。预期 `COMPLETE / LOW / PASS`。
 - `context-bug-diff-only`（c/f；development）：同一跨文件问题的 diff-only 配对输入，不提供上下文证据。预期 `COMPLETE / HIGH / WAITING`。
 - `invalid-file`（c/f；development）：模型提及不在本次输入的文件，不能计作有效发现。预期 `FAILED / UNKNOWN / WAITING`。
-- `invalid-line`（c/e/f；development）：越界行号回退正文，不能编造行内位置。预期 `PARTIAL / UNKNOWN / WAITING`。
+- `invalid-line`（c/e/f；development）：越界行号清空并标记 UNVERIFIED，保留高风险提示及必要校验遗漏。预期 `PARTIAL / HIGH / WAITING`。
 - `renamed-file`（a/d/f；development）：重命名 TS 文件明确排除模型分析。预期 `NOT_APPLICABLE / LOW / WAITING`。
 - `unsupported-tsx`（a/d/f；development）：TSX 在 Sprint 1 明确排除范围。预期 `NOT_APPLICABLE / LOW / WAITING`。
 - `analysis-budget`（a/b/c/f；development）：整个分析阶段预算耗尽，不再发请求。预期 `FAILED / UNKNOWN / WAITING`。
