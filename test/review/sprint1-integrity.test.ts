@@ -1,5 +1,5 @@
 import { manifest, loadFixture, fixtureDirectory } from '../support/sprint1-fixture';
-import { replayUnifiedDiff, verifyFixtureDiffs, verifyGateFixture } from '../support/sprint1-integrity';
+import { replayUnifiedDiff, verifyFixtureDiffs, verifyGateFixture, verifyEvidenceFixture } from '../support/sprint1-integrity';
 import type { GateContext, DecideGate } from '../../src/review/contracts';
 
 const sample = (id: string) => {
@@ -46,6 +46,49 @@ describe('Reject tampered fixture expectations (not production Gate tests)', () 
     const { fixture } = sample('approval-dismissed');
     fixture.expected.result.gate.validApprovers = ['reviewer-b'];
     expect(() => verifyGateFixture(fixture)).toThrow('Invalid effective approver');
+  });
+  test('an oracle cannot lower the configured human approval threshold', () => {
+    const { fixture } = sample('approval-duplicate');
+    fixture.expected.result.gate.state = 'PASS';
+    fixture.expected.result.gate.requiredApprovals = 1;
+    expect(() => verifyGateFixture(fixture)).toThrow('Approval threshold mismatch');
+  });
+  test('login casing cannot count a reviewer twice or allow author self-approval', () => {
+    const { fixture } = sample('approval-two-people');
+    fixture.expected.result.gate.validApprovers = ['reviewer-b', 'REVIEWER-B'];
+    expect(() => verifyGateFixture(fixture)).toThrow('Duplicate approvers');
+    fixture.expected.result.gate.validApprovers = [fixture.input.author.toUpperCase()];
+    expect(() => verifyGateFixture(fixture)).toThrow('Author cannot approve');
+  });
+  test('case changes and timestamp offsets do not hide a later changes request', () => {
+    const { fixture } = sample('high-approved');
+    fixture.gateContext.reviews.push({
+      ...fixture.gateContext.reviews[0], id: 2, login: 'REVIEWER-B',
+      state: 'CHANGES_REQUESTED', submittedAt: '2026-11-02T20:00:02-04:00',
+    });
+    expect(() => verifyGateFixture(fixture)).toThrow('Invalid effective approver');
+  });
+  test('dangling evidence and lower risk for a retained high finding are rejected', async () => {
+    const { fixture, directory } = sample('invalid-evidence');
+    fixture.expected.result.findings[0].evidenceIds = ['C404'];
+    await expect(verifyEvidenceFixture(fixture, directory)).rejects.toThrow('Dangling evidence reference');
+    fixture.expected.result.findings[0].evidenceIds = [];
+    fixture.expected.result.risk.level = 'UNKNOWN';
+    await expect(verifyEvidenceFixture(fixture, directory)).rejects.toThrow('Retained high finding must remain HIGH');
+  });
+  test('LEFT evidence uses diffBaseSha and cannot be borrowed from headSha', async () => {
+    const { fixture, directory } = sample('distinct-diff-base');
+    const snippet = fixture.expected.result.snippets[0];
+    snippet.ref = fixture.input.diffBaseSha;
+    snippet.code = snippet.code.replace('Boolean(isAllowed(role))', 'isAllowed(role)');
+    fixture.expected.result.findings = [{
+      id: 'F-left', file: 'src/caller.ts', side: 'LEFT', line: 4,
+      severity: 'medium', message: 'Check removed behavior', evidenceIds: [snippet.id], validation: 'VERIFIED',
+    }];
+    await expect(verifyEvidenceFixture(fixture, directory)).resolves.toBeUndefined();
+    snippet.ref = fixture.input.headSha;
+    snippet.code = snippet.code.replace('return isAllowed(role);', 'return Boolean(isAllowed(role));');
+    await expect(verifyEvidenceFixture(fixture, directory)).rejects.toThrow('Evidence side/ref mismatch');
   });
   test('failure fixture cannot drop its missing-patch disclosure', async () => {
     const { fixture, directory } = sample('missing-patch');

@@ -1,13 +1,13 @@
 {
   "id": "invalid-evidence",
-  "title": "引用不存在的 C404，不当成有效 HIGH",
+  "title": "无效证据清空引用，保留高风险提示并披露分析缺口",
   "owners": [
     "c",
     "d",
     "f"
   ],
   "split": "development",
-  "purpose": "引用不存在的 C404，不当成有效 HIGH",
+  "purpose": "无效证据清空引用，保留高风险提示并披露分析缺口",
   "input": {
     "schemaVersion": "1",
     "runId": "fixture-invalid-evidence",
@@ -141,12 +141,14 @@
       "headSha": "cccccccccccccccccccccccccccccccccccccccc",
       "mode": "context",
       "provider": "mock",
-      "analysisStatus": "FAILED",
+      "analysisStatus": "PARTIAL",
       "scope": {
         "supportedFiles": [
           "src/caller.ts"
         ],
-        "analyzedFiles": [],
+        "analyzedFiles": [
+          "src/caller.ts"
+        ],
         "excludedFiles": []
       },
       "snippets": [
@@ -184,17 +186,15 @@
           "line": 4,
           "severity": "high",
           "message": "权限判断被反转：管理员返回 false，其他角色返回 true。",
-          "evidenceIds": [
-            "C404"
-          ],
+          "evidenceIds": [],
           "id": "F1",
           "validation": "UNVERIFIED"
         }
       ],
       "risk": {
-        "level": "UNKNOWN",
+        "level": "HIGH",
         "factors": [
-          "ANALYSIS_UNAVAILABLE"
+          "RETAINED_HIGH_FINDING"
         ],
         "ruleVersion": "sprint1-v1"
       },
@@ -228,8 +228,8 @@
       "contains": [
         "MOCK",
         "cccccccccccccccccccccccccccccccccccccccc",
-        "FAILED",
-        "UNKNOWN",
+        "PARTIAL",
+        "HIGH",
         "WAITING"
       ],
       "mustNotContain": [
@@ -243,6 +243,7 @@
     "configValid": true
   },
   "notes": [
-    "Fixed oracle for acceptance, not proof that risk/gate/model modules are implemented."
+    "Fixed oracle for acceptance, not proof that risk/gate/model modules are implemented.",
+    "Reviewed against the C model boundary: invalid envelope/file is rejected; retained high findings remain HIGH even when location/evidence needs human verification."
   ]
 }

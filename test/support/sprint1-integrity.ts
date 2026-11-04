@@ -84,16 +84,23 @@ export async function verifyFixtureDiffs(fixture: SprintFixture, directory: stri
 /** Check an oracle's necessary invariants; this deliberately does not compute Gate. */
 export function verifyGateFixture(fixture: SprintFixture): void {
   const { input, gateContext, expected } = fixture;
-  assert.strictEqual(gateContext.prAuthor, input.author, 'Gate author mismatch');
+  const identity = (login: string) => login.toLowerCase();
+  assert.strictEqual(identity(gateContext.prAuthor), identity(input.author), 'Gate author mismatch');
   assert.strictEqual(gateContext.reviewedHeadSha, input.headSha, 'Reviewed head mismatch');
   const { gate, risk, analysisStatus } = expected.result;
-  assert.strictEqual(new Set(gate.validApprovers).size, gate.validApprovers.length, 'Duplicate approvers');
+  assert.strictEqual(new Set(gate.validApprovers.map(identity)).size, gate.validApprovers.length, 'Duplicate approvers');
+  if (gateContext.configValid) {
+    const required = (fixture.config as { requiredApprovals: unknown }).requiredApprovals;
+    assert(typeof required === 'number' && Number.isInteger(required) && required >= 1, 'Invalid approval threshold');
+    assert.strictEqual(gate.requiredApprovals, required, 'Approval threshold mismatch');
+  }
   const permission = new Set(['write', 'maintain', 'admin']);
+  const effectiveReview = (login: string) => gateContext.reviews
+    .filter((review) => identity(review.login) === identity(login) && review.state !== 'COMMENTED')
+    .slice().sort((a, b) => Date.parse(a.submittedAt) - Date.parse(b.submittedAt) || a.id - b.id).pop();
   for (const login of gate.validApprovers) {
-    assert.notStrictEqual(login, input.author, 'Author cannot approve');
-    const effective = gateContext.reviews
-      .filter((review) => review.login === login && review.state !== 'COMMENTED')
-      .slice().sort((a, b) => a.submittedAt.localeCompare(b.submittedAt) || a.id - b.id).pop();
+    assert.notStrictEqual(identity(login), identity(input.author), 'Author cannot approve');
+    const effective = effectiveReview(login);
     assert(effective, 'Missing approval history');
     assert(effective.state === 'APPROVED' && effective.actorType === 'User' && permission.has(effective.permission) && effective.commitSha === input.headSha, 'Invalid effective approver');
   }
@@ -104,10 +111,44 @@ export function verifyGateFixture(fixture: SprintFixture): void {
     if (risk.level === 'HIGH' || risk.level === 'UNKNOWN' || analysisStatus !== 'COMPLETE') {
       assert(gate.validApprovers.length >= gate.requiredApprovals && gate.requiredApprovals >= 1, 'Missing human approval');
     }
-    const users = new Set(gateContext.reviews.filter((review) => review.actorType === 'User' && permission.has(review.permission) && review.login !== input.author).map((review) => review.login));
+    const users = new Set(gateContext.reviews.filter((review) => review.actorType === 'User' && permission.has(review.permission) && identity(review.login) !== identity(input.author)).map((review) => identity(review.login)));
     for (const login of users) {
-      const decision = gateContext.reviews.filter((r) => r.login === login && r.state !== 'COMMENTED').slice().sort((a, b) => a.submittedAt.localeCompare(b.submittedAt) || a.id - b.id).pop();
+      const decision = effectiveReview(login);
       assert(decision?.state !== 'CHANGES_REQUESTED', 'Unresolved changes request');
     }
+  }
+}
+
+/** Evidence must remain tied to the reviewed snapshot even in a handwritten oracle. */
+export async function verifyEvidenceFixture(fixture: SprintFixture, directory: string): Promise<void> {
+  const { input, expected } = fixture;
+  const { snippets, findings } = expected.result;
+  const read = createSnapshotReader(fixture, directory);
+  assert.strictEqual(new Set(snippets.map((snippet) => snippet.id)).size, snippets.length, 'Duplicate evidence ID');
+  for (const snippet of snippets) {
+    assert([input.headSha, input.diffBaseSha].includes(snippet.ref), 'Evidence uses unrelated snapshot');
+    assert(Number.isInteger(snippet.startLine) && Number.isInteger(snippet.endLine) && snippet.startLine >= 1 && snippet.endLine >= snippet.startLine, 'Invalid evidence range');
+    const lines = sourceLines(await read(snippet.file, snippet.ref));
+    assert(snippet.endLine <= lines.length, 'Evidence exceeds snapshot');
+    assert.strictEqual(lines.slice(snippet.startLine - 1, snippet.endLine).join('\n'), snippet.code, 'Evidence contradicts snapshot');
+  }
+  for (const finding of findings) {
+    const changed = input.changedFiles.find((file) => file.path === finding.file);
+    assert(changed, 'Finding refers to a file outside this PR');
+    assert(['LEFT', 'RIGHT'].includes(finding.side), 'Invalid finding side');
+    const ref = finding.side === 'LEFT' ? input.diffBaseSha : input.headSha;
+    for (const id of finding.evidenceIds) {
+      const snippet = snippets.find((item) => item.id === id);
+      assert(snippet, 'Dangling evidence reference');
+      assert.strictEqual(snippet.ref, ref, 'Evidence side/ref mismatch');
+    }
+    if (finding.validation === 'VERIFIED') {
+      const file = finding.side === 'LEFT' ? changed.previousPath ?? finding.file : finding.file;
+      const lines = sourceLines(await read(file, ref));
+      assert(finding.line !== null && Number.isInteger(finding.line) && finding.line >= 1 && finding.line <= lines.length, 'Invalid verified finding location');
+    }
+  }
+  if (findings.some((finding) => finding.severity === 'high')) {
+    assert.strictEqual(expected.result.risk.level, 'HIGH', 'Retained high finding must remain HIGH');
   }
 }

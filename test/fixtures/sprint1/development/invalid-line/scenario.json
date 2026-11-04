@@ -175,14 +175,14 @@
         {
           "file": "src/caller.ts",
           "stage": "model",
-          "reason": "UNLOCATED_FINDING",
+          "reason": "UNVERIFIED_FINDING",
           "required": true
         }
       ],
       "findings": [
         {
           "id": "F1",
-          "validation": "UNLOCATED",
+          "validation": "UNVERIFIED",
           "file": "src/caller.ts",
           "side": "RIGHT",
           "line": null,
@@ -194,9 +194,9 @@
         }
       ],
       "risk": {
-        "level": "UNKNOWN",
+        "level": "HIGH",
         "factors": [
-          "ANALYSIS_UNAVAILABLE"
+          "RETAINED_HIGH_FINDING"
         ],
         "ruleVersion": "sprint1-v1"
       },
@@ -231,7 +231,7 @@
         "MOCK",
         "cccccccccccccccccccccccccccccccccccccccc",
         "PARTIAL",
-        "UNKNOWN",
+        "HIGH",
         "WAITING"
       ],
       "mustNotContain": [
@@ -246,6 +246,7 @@
   },
   "notes": [
     "Fixed oracle for acceptance, not proof that risk/gate/model modules are implemented.",
-    "Raw line 999 is invalid; normalized line is null with UNLOCATED status."
+    "Raw line 999 is invalid; normalized line is null with UNLOCATED status.",
+    "Reviewed against the C model boundary: invalid envelope/file is rejected; retained high findings remain HIGH even when location/evidence needs human verification."
   ]
 }

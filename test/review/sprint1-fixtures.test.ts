@@ -7,7 +7,7 @@ import { resolve } from 'path';
 import {
   manifest, loadFixture, fixtureDirectory, createSnapshotReader, createScriptedModel,
 } from '../support/sprint1-fixture';
-import { verifyFixtureDiffs, verifyGateFixture } from '../support/sprint1-integrity';
+import { verifyFixtureDiffs, verifyGateFixture, verifyEvidenceFixture } from '../support/sprint1-integrity';
 import type { ReviewResult, CalculateRisk, DecideGate, CollectContext, RenderReport } from '../../src/review/contracts';
 
 const cases = manifest.scenarios.map((entry) => ({ entry, fixture: loadFixture(entry) }));
@@ -34,6 +34,7 @@ describe('Sprint 1 fixture catalogue (not production acceptance)', () => {
       expect(fixture.owners).toEqual(entry.owners);
       await verifyFixtureDiffs(fixture, fixtureDirectory(entry));
       verifyGateFixture(fixture);
+      await verifyEvidenceFixture(fixture, fixtureDirectory(entry));
       const input = fixture.input;
       const result: ReviewResult = fixture.expected.result;
       expect(input.schemaVersion).toBe('1');
@@ -66,7 +67,7 @@ describe('Sprint 1 fixture catalogue (not production acceptance)', () => {
       expect(result.snippets).toEqual(fixture.expected.context.snippets);
       expect(new Set(result.snippets.map((snippet) => snippet.id)).size).toBe(result.snippets.length);
       for (const snippet of result.snippets) {
-        expect(snippet.ref).toBe(input.headSha);
+        expect([input.headSha, input.diffBaseSha]).toContain(snippet.ref);
         expect(snippet.startLine).toBeGreaterThanOrEqual(1);
         expect(snippet.endLine).toBeGreaterThanOrEqual(snippet.startLine);
         const source = await read(snippet.file, snippet.ref);

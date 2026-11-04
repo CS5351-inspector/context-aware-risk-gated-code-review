@@ -143,7 +143,7 @@ export interface ModelAnalysis {
   analyzedFiles: string[];
   metrics: RunMetrics;
 }
-export interface AnalysisResult extends ModelAnalysis {
+export interface AnalysisResult extends Omit<ModelAnalysis, 'analyzedFiles'> {
   analysisStatus: AnalysisStatus;
   scope: { supportedFiles: string[]; analyzedFiles: string[]; excludedFiles: string[] };
   snippets: ContextSnippet[];
