@@ -20,6 +20,7 @@
 
 - [ ] 实现受控 Diff-only 与 Diff+Context 模式，共用模型适配器、有效参数及 prompt 主体。
 - [ ] 校验输出字段、位置和证据引用；对空响应、无效结果及必要 diff 被跳过的情况补测试，避免错误 LGTM。
+  - [x] 已完成子任务：模型空响应、截断和输出字段校验，防止无效结果成为 LGTM；见 [实现与验证说明](MODEL_RESPONSE_VALIDATION.md)、[响应测试](../test/review-validation.test.ts) 和 [PR 链路测试](../test/review-handler.test.ts)。证据引用与必要 diff 覆盖仍待完成。
 - [ ] 处理超时、限流和有限重试；将实际失败及覆盖范围传给风险和报告模块。
 
 ## Risk Management 与 Gate

@@ -7,6 +7,85 @@ type ReasoningEffort = typeof reasoningEfforts[number];
 const isReasoningEffort = (effort: string): effort is ReasoningEffort =>
   (reasoningEfforts as readonly string[]).includes(effort);
 
+export interface Review {
+  lgtm: boolean;
+  review_comment: string;
+  hunk_header?: string;
+}
+
+export class InvalidReviewResponseError extends Error {
+  constructor(reason: string) {
+    super(`Invalid model review response: ${reason}.`);
+    this.name = 'InvalidReviewResponseError';
+  }
+}
+
+const isRecord = (value: unknown): value is Record<string, unknown> =>
+  typeof value === 'object' && value !== null && !Array.isArray(value);
+
+const isReview = (value: unknown): value is Review => {
+  if (
+    !isRecord(value) ||
+    typeof value.lgtm !== 'boolean' ||
+    typeof value.review_comment !== 'string' ||
+    (value.hunk_header !== undefined && typeof value.hunk_header !== 'string')
+  ) {
+    return false;
+  }
+
+  // A finding needs an explanation; an LGTM must not hide one from the caller.
+  return value.lgtm
+    ? value.review_comment.trim().length === 0
+    : value.review_comment.trim().length > 0;
+};
+
+export const parseReviewResponse = (content: string): Review | Review[] => {
+  let json: unknown;
+  try {
+    json = JSON.parse(content);
+  } catch {
+    throw new InvalidReviewResponseError('expected valid JSON');
+  }
+
+  if (isRecord(json) && 'reviews' in json) {
+    const reviews = json.reviews;
+    if (Array.isArray(reviews) && reviews.every(isReview)) {
+      // An explicit empty array means no findings, unlike an empty API response.
+      return reviews;
+    }
+  } else if (isReview(json)) {
+    // Keep compatibility with the original single-review response format.
+    return json;
+  }
+
+  throw new InvalidReviewResponseError('expected a review or a reviews array with valid fields');
+};
+
+/** 共用 API 信封校验：有效 JSON 也必须正常结束，不能忽略截断或拒答。 */
+export const readReviewContent = (response: unknown): string => {
+  const choice = isRecord(response) && Array.isArray(response.choices) ? response.choices[0] : undefined;
+  if (!isRecord(choice) || !isRecord(choice.message)) {
+    throw new InvalidReviewResponseError('no completion choice');
+  }
+  if (choice.finish_reason !== 'stop' || choice.message.refusal) {
+    throw new InvalidReviewResponseError('generation did not finish normally');
+  }
+  const content = choice.message.content;
+  if (typeof content !== 'string' || !content.trim()) {
+    throw new InvalidReviewResponseError('empty completion content');
+  }
+  return content;
+};
+
+/** 数值默认值只用于未配置时；显式的 0 必须保留，非法配置直接失败。 */
+const numericOption = (name: string, fallback: number, maximum: number): number => {
+  const value = process.env[name] === undefined ? fallback : Number(process.env[name]);
+  if (!Number.isFinite(value) || value < 0 || value > maximum || process.env[name]?.trim() === '') {
+    throw new Error(`Invalid model parameter: ${name}`);
+  }
+  return value;
+};
+
 export class Chat {
   private openai: OpenAI | AzureOpenAI;
   private isAzure: boolean;
@@ -80,6 +159,7 @@ export class Chat {
         '  ]\n' +
         '}\n' +
         'Review each hunk (marked by @@) separately and provide feedback for hunks that need improvement.\n' +
+        'If no hunks need improvement, return {"reviews": []}.\n' +
         'Ensure your response is a valid JSON object with a reviews array.\n';
 
     return `${userPrompt}${jsonFormatRequirement} ${answerLanguage}:
@@ -87,7 +167,47 @@ export class Chat {
     `;
   };
 
-  public codeReview = async (patch: string): Promise<Array<{ lgtm: boolean, review_comment: string, hunk_header?: string }> | { lgtm: boolean, review_comment: string, hunk_header?: string }> => {
+  /** 两种模式和旧接口共用同一套有效模型参数；运行记录不含 API Key。 */
+  public get effectiveParameters(): Record<string, unknown> {
+    const maxTokens = process.env.max_tokens === undefined ? undefined : Number(process.env.max_tokens);
+    if (maxTokens !== undefined && (!Number.isSafeInteger(maxTokens) || maxTokens <= 0)) {
+      throw new Error('Invalid model parameter: max_tokens');
+    }
+    return {
+      model: this.model,
+      ...(this.isReasoningModel ? {} : {
+        temperature: numericOption('temperature', 1, 2),
+        top_p: numericOption('top_p', 1, 1),
+      }),
+      max_tokens: maxTokens,
+      ...this.reasoningEffortOption,
+      response_format: { type: 'json_object' },
+    };
+  }
+
+  /** C 的可靠性调度器传入 signal/timeout/maxRetries=0，避免 SDK 隐藏重试突破总预算。
+   * 旧 codeReview 不传第二参数，继续沿用原有调用约定。
+   */
+  public completeReview = async (
+    prompt: string,
+    options?: { signal: AbortSignal; timeout: number; maxRetries: number; maxOutputTokens: number }
+  ): Promise<unknown> => {
+    const request = {
+      messages: [{ role: 'user' as const, content: prompt }],
+      ...this.effectiveParameters,
+      model: this.model,
+      ...(options ? { max_tokens: options.maxOutputTokens } : {}),
+    };
+    // SDK 类型在这里校验请求；effectiveParameters 也用于可审计的运行记录。
+    const body = request as Parameters<typeof this.openai.chat.completions.create>[0];
+    return options
+      ? this.openai.chat.completions.create(body, {
+        signal: options.signal, timeout: options.timeout, maxRetries: options.maxRetries,
+      })
+      : this.openai.chat.completions.create(body);
+  };
+
+  public codeReview = async (patch: string): Promise<Review[] | Review> => {
     if (!patch) {
       return {
         lgtm: true,
@@ -98,48 +218,7 @@ export class Chat {
     console.time('code-review cost');
     const prompt = this.generatePrompt(patch);
 
-    const isReasoning = this.isReasoningModel;
-
-    const res = await this.openai.chat.completions.create({
-      messages: [
-        {
-          role: 'user',
-          content: prompt,
-        },
-      ],
-      model: this.model,
-      ...(isReasoning ? {} : {
-        temperature: +(process.env.temperature || 0) || 1,
-        top_p: +(process.env.top_p || 0) || 1,
-      }),
-      max_tokens: process.env.max_tokens ? +process.env.max_tokens : undefined,
-      ...this.reasoningEffortOption,
-      response_format: { type: "json_object" },
-    });
-
-    console.timeEnd('code-review cost');
-
-    if (res.choices.length) {
-      try {
-        const json = JSON.parse(res.choices[0].message.content || "");
-        // If response has a 'reviews' array, return it directly
-        if (json.reviews && Array.isArray(json.reviews)) {
-          return json.reviews;
-        }
-        // Otherwise, treat as a single review response
-        return json;
-      } catch (e) {
-        return {
-          lgtm: false,
-          hunk_header: patch.split('\n')[0].startsWith('@@') ? patch.split('\n')[0] : undefined,
-          review_comment: res.choices[0].message.content || ""
-        }
-      }
-    }
-
-    return {
-      lgtm: true,
-      review_comment: ""
-    }
+    const res = await this.completeReview(prompt).finally(() => console.timeEnd('code-review cost'));
+    return parseReviewResponse(readReviewContent(res));
   };
 }
