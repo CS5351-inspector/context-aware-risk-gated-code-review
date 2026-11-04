@@ -1,0 +1,74 @@
+{
+  "family_id": "scheduler-units",
+  "split": "development",
+  "category": "cross-file",
+  "language": "javascript",
+  "requirement": "scheduleRetry(delayMs) must schedule the retry after the requested non-negative duration in milliseconds.",
+  "context_required": true,
+  "context_rationale": "scheduler.js accepts seconds. The unchanged dependency contract establishes why removing division by 1000 makes a 250 ms retry wait 250 seconds.",
+  "entry_file": "review.js",
+  "entry_function": "scheduleRetry",
+  "behavior_checks": [
+    {
+      "args": [
+        250
+      ],
+      "expected": {
+        "scheduledAfterSeconds": 0.25
+      }
+    },
+    {
+      "args": [
+        1000
+      ],
+      "expected": {
+        "scheduledAfterSeconds": 1
+      }
+    },
+    {
+      "args": [
+        0
+      ],
+      "expected": {
+        "scheduledAfterSeconds": 0
+      }
+    }
+  ],
+  "file_hashes": {
+    "base": {
+      "review.js": "9900b3e5796ca9f7d7e091fb22b97d77fdbf696222fbced13c0aa7b93df95fc0",
+      "scheduler.js": "1602e880a90e82b191450dbc8cff215e3e5b5aa5ec36f089e4141389dd7fc9af"
+    },
+    "faulty": {
+      "review.js": "0ef969dbb2aaab1ff973963b8522f21178dfb8ed1024330cc220895340644890",
+      "scheduler.js": "1602e880a90e82b191450dbc8cff215e3e5b5aa5ec36f089e4141389dd7fc9af"
+    },
+    "fixed": {
+      "review.js": "5df9e715a715a72242283fe1170a8bba3eeb1bde7818991108032aef06625e5f",
+      "scheduler.js": "1602e880a90e82b191450dbc8cff215e3e5b5aa5ec36f089e4141389dd7fc9af"
+    }
+  },
+  "provenance": {
+    "kind": "synthetic",
+    "authoring": "AI-assisted, created for CS5351 F MVP",
+    "license": "ISC (repository license)",
+    "external_code_copied": false,
+    "inspiration": "Project evaluation requirements; independently authored minimal example."
+  },
+  "label_status": "provisional",
+  "human_reviewers": [],
+  "expected_faulty_failures": [
+    {
+      "check_index": 0,
+      "actual": {
+        "scheduledAfterSeconds": 250
+      }
+    },
+    {
+      "check_index": 1,
+      "actual": {
+        "scheduledAfterSeconds": 1000
+      }
+    }
+  ]
+}

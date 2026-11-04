@@ -1,0 +1,74 @@
+{
+  "family_id": "grant-enum",
+  "split": "development",
+  "category": "cross-file",
+  "language": "javascript",
+  "requirement": "Download permission is granted only when the policy service returns GRANTED; DENIED and SUSPENDED must return false.",
+  "context_required": true,
+  "context_rationale": "policy.js defines GRANTED=0, DENIED=1 and SUSPENDED=2. Boolean conversion reverses the first two decisions; the numeric contract is not defined in the changed file.",
+  "entry_file": "review.js",
+  "entry_function": "canDownload",
+  "behavior_checks": [
+    {
+      "args": [
+        {
+          "status": "granted"
+        }
+      ],
+      "expected": true
+    },
+    {
+      "args": [
+        {
+          "status": "denied"
+        }
+      ],
+      "expected": false
+    },
+    {
+      "args": [
+        {
+          "status": "suspended"
+        }
+      ],
+      "expected": false
+    }
+  ],
+  "file_hashes": {
+    "base": {
+      "review.js": "e5f7e462e61417bfac0ae57e9d1c45b8a738a35d787f86fd28bccbb06fb7e92b",
+      "policy.js": "7b2e1404294cd3097e515a557aed8dc8423771dd9eac99c42f86e194cd476dd3"
+    },
+    "faulty": {
+      "review.js": "86ecde2342bf578f54740e994af4e2d7f0c07a3de9740dd7e846f79aead377d9",
+      "policy.js": "7b2e1404294cd3097e515a557aed8dc8423771dd9eac99c42f86e194cd476dd3"
+    },
+    "fixed": {
+      "review.js": "50a7b0dbb0f6df3cfd31a1750e7d4fd3a6595f07fed216b266170e491ac701a9",
+      "policy.js": "7b2e1404294cd3097e515a557aed8dc8423771dd9eac99c42f86e194cd476dd3"
+    }
+  },
+  "provenance": {
+    "kind": "synthetic",
+    "authoring": "AI-assisted, created for CS5351 F MVP",
+    "license": "ISC (repository license)",
+    "external_code_copied": false,
+    "inspiration": "Project evaluation requirements; independently authored minimal example."
+  },
+  "label_status": "provisional",
+  "human_reviewers": [],
+  "expected_faulty_failures": [
+    {
+      "check_index": 0,
+      "actual": false
+    },
+    {
+      "check_index": 1,
+      "actual": true
+    },
+    {
+      "check_index": 2,
+      "actual": true
+    }
+  ]
+}

@@ -1,0 +1,18 @@
+{
+  "case_id": "DEV-010",
+  "family_id": "invoice-reduce",
+  "split": "development",
+  "code_variant": "clean",
+  "evaluation_layer": "L2-input-preparation",
+  "semantic_gold_eligible": true,
+  "label_status": "provisional",
+  "input": {
+    "base_dir": "families/invoice-reduce/base",
+    "head_dir": "families/invoice-reduce/clean",
+    "changed_files": [
+      "review.js"
+    ],
+    "diff_file": "cases/DEV-010.diff"
+  },
+  "gold_file": "gold/DEV-010.json"
+}

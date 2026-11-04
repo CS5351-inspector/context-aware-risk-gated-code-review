@@ -1,0 +1,6 @@
+--- a/review.js
++++ b/review.js
+@@ -1,2 +1,2 @@
+ const { lookup, GRANTED } = require('./policy.js');
+-exports.canDownload = (account) => lookup(account) === GRANTED;
++exports.canDownload = (account) => Boolean(lookup(account));

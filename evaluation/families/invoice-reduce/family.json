@@ -1,0 +1,55 @@
+{
+  "family_id": "invoice-reduce",
+  "split": "development",
+  "category": "clean-only",
+  "language": "javascript",
+  "requirement": "For an ordered array of lines with finite non-negative integer quantity and unitPriceCents, sum quantity * unitPriceCents in order; the empty invoice is zero.",
+  "context_required": false,
+  "context_rationale": null,
+  "entry_file": "review.js",
+  "entry_function": "totalCents",
+  "behavior_checks": [
+    {
+      "args": [
+        []
+      ],
+      "expected": 0
+    },
+    {
+      "args": [
+        [
+          {
+            "quantity": 2,
+            "unitPriceCents": 125
+          },
+          {
+            "quantity": 0,
+            "unitPriceCents": 500
+          },
+          {
+            "quantity": 3,
+            "unitPriceCents": 10
+          }
+        ]
+      ],
+      "expected": 280
+    }
+  ],
+  "file_hashes": {
+    "base": {
+      "review.js": "af8f13bfc087b880272f517616fd727bdc4e528ee1a398be05e98ff22f655054"
+    },
+    "clean": {
+      "review.js": "4c109102efbab2e47cfd292d85d8fc9c08b63a2eb3b2e6db8d55fccfd51c495c"
+    }
+  },
+  "provenance": {
+    "kind": "synthetic",
+    "authoring": "AI-assisted, created for CS5351 F MVP",
+    "license": "ISC (repository license)",
+    "external_code_copied": false,
+    "inspiration": "Project evaluation requirements; independently authored minimal example."
+  },
+  "label_status": "provisional",
+  "human_reviewers": []
+}

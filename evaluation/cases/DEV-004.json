@@ -1,0 +1,18 @@
+{
+  "case_id": "DEV-004",
+  "family_id": "scheduler-units",
+  "split": "development",
+  "code_variant": "fixed",
+  "evaluation_layer": "L2-input-preparation",
+  "semantic_gold_eligible": true,
+  "label_status": "provisional",
+  "input": {
+    "base_dir": "families/scheduler-units/base",
+    "head_dir": "families/scheduler-units/fixed",
+    "changed_files": [
+      "review.js"
+    ],
+    "diff_file": "cases/DEV-004.diff"
+  },
+  "gold_file": "gold/DEV-004.json"
+}

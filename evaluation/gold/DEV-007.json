@@ -1,0 +1,25 @@
+{
+  "case_id": "DEV-007",
+  "label_status": "provisional",
+  "human_reviewers": [],
+  "issues": [
+    {
+      "gold_issue_id": "index-boundary-001",
+      "root_cause": "The inclusive upper bound admits index === length and dereferences undefined, throwing instead of returning null.",
+      "severity": "medium",
+      "severity_rationale": "Incorrect behavior on valid documented input; no broader production impact claimed.",
+      "acceptable_locations": [
+        {
+          "file": "review.js",
+          "start_line": 2,
+          "end_line": 2
+        }
+      ],
+      "required_context_files": [],
+      "proof_check_indices": [
+        0,
+        1
+      ]
+    }
+  ]
+}
