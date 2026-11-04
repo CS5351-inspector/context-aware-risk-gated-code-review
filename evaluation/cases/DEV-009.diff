@@ -1,0 +1,11 @@
+--- a/review.js
++++ b/review.js
+@@ -1,7 +1 @@
+-exports.activeIds = (users) => {
+-  const ids = [];
+-  for (const user of users) {
+-    if (user.active) ids.push(user.id);
+-  }
+-  return ids;
+-};
++exports.activeIds = (users) => users.filter((user) => user.active).map((user) => user.id);

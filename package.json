@@ -16,8 +16,10 @@
   "scripts": {
     "start": "node -r dotenv/config ./dist/index.js",
     "test": "jest",
-    "build": "rm -rf dist && rollup -c rollup.config.ts --configPlugin @rollup/plugin-typescript && ncc build src/github-action.cjs -o action",
-    "build:lambda": "ncc build src/aws-lambda.cjs -o lambda"
+    "build": "rm -rf dist && rollup -c rollup.config.mjs && ncc build src/github-action.cjs -o action",
+    "build:lambda": "ncc build src/aws-lambda.cjs -o lambda",
+    "typecheck": "tsc --noEmit --incremental false --checkJs false",
+    "test:evaluation": "node evaluation/validate.cjs && node --test --test-reporter=tap evaluation/tests/dataset.test.cjs"
   },
   "dependencies": {
     "@probot/adapter-aws-lambda-serverless": "^3.0.2",

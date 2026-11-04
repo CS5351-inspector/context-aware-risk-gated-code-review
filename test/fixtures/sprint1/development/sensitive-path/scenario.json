@@ -1,0 +1,178 @@
+{
+  "id": "sensitive-path",
+  "title": "只有 workflow 变更，仍扫描敏感路径",
+  "owners": [
+    "a",
+    "d",
+    "e",
+    "f"
+  ],
+  "split": "development",
+  "purpose": "只有 workflow 变更，仍扫描敏感路径",
+  "input": {
+    "schemaVersion": "1",
+    "runId": "fixture-sensitive-path",
+    "repo": {
+      "owner": "sprint1-team",
+      "name": "inspector-demo"
+    },
+    "sourceRepo": {
+      "owner": "sprint1-team",
+      "name": "inspector-demo"
+    },
+    "prNumber": 42,
+    "author": "author-a",
+    "trigger": "pull_request.opened",
+    "baseSha": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+    "diffBaseSha": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+    "headSha": "cccccccccccccccccccccccccccccccccccccccc",
+    "mode": "diff-only",
+    "diff": "--- a/.github/workflows/demo.yml\n+++ b/.github/workflows/demo.yml\n@@ -1 +1 @@\n-name: before\n+name: after\n",
+    "changedFiles": [
+      {
+        "path": ".github/workflows/demo.yml",
+        "status": "modified",
+        "additions": 1,
+        "deletions": 1,
+        "patch": "--- a/.github/workflows/demo.yml\n+++ b/.github/workflows/demo.yml\n@@ -1 +1 @@\n-name: before\n+name: after\n",
+        "supported": false,
+        "exclusionReason": "OUT_OF_SCOPE"
+      }
+    ]
+  },
+  "config": {
+    "ruleVersion": "sprint1-v1",
+    "requiredApprovals": 1,
+    "mediumChangedLines": 200,
+    "mediumChangedFiles": 3,
+    "sensitivePaths": [
+      ".github/workflows/**",
+      "src/auth/**",
+      "src/permissions/**",
+      "inspector.config.json"
+    ],
+    "maxReportCharacters": 12000,
+    "budget": {
+      "maxFiles": 5,
+      "localWindowLines": 20,
+      "maxDefinitionsPerFile": 1,
+      "maxDefinitionLines": 80,
+      "maxInputTokens": 6000,
+      "reservedOutputTokens": 1000,
+      "maxCalls": 7,
+      "requestTimeoutMs": 30000,
+      "analysisTimeoutMs": 240000,
+      "publishReserveMs": 30000,
+      "maxRetries": 1
+    }
+  },
+  "snapshots": [
+    {
+      "file": ".github/workflows/demo.yml",
+      "ref": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+      "contentFile": "base/.github/workflows/demo.yml.txt"
+    },
+    {
+      "file": ".github/workflows/demo.yml",
+      "ref": "cccccccccccccccccccccccccccccccccccccccc",
+      "contentFile": "head/.github/workflows/demo.yml.txt"
+    }
+  ],
+  "modelAttempts": [],
+  "gateContext": {
+    "currentHeadSha": "cccccccccccccccccccccccccccccccccccccccc",
+    "reviews": [],
+    "configValid": true,
+    "reviewedHeadSha": "cccccccccccccccccccccccccccccccccccccccc",
+    "prAuthor": "author-a"
+  },
+  "preflight": {
+    "measuredInputTokens": null,
+    "remainingCalls": null
+  },
+  "github": {
+    "existingCommentId": null,
+    "publishError": null
+  },
+  "expected": {
+    "context": {
+      "snippets": [],
+      "omissions": []
+    },
+    "result": {
+      "schemaVersion": "1",
+      "runId": "fixture-sensitive-path",
+      "repo": {
+        "owner": "sprint1-team",
+        "name": "inspector-demo"
+      },
+      "prNumber": 42,
+      "headSha": "cccccccccccccccccccccccccccccccccccccccc",
+      "mode": "diff-only",
+      "provider": "mock",
+      "analysisStatus": "NOT_APPLICABLE",
+      "scope": {
+        "supportedFiles": [],
+        "analyzedFiles": [],
+        "excludedFiles": [
+          ".github/workflows/demo.yml"
+        ]
+      },
+      "snippets": [],
+      "omissions": [],
+      "findings": [],
+      "risk": {
+        "level": "HIGH",
+        "factors": [
+          "SENSITIVE_PATH"
+        ],
+        "ruleVersion": "sprint1-v1"
+      },
+      "gate": {
+        "state": "WAITING",
+        "reasons": [
+          "APPROVAL_REQUIRED"
+        ],
+        "requiredApprovals": 1,
+        "validApprovers": []
+      },
+      "metrics": {
+        "model": "scripted-sprint1",
+        "effectiveParameters": {
+          "temperature": 0
+        },
+        "promptVersion": "sprint1-v1",
+        "durationMs": 0,
+        "calls": 0,
+        "inputTokens": null,
+        "outputTokens": null
+      }
+    },
+    "publication": {
+      "status": "PUBLISHED",
+      "commentId": 900,
+      "commitStatus": "pending",
+      "error": null
+    },
+    "report": {
+      "contains": [
+        "MOCK",
+        "cccccccccccccccccccccccccccccccccccccccc",
+        "NOT_APPLICABLE",
+        "HIGH",
+        "WAITING"
+      ],
+      "mustNotContain": [
+        "代码绝对安全",
+        "生产环境已验证"
+      ],
+      "maxCharacters": 12000,
+      "action": "CREATE"
+    },
+    "shouldCallModel": false,
+    "configValid": true
+  },
+  "notes": [
+    "Fixed oracle for acceptance, not proof that risk/gate/model modules are implemented."
+  ]
+}

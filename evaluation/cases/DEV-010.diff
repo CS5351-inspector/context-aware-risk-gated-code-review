@@ -1,0 +1,9 @@
+--- a/review.js
++++ b/review.js
+@@ -1,5 +1 @@
+-exports.totalCents = (lines) => {
+-  let total = 0;
+-  for (const line of lines) total += line.quantity * line.unitPriceCents;
+-  return total;
+-};
++exports.totalCents = (lines) => lines.reduce((total, line) => total + line.quantity * line.unitPriceCents, 0);

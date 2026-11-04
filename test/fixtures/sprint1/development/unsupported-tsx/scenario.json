@@ -1,0 +1,177 @@
+{
+  "id": "unsupported-tsx",
+  "title": "TSX 在 Sprint 1 明确排除范围",
+  "owners": [
+    "a",
+    "d",
+    "f"
+  ],
+  "split": "development",
+  "purpose": "TSX 在 Sprint 1 明确排除范围",
+  "input": {
+    "schemaVersion": "1",
+    "runId": "fixture-unsupported-tsx",
+    "repo": {
+      "owner": "sprint1-team",
+      "name": "inspector-demo"
+    },
+    "sourceRepo": {
+      "owner": "sprint1-team",
+      "name": "inspector-demo"
+    },
+    "prNumber": 42,
+    "author": "author-a",
+    "trigger": "pull_request.opened",
+    "baseSha": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+    "diffBaseSha": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+    "headSha": "cccccccccccccccccccccccccccccccccccccccc",
+    "mode": "diff-only",
+    "diff": "--- a/src/view.tsx\n+++ b/src/view.tsx\n@@ -1 +1 @@\n-export const View = () => <div>Before</div>;\n+export const View = () => <div>After</div>;\n",
+    "changedFiles": [
+      {
+        "path": "src/view.tsx",
+        "status": "modified",
+        "additions": 1,
+        "deletions": 1,
+        "patch": "--- a/src/view.tsx\n+++ b/src/view.tsx\n@@ -1 +1 @@\n-export const View = () => <div>Before</div>;\n+export const View = () => <div>After</div>;\n",
+        "supported": false,
+        "exclusionReason": "UNSUPPORTED_EXTENSION"
+      }
+    ]
+  },
+  "config": {
+    "ruleVersion": "sprint1-v1",
+    "requiredApprovals": 1,
+    "mediumChangedLines": 200,
+    "mediumChangedFiles": 3,
+    "sensitivePaths": [
+      ".github/workflows/**",
+      "src/auth/**",
+      "src/permissions/**",
+      "inspector.config.json"
+    ],
+    "maxReportCharacters": 12000,
+    "budget": {
+      "maxFiles": 5,
+      "localWindowLines": 20,
+      "maxDefinitionsPerFile": 1,
+      "maxDefinitionLines": 80,
+      "maxInputTokens": 6000,
+      "reservedOutputTokens": 1000,
+      "maxCalls": 7,
+      "requestTimeoutMs": 30000,
+      "analysisTimeoutMs": 240000,
+      "publishReserveMs": 30000,
+      "maxRetries": 1
+    }
+  },
+  "snapshots": [
+    {
+      "file": "src/view.tsx",
+      "ref": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+      "contentFile": "base/src/view.tsx.txt"
+    },
+    {
+      "file": "src/view.tsx",
+      "ref": "cccccccccccccccccccccccccccccccccccccccc",
+      "contentFile": "head/src/view.tsx.txt"
+    }
+  ],
+  "modelAttempts": [],
+  "gateContext": {
+    "currentHeadSha": "cccccccccccccccccccccccccccccccccccccccc",
+    "reviews": [],
+    "configValid": true,
+    "reviewedHeadSha": "cccccccccccccccccccccccccccccccccccccccc",
+    "prAuthor": "author-a"
+  },
+  "preflight": {
+    "measuredInputTokens": null,
+    "remainingCalls": null
+  },
+  "github": {
+    "existingCommentId": null,
+    "publishError": null
+  },
+  "expected": {
+    "context": {
+      "snippets": [],
+      "omissions": []
+    },
+    "result": {
+      "schemaVersion": "1",
+      "runId": "fixture-unsupported-tsx",
+      "repo": {
+        "owner": "sprint1-team",
+        "name": "inspector-demo"
+      },
+      "prNumber": 42,
+      "headSha": "cccccccccccccccccccccccccccccccccccccccc",
+      "mode": "diff-only",
+      "provider": "mock",
+      "analysisStatus": "NOT_APPLICABLE",
+      "scope": {
+        "supportedFiles": [],
+        "analyzedFiles": [],
+        "excludedFiles": [
+          "src/view.tsx"
+        ]
+      },
+      "snippets": [],
+      "omissions": [],
+      "findings": [],
+      "risk": {
+        "level": "LOW",
+        "factors": [
+          "NO_SUPPORTED_FILES"
+        ],
+        "ruleVersion": "sprint1-v1"
+      },
+      "gate": {
+        "state": "WAITING",
+        "reasons": [
+          "APPROVAL_REQUIRED"
+        ],
+        "requiredApprovals": 1,
+        "validApprovers": []
+      },
+      "metrics": {
+        "model": "scripted-sprint1",
+        "effectiveParameters": {
+          "temperature": 0
+        },
+        "promptVersion": "sprint1-v1",
+        "durationMs": 0,
+        "calls": 0,
+        "inputTokens": null,
+        "outputTokens": null
+      }
+    },
+    "publication": {
+      "status": "PUBLISHED",
+      "commentId": 900,
+      "commitStatus": "pending",
+      "error": null
+    },
+    "report": {
+      "contains": [
+        "MOCK",
+        "cccccccccccccccccccccccccccccccccccccccc",
+        "NOT_APPLICABLE",
+        "LOW",
+        "WAITING"
+      ],
+      "mustNotContain": [
+        "代码绝对安全",
+        "生产环境已验证"
+      ],
+      "maxCharacters": 12000,
+      "action": "CREATE"
+    },
+    "shouldCallModel": false,
+    "configValid": true
+  },
+  "notes": [
+    "Fixed oracle for acceptance, not proof that risk/gate/model modules are implemented."
+  ]
+}

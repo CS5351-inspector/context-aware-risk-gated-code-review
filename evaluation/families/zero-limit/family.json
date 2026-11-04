@@ -1,0 +1,61 @@
+{
+  "family_id": "zero-limit",
+  "split": "development",
+  "category": "diff-sufficient",
+  "language": "javascript",
+  "requirement": "A non-negative integer limit is valid, including zero (disable processing). Only null or undefined selects the default 20.",
+  "context_required": false,
+  "context_rationale": null,
+  "entry_file": "review.js",
+  "entry_function": "batchLimit",
+  "behavior_checks": [
+    {
+      "args": [
+        0
+      ],
+      "expected": 0
+    },
+    {
+      "args": [
+        null
+      ],
+      "expected": 20
+    },
+    {
+      "args": [],
+      "expected": 20
+    },
+    {
+      "args": [
+        3
+      ],
+      "expected": 3
+    }
+  ],
+  "file_hashes": {
+    "base": {
+      "review.js": "b924a32aa9ef8167b7f14bc58d72985fed2c289c46952b00502b8133d4e5af90"
+    },
+    "faulty": {
+      "review.js": "cf330b1cc121d03d3e5ee2cdc45690a21779d8ffd0be4cdc31f1bc250e27fb3a"
+    },
+    "fixed": {
+      "review.js": "82231fe0ea4623778d9cabad44529550ca3dce0b8a92a8f5de12aa03f614143a"
+    }
+  },
+  "provenance": {
+    "kind": "synthetic",
+    "authoring": "AI-assisted, created for CS5351 F MVP",
+    "license": "ISC (repository license)",
+    "external_code_copied": false,
+    "inspiration": "Zero-default edge case from peer fixture discussion; all source independently authored."
+  },
+  "label_status": "provisional",
+  "human_reviewers": [],
+  "expected_faulty_failures": [
+    {
+      "check_index": 0,
+      "actual": 20
+    }
+  ]
+}

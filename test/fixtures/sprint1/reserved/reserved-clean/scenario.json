@@ -1,0 +1,186 @@
+{
+  "id": "reserved-clean",
+  "title": "公开保留样例：无缺陷的等价表达式",
+  "owners": [
+    "c",
+    "f"
+  ],
+  "split": "reserved",
+  "purpose": "公开保留样例：无缺陷的等价表达式",
+  "input": {
+    "schemaVersion": "1",
+    "runId": "fixture-reserved-clean",
+    "repo": {
+      "owner": "sprint1-team",
+      "name": "inspector-demo"
+    },
+    "sourceRepo": {
+      "owner": "sprint1-team",
+      "name": "inspector-demo"
+    },
+    "prNumber": 42,
+    "author": "author-a",
+    "trigger": "pull_request.opened",
+    "baseSha": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+    "diffBaseSha": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+    "headSha": "cccccccccccccccccccccccccccccccccccccccc",
+    "mode": "diff-only",
+    "diff": "--- a/src/math.ts\n+++ b/src/math.ts\n@@ -1,3 +1,3 @@\n export function double(value: number) {\n-  return value + value;\n+  return value * 2;\n }\n",
+    "changedFiles": [
+      {
+        "path": "src/math.ts",
+        "status": "modified",
+        "additions": 1,
+        "deletions": 1,
+        "patch": "--- a/src/math.ts\n+++ b/src/math.ts\n@@ -1,3 +1,3 @@\n export function double(value: number) {\n-  return value + value;\n+  return value * 2;\n }\n",
+        "supported": true
+      }
+    ]
+  },
+  "config": {
+    "ruleVersion": "sprint1-v1",
+    "requiredApprovals": 1,
+    "mediumChangedLines": 200,
+    "mediumChangedFiles": 3,
+    "sensitivePaths": [
+      ".github/workflows/**",
+      "src/auth/**",
+      "src/permissions/**",
+      "inspector.config.json"
+    ],
+    "maxReportCharacters": 12000,
+    "budget": {
+      "maxFiles": 5,
+      "localWindowLines": 20,
+      "maxDefinitionsPerFile": 1,
+      "maxDefinitionLines": 80,
+      "maxInputTokens": 6000,
+      "reservedOutputTokens": 1000,
+      "maxCalls": 7,
+      "requestTimeoutMs": 30000,
+      "analysisTimeoutMs": 240000,
+      "publishReserveMs": 30000,
+      "maxRetries": 1
+    }
+  },
+  "snapshots": [
+    {
+      "file": "src/math.ts",
+      "ref": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+      "contentFile": "base/src/math.ts.txt"
+    },
+    {
+      "file": "src/math.ts",
+      "ref": "cccccccccccccccccccccccccccccccccccccccc",
+      "contentFile": "head/src/math.ts.txt"
+    }
+  ],
+  "modelAttempts": [
+    {
+      "file": "src/math.ts",
+      "outcome": "response",
+      "content": "{\"findings\": []}",
+      "choices": 1,
+      "elapsedMs": 10,
+      "usage": null
+    }
+  ],
+  "gateContext": {
+    "currentHeadSha": "cccccccccccccccccccccccccccccccccccccccc",
+    "reviews": [],
+    "configValid": true,
+    "reviewedHeadSha": "cccccccccccccccccccccccccccccccccccccccc",
+    "prAuthor": "author-a"
+  },
+  "preflight": {
+    "measuredInputTokens": null,
+    "remainingCalls": null
+  },
+  "github": {
+    "existingCommentId": null,
+    "publishError": null
+  },
+  "expected": {
+    "context": {
+      "snippets": [],
+      "omissions": []
+    },
+    "result": {
+      "schemaVersion": "1",
+      "runId": "fixture-reserved-clean",
+      "repo": {
+        "owner": "sprint1-team",
+        "name": "inspector-demo"
+      },
+      "prNumber": 42,
+      "headSha": "cccccccccccccccccccccccccccccccccccccccc",
+      "mode": "diff-only",
+      "provider": "mock",
+      "analysisStatus": "COMPLETE",
+      "scope": {
+        "supportedFiles": [
+          "src/math.ts"
+        ],
+        "analyzedFiles": [
+          "src/math.ts"
+        ],
+        "excludedFiles": []
+      },
+      "snippets": [],
+      "omissions": [],
+      "findings": [],
+      "risk": {
+        "level": "LOW",
+        "factors": [
+          "NO_ESCALATION"
+        ],
+        "ruleVersion": "sprint1-v1"
+      },
+      "gate": {
+        "state": "PASS",
+        "reasons": [
+          "COMPLETE_LOW_MEDIUM"
+        ],
+        "requiredApprovals": 1,
+        "validApprovers": []
+      },
+      "metrics": {
+        "model": "scripted-sprint1",
+        "effectiveParameters": {
+          "temperature": 0
+        },
+        "promptVersion": "sprint1-v1",
+        "durationMs": 10,
+        "calls": 1,
+        "inputTokens": null,
+        "outputTokens": null
+      }
+    },
+    "publication": {
+      "status": "PUBLISHED",
+      "commentId": 900,
+      "commitStatus": "success",
+      "error": null
+    },
+    "report": {
+      "contains": [
+        "MOCK",
+        "cccccccccccccccccccccccccccccccccccccccc",
+        "COMPLETE",
+        "LOW",
+        "PASS"
+      ],
+      "mustNotContain": [
+        "代码绝对安全",
+        "生产环境已验证"
+      ],
+      "maxCharacters": 12000,
+      "action": "CREATE"
+    },
+    "shouldCallModel": true,
+    "configValid": true
+  },
+  "notes": [
+    "Fixed oracle for acceptance, not proof that risk/gate/model modules are implemented."
+  ]
+}

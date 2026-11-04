@@ -1,0 +1,3 @@
+export function limit(value: number | undefined) {
+  return value ?? 10;
+}

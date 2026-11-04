@@ -1,0 +1,9 @@
+--- a/review.js
++++ b/review.js
+@@ -1,2 +1,5 @@
+ const { after } = require('./scheduler.js');
+-exports.scheduleRetry = (delayMs) => after(delayMs / 1000);
++exports.scheduleRetry = (delayMs) => {
++  const seconds = delayMs / 1000;
++  return after(seconds);
++};

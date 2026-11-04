@@ -1,0 +1,231 @@
+{
+  "id": "distinct-diff-base",
+  "title": "目标分支快照不同于真正 diff 基准，不能混用",
+  "owners": [
+    "a",
+    "b",
+    "f"
+  ],
+  "split": "development",
+  "purpose": "目标分支快照不同于真正 diff 基准，不能混用",
+  "input": {
+    "schemaVersion": "1",
+    "runId": "fixture-distinct-diff-base",
+    "repo": {
+      "owner": "sprint1-team",
+      "name": "inspector-demo"
+    },
+    "sourceRepo": {
+      "owner": "sprint1-team",
+      "name": "inspector-demo"
+    },
+    "prNumber": 42,
+    "author": "author-a",
+    "trigger": "pull_request.opened",
+    "baseSha": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+    "diffBaseSha": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+    "headSha": "cccccccccccccccccccccccccccccccccccccccc",
+    "mode": "context",
+    "diff": "--- a/src/caller.ts\n+++ b/src/caller.ts\n@@ -1,5 +1,5 @@\n import { isAllowed } from \"./rules.js\";\n \n export function canDelete(role: string) {\n-  return isAllowed(role);\n+  return Boolean(isAllowed(role));\n }\n",
+    "changedFiles": [
+      {
+        "path": "src/caller.ts",
+        "status": "modified",
+        "additions": 1,
+        "deletions": 1,
+        "patch": "--- a/src/caller.ts\n+++ b/src/caller.ts\n@@ -1,5 +1,5 @@\n import { isAllowed } from \"./rules.js\";\n \n export function canDelete(role: string) {\n-  return isAllowed(role);\n+  return Boolean(isAllowed(role));\n }\n",
+        "supported": true
+      }
+    ]
+  },
+  "config": {
+    "ruleVersion": "sprint1-v1",
+    "requiredApprovals": 1,
+    "mediumChangedLines": 200,
+    "mediumChangedFiles": 3,
+    "sensitivePaths": [
+      ".github/workflows/**",
+      "src/auth/**",
+      "src/permissions/**",
+      "inspector.config.json"
+    ],
+    "maxReportCharacters": 12000,
+    "budget": {
+      "maxFiles": 5,
+      "localWindowLines": 20,
+      "maxDefinitionsPerFile": 1,
+      "maxDefinitionLines": 80,
+      "maxInputTokens": 6000,
+      "reservedOutputTokens": 1000,
+      "maxCalls": 7,
+      "requestTimeoutMs": 30000,
+      "analysisTimeoutMs": 240000,
+      "publishReserveMs": 30000,
+      "maxRetries": 1
+    }
+  },
+  "snapshots": [
+    {
+      "file": "src/caller.ts",
+      "ref": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+      "contentFile": "base/src/caller.ts.txt"
+    },
+    {
+      "file": "src/caller.ts",
+      "ref": "cccccccccccccccccccccccccccccccccccccccc",
+      "contentFile": "head/src/caller.ts.txt"
+    },
+    {
+      "file": "src/rules.ts",
+      "ref": "cccccccccccccccccccccccccccccccccccccccc",
+      "contentFile": "head/src/rules.ts.txt"
+    }
+  ],
+  "modelAttempts": [
+    {
+      "file": "src/caller.ts",
+      "outcome": "response",
+      "content": "{\"findings\": []}",
+      "choices": 1,
+      "elapsedMs": 10,
+      "usage": null
+    }
+  ],
+  "gateContext": {
+    "currentHeadSha": "cccccccccccccccccccccccccccccccccccccccc",
+    "reviews": [],
+    "configValid": true,
+    "reviewedHeadSha": "cccccccccccccccccccccccccccccccccccccccc",
+    "prAuthor": "author-a"
+  },
+  "preflight": {
+    "measuredInputTokens": null,
+    "remainingCalls": null
+  },
+  "github": {
+    "existingCommentId": null,
+    "publishError": null
+  },
+  "expected": {
+    "context": {
+      "snippets": [
+        {
+          "id": "C0",
+          "file": "src/caller.ts",
+          "ref": "cccccccccccccccccccccccccccccccccccccccc",
+          "startLine": 1,
+          "endLine": 5,
+          "code": "import { isAllowed } from \"./rules.js\";\n\nexport function canDelete(role: string) {\n  return Boolean(isAllowed(role));\n}",
+          "reason": "local-window"
+        },
+        {
+          "id": "C1",
+          "file": "src/rules.ts",
+          "ref": "cccccccccccccccccccccccccccccccccccccccc",
+          "startLine": 1,
+          "endLine": 3,
+          "code": "export function isAllowed(role: string) {\n  return role === \"admin\";\n}",
+          "reason": "direct-definition"
+        }
+      ],
+      "omissions": []
+    },
+    "result": {
+      "schemaVersion": "1",
+      "runId": "fixture-distinct-diff-base",
+      "repo": {
+        "owner": "sprint1-team",
+        "name": "inspector-demo"
+      },
+      "prNumber": 42,
+      "headSha": "cccccccccccccccccccccccccccccccccccccccc",
+      "mode": "context",
+      "provider": "mock",
+      "analysisStatus": "COMPLETE",
+      "scope": {
+        "supportedFiles": [
+          "src/caller.ts"
+        ],
+        "analyzedFiles": [
+          "src/caller.ts"
+        ],
+        "excludedFiles": []
+      },
+      "snippets": [
+        {
+          "id": "C0",
+          "file": "src/caller.ts",
+          "ref": "cccccccccccccccccccccccccccccccccccccccc",
+          "startLine": 1,
+          "endLine": 5,
+          "code": "import { isAllowed } from \"./rules.js\";\n\nexport function canDelete(role: string) {\n  return Boolean(isAllowed(role));\n}",
+          "reason": "local-window"
+        },
+        {
+          "id": "C1",
+          "file": "src/rules.ts",
+          "ref": "cccccccccccccccccccccccccccccccccccccccc",
+          "startLine": 1,
+          "endLine": 3,
+          "code": "export function isAllowed(role: string) {\n  return role === \"admin\";\n}",
+          "reason": "direct-definition"
+        }
+      ],
+      "omissions": [],
+      "findings": [],
+      "risk": {
+        "level": "LOW",
+        "factors": [
+          "NO_ESCALATION"
+        ],
+        "ruleVersion": "sprint1-v1"
+      },
+      "gate": {
+        "state": "PASS",
+        "reasons": [
+          "COMPLETE_LOW_MEDIUM"
+        ],
+        "requiredApprovals": 1,
+        "validApprovers": []
+      },
+      "metrics": {
+        "model": "scripted-sprint1",
+        "effectiveParameters": {
+          "temperature": 0
+        },
+        "promptVersion": "sprint1-v1",
+        "durationMs": 10,
+        "calls": 1,
+        "inputTokens": null,
+        "outputTokens": null
+      }
+    },
+    "publication": {
+      "status": "PUBLISHED",
+      "commentId": 900,
+      "commitStatus": "success",
+      "error": null
+    },
+    "report": {
+      "contains": [
+        "MOCK",
+        "cccccccccccccccccccccccccccccccccccccccc",
+        "COMPLETE",
+        "LOW",
+        "PASS"
+      ],
+      "mustNotContain": [
+        "代码绝对安全",
+        "生产环境已验证"
+      ],
+      "maxCharacters": 12000,
+      "action": "CREATE"
+    },
+    "shouldCallModel": true,
+    "configValid": true
+  },
+  "notes": [
+    "Fixed oracle for acceptance, not proof that risk/gate/model modules are implemented.",
+    "baseSha bbbbb... is the target branch snapshot; diffBaseSha aaaaa... remains the merge-base. No bbbbb snapshot exists, so using it for old-side reads must fail."
+  ]
+}

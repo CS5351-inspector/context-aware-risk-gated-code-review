@@ -1,22 +1,31 @@
-name: Code Review
-
-permissions:
-  contents: read
-  pull-requests: write
-  models: read
+name: Legacy Code Review (opt-in)
 
 on:
   pull_request:
     types: [opened, reopened, synchronize]
 
+permissions:
+  contents: read
+
 jobs:
-  test:
+  review:
+    # Optional upstream-baseline demo, not the Sprint 1 quality gate.
+    # Do not run fork code with repository write/model permissions.
+    if: vars.ENABLE_LEGACY_REVIEW == 'true' && github.event.pull_request.head.repo.full_name == github.repository
     runs-on: ubuntu-latest
+    timeout-minutes: 5
+    permissions:
+      contents: read
+      pull-requests: write
+      models: read
     steps:
-      - uses: anc95/ChatGPT-CodeReview@main
+      - uses: actions/checkout@v5
+        with:
+          persist-credentials: false
+      - uses: ./
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           LANGUAGE: English
           USE_GITHUB_MODELS: true
-          LOG_LEVEL: debug
+          LOG_LEVEL: info
           INCLUDE_PATTERNS: src/*,.github/**/*

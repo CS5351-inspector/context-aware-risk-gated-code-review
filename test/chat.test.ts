@@ -19,7 +19,7 @@ describe("Chat", () => {
     process.env = { ...originalEnv };
     mockCreate.mockReset();
     mockCreate.mockResolvedValue({
-      choices: [{ message: { content: '{"lgtm": true, "review_comment": ""}' } }],
+      choices: [{ finish_reason: 'stop', message: { content: '{"lgtm": true, "review_comment": ""}' } }],
     });
     (OpenAI as jest.Mock).mockClear();
   });

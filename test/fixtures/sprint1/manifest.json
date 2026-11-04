@@ -1,0 +1,554 @@
+{
+  "schemaVersion": "1",
+  "purpose": "Public offline reliability fixtures. Proposed contracts/policies for team review; reserved examples are not blind evaluation data.",
+  "scenarios": [
+    {
+      "id": "clean-context",
+      "file": "development/clean-context/scenario.json",
+      "owners": [
+        "b",
+        "c",
+        "e",
+        "f"
+      ],
+      "split": "development"
+    },
+    {
+      "id": "clean-diff-only",
+      "file": "development/clean-diff-only/scenario.json",
+      "owners": [
+        "c",
+        "f"
+      ],
+      "split": "development"
+    },
+    {
+      "id": "context-bug",
+      "file": "development/context-bug/scenario.json",
+      "owners": [
+        "b",
+        "c",
+        "d",
+        "e",
+        "f"
+      ],
+      "split": "development"
+    },
+    {
+      "id": "high-approved",
+      "file": "development/high-approved/scenario.json",
+      "owners": [
+        "a",
+        "d",
+        "e"
+      ],
+      "split": "development"
+    },
+    {
+      "id": "approval-old-head",
+      "file": "development/approval-old-head/scenario.json",
+      "owners": [
+        "a",
+        "d",
+        "f"
+      ],
+      "split": "development"
+    },
+    {
+      "id": "approval-author",
+      "file": "development/approval-author/scenario.json",
+      "owners": [
+        "a",
+        "d",
+        "f"
+      ],
+      "split": "development"
+    },
+    {
+      "id": "approval-bot",
+      "file": "development/approval-bot/scenario.json",
+      "owners": [
+        "a",
+        "d",
+        "f"
+      ],
+      "split": "development"
+    },
+    {
+      "id": "approval-readonly",
+      "file": "development/approval-readonly/scenario.json",
+      "owners": [
+        "a",
+        "d",
+        "f"
+      ],
+      "split": "development"
+    },
+    {
+      "id": "approval-dismissed",
+      "file": "development/approval-dismissed/scenario.json",
+      "owners": [
+        "a",
+        "d",
+        "f"
+      ],
+      "split": "development"
+    },
+    {
+      "id": "approval-comment-preserved",
+      "file": "development/approval-comment-preserved/scenario.json",
+      "owners": [
+        "d",
+        "f"
+      ],
+      "split": "development"
+    },
+    {
+      "id": "changes-requested",
+      "file": "development/changes-requested/scenario.json",
+      "owners": [
+        "a",
+        "d",
+        "f"
+      ],
+      "split": "development"
+    },
+    {
+      "id": "new-head",
+      "file": "development/new-head/scenario.json",
+      "owners": [
+        "a",
+        "d",
+        "f"
+      ],
+      "split": "development"
+    },
+    {
+      "id": "stale-run",
+      "file": "development/stale-run/scenario.json",
+      "owners": [
+        "a",
+        "d",
+        "e",
+        "f"
+      ],
+      "split": "development"
+    },
+    {
+      "id": "invalid-config",
+      "file": "development/invalid-config/scenario.json",
+      "owners": [
+        "a",
+        "d"
+      ],
+      "split": "development"
+    },
+    {
+      "id": "empty-choices",
+      "file": "development/empty-choices/scenario.json",
+      "owners": [
+        "c",
+        "d",
+        "f"
+      ],
+      "split": "development"
+    },
+    {
+      "id": "empty-content",
+      "file": "development/empty-content/scenario.json",
+      "owners": [
+        "c",
+        "d",
+        "f"
+      ],
+      "split": "development"
+    },
+    {
+      "id": "invalid-json",
+      "file": "development/invalid-json/scenario.json",
+      "owners": [
+        "c",
+        "d",
+        "f"
+      ],
+      "split": "development"
+    },
+    {
+      "id": "invalid-fields",
+      "file": "development/invalid-fields/scenario.json",
+      "owners": [
+        "c",
+        "d",
+        "f"
+      ],
+      "split": "development"
+    },
+    {
+      "id": "invalid-evidence",
+      "file": "development/invalid-evidence/scenario.json",
+      "owners": [
+        "c",
+        "d",
+        "f"
+      ],
+      "split": "development"
+    },
+    {
+      "id": "unknown-human-override",
+      "file": "development/unknown-human-override/scenario.json",
+      "owners": [
+        "a",
+        "d",
+        "e"
+      ],
+      "split": "development"
+    },
+    {
+      "id": "timeout",
+      "file": "development/timeout/scenario.json",
+      "owners": [
+        "a",
+        "c",
+        "f"
+      ],
+      "split": "development"
+    },
+    {
+      "id": "rate-limit-recovered",
+      "file": "development/rate-limit-recovered/scenario.json",
+      "owners": [
+        "c",
+        "f"
+      ],
+      "split": "development"
+    },
+    {
+      "id": "service-error",
+      "file": "development/service-error/scenario.json",
+      "owners": [
+        "c",
+        "f"
+      ],
+      "split": "development"
+    },
+    {
+      "id": "missing-patch",
+      "file": "development/missing-patch/scenario.json",
+      "owners": [
+        "a",
+        "c",
+        "d"
+      ],
+      "split": "development"
+    },
+    {
+      "id": "head-file-read-failed",
+      "file": "development/head-file-read-failed/scenario.json",
+      "owners": [
+        "a",
+        "b",
+        "f"
+      ],
+      "split": "development"
+    },
+    {
+      "id": "optional-context-missing",
+      "file": "development/optional-context-missing/scenario.json",
+      "owners": [
+        "b",
+        "e",
+        "f"
+      ],
+      "split": "development"
+    },
+    {
+      "id": "context-budget",
+      "file": "development/context-budget/scenario.json",
+      "owners": [
+        "b",
+        "f"
+      ],
+      "split": "development"
+    },
+    {
+      "id": "context-dedup",
+      "file": "development/context-dedup/scenario.json",
+      "owners": [
+        "b",
+        "f"
+      ],
+      "split": "development"
+    },
+    {
+      "id": "partial-high",
+      "file": "development/partial-high/scenario.json",
+      "owners": [
+        "a",
+        "c",
+        "d",
+        "e",
+        "f"
+      ],
+      "split": "development"
+    },
+    {
+      "id": "unlocated-finding",
+      "file": "development/unlocated-finding/scenario.json",
+      "owners": [
+        "c",
+        "d",
+        "e"
+      ],
+      "split": "development"
+    },
+    {
+      "id": "not-applicable",
+      "file": "development/not-applicable/scenario.json",
+      "owners": [
+        "a",
+        "d",
+        "e",
+        "f"
+      ],
+      "split": "development"
+    },
+    {
+      "id": "sensitive-path",
+      "file": "development/sensitive-path/scenario.json",
+      "owners": [
+        "a",
+        "d",
+        "e",
+        "f"
+      ],
+      "split": "development"
+    },
+    {
+      "id": "removed-file",
+      "file": "development/removed-file/scenario.json",
+      "owners": [
+        "a",
+        "d",
+        "f"
+      ],
+      "split": "development"
+    },
+    {
+      "id": "fork-pr",
+      "file": "development/fork-pr/scenario.json",
+      "owners": [
+        "a",
+        "d",
+        "f"
+      ],
+      "split": "development"
+    },
+    {
+      "id": "file-budget",
+      "file": "development/file-budget/scenario.json",
+      "owners": [
+        "a",
+        "b",
+        "c",
+        "f"
+      ],
+      "split": "development"
+    },
+    {
+      "id": "token-budget",
+      "file": "development/token-budget/scenario.json",
+      "owners": [
+        "a",
+        "c",
+        "f"
+      ],
+      "split": "development"
+    },
+    {
+      "id": "call-budget",
+      "file": "development/call-budget/scenario.json",
+      "owners": [
+        "a",
+        "c",
+        "f"
+      ],
+      "split": "development"
+    },
+    {
+      "id": "size-boundary",
+      "file": "development/size-boundary/scenario.json",
+      "owners": [
+        "d",
+        "f"
+      ],
+      "split": "development"
+    },
+    {
+      "id": "duplicate-run",
+      "file": "development/duplicate-run/scenario.json",
+      "owners": [
+        "a",
+        "e",
+        "f"
+      ],
+      "split": "development"
+    },
+    {
+      "id": "publish-forbidden",
+      "file": "development/publish-forbidden/scenario.json",
+      "owners": [
+        "a",
+        "e",
+        "f"
+      ],
+      "split": "development"
+    },
+    {
+      "id": "long-report",
+      "file": "development/long-report/scenario.json",
+      "owners": [
+        "a",
+        "e",
+        "f"
+      ],
+      "split": "development"
+    },
+    {
+      "id": "reserved-zero",
+      "file": "reserved/reserved-zero/scenario.json",
+      "owners": [
+        "b",
+        "c",
+        "f"
+      ],
+      "split": "reserved"
+    },
+    {
+      "id": "reserved-clean",
+      "file": "reserved/reserved-clean/scenario.json",
+      "owners": [
+        "c",
+        "f"
+      ],
+      "split": "reserved"
+    },
+    {
+      "id": "reserved-malformed",
+      "file": "reserved/reserved-malformed/scenario.json",
+      "owners": [
+        "c",
+        "f"
+      ],
+      "split": "reserved"
+    },
+    {
+      "id": "approval-duplicate",
+      "file": "development/approval-duplicate/scenario.json",
+      "owners": [
+        "a",
+        "d",
+        "f"
+      ],
+      "split": "development"
+    },
+    {
+      "id": "approval-two-people",
+      "file": "development/approval-two-people/scenario.json",
+      "owners": [
+        "a",
+        "d",
+        "f"
+      ],
+      "split": "development"
+    },
+    {
+      "id": "changes-resolved",
+      "file": "development/changes-resolved/scenario.json",
+      "owners": [
+        "a",
+        "d",
+        "f"
+      ],
+      "split": "development"
+    },
+    {
+      "id": "distinct-diff-base",
+      "file": "development/distinct-diff-base/scenario.json",
+      "owners": [
+        "a",
+        "b",
+        "f"
+      ],
+      "split": "development"
+    },
+    {
+      "id": "context-bug-diff-only",
+      "file": "development/context-bug-diff-only/scenario.json",
+      "owners": [
+        "c",
+        "f"
+      ],
+      "split": "development"
+    },
+    {
+      "id": "invalid-file",
+      "file": "development/invalid-file/scenario.json",
+      "owners": [
+        "c",
+        "f"
+      ],
+      "split": "development"
+    },
+    {
+      "id": "invalid-line",
+      "file": "development/invalid-line/scenario.json",
+      "owners": [
+        "c",
+        "e",
+        "f"
+      ],
+      "split": "development"
+    },
+    {
+      "id": "renamed-file",
+      "file": "development/renamed-file/scenario.json",
+      "owners": [
+        "a",
+        "d",
+        "f"
+      ],
+      "split": "development"
+    },
+    {
+      "id": "unsupported-tsx",
+      "file": "development/unsupported-tsx/scenario.json",
+      "owners": [
+        "a",
+        "d",
+        "f"
+      ],
+      "split": "development"
+    },
+    {
+      "id": "analysis-budget",
+      "file": "development/analysis-budget/scenario.json",
+      "owners": [
+        "a",
+        "b",
+        "c",
+        "f"
+      ],
+      "split": "development"
+    },
+    {
+      "id": "added-file",
+      "file": "development/added-file/scenario.json",
+      "owners": [
+        "a",
+        "c",
+        "f"
+      ],
+      "split": "development"
+    }
+  ]
+}

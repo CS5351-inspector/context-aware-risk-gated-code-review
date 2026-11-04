@@ -1,0 +1,18 @@
+{
+  "case_id": "DEV-005",
+  "family_id": "zero-limit",
+  "split": "development",
+  "code_variant": "faulty",
+  "evaluation_layer": "L2-input-preparation",
+  "semantic_gold_eligible": true,
+  "label_status": "provisional",
+  "input": {
+    "base_dir": "families/zero-limit/base",
+    "head_dir": "families/zero-limit/faulty",
+    "changed_files": [
+      "review.js"
+    ],
+    "diff_file": "cases/DEV-005.diff"
+  },
+  "gold_file": "gold/DEV-005.json"
+}

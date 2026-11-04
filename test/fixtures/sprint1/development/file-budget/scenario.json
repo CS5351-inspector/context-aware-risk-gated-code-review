@@ -1,0 +1,327 @@
+{
+  "id": "file-budget",
+  "title": "六个支持文件，只分析前五个，剩余记录 PARTIAL",
+  "owners": [
+    "a",
+    "b",
+    "c",
+    "f"
+  ],
+  "split": "development",
+  "purpose": "六个支持文件，只分析前五个，剩余记录 PARTIAL",
+  "input": {
+    "schemaVersion": "1",
+    "runId": "fixture-file-budget",
+    "repo": {
+      "owner": "sprint1-team",
+      "name": "inspector-demo"
+    },
+    "sourceRepo": {
+      "owner": "sprint1-team",
+      "name": "inspector-demo"
+    },
+    "prNumber": 42,
+    "author": "author-a",
+    "trigger": "pull_request.opened",
+    "baseSha": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+    "diffBaseSha": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+    "headSha": "cccccccccccccccccccccccccccccccccccccccc",
+    "mode": "diff-only",
+    "diff": "--- a/src/file1.ts\n+++ b/src/file1.ts\n@@ -1 +1 @@\n-export const value = 1;\n+export const value = 2;\n\n--- a/src/file2.ts\n+++ b/src/file2.ts\n@@ -1 +1 @@\n-export const value = 1;\n+export const value = 2;\n\n--- a/src/file3.ts\n+++ b/src/file3.ts\n@@ -1 +1 @@\n-export const value = 1;\n+export const value = 2;\n\n--- a/src/file4.ts\n+++ b/src/file4.ts\n@@ -1 +1 @@\n-export const value = 1;\n+export const value = 2;\n\n--- a/src/file5.ts\n+++ b/src/file5.ts\n@@ -1 +1 @@\n-export const value = 1;\n+export const value = 2;\n\n--- a/src/file6.ts\n+++ b/src/file6.ts\n@@ -1 +1 @@\n-export const value = 1;\n+export const value = 2;\n",
+    "changedFiles": [
+      {
+        "path": "src/file1.ts",
+        "status": "modified",
+        "additions": 1,
+        "deletions": 1,
+        "patch": "--- a/src/file1.ts\n+++ b/src/file1.ts\n@@ -1 +1 @@\n-export const value = 1;\n+export const value = 2;\n",
+        "supported": true
+      },
+      {
+        "path": "src/file2.ts",
+        "status": "modified",
+        "additions": 1,
+        "deletions": 1,
+        "patch": "--- a/src/file2.ts\n+++ b/src/file2.ts\n@@ -1 +1 @@\n-export const value = 1;\n+export const value = 2;\n",
+        "supported": true
+      },
+      {
+        "path": "src/file3.ts",
+        "status": "modified",
+        "additions": 1,
+        "deletions": 1,
+        "patch": "--- a/src/file3.ts\n+++ b/src/file3.ts\n@@ -1 +1 @@\n-export const value = 1;\n+export const value = 2;\n",
+        "supported": true
+      },
+      {
+        "path": "src/file4.ts",
+        "status": "modified",
+        "additions": 1,
+        "deletions": 1,
+        "patch": "--- a/src/file4.ts\n+++ b/src/file4.ts\n@@ -1 +1 @@\n-export const value = 1;\n+export const value = 2;\n",
+        "supported": true
+      },
+      {
+        "path": "src/file5.ts",
+        "status": "modified",
+        "additions": 1,
+        "deletions": 1,
+        "patch": "--- a/src/file5.ts\n+++ b/src/file5.ts\n@@ -1 +1 @@\n-export const value = 1;\n+export const value = 2;\n",
+        "supported": true
+      },
+      {
+        "path": "src/file6.ts",
+        "status": "modified",
+        "additions": 1,
+        "deletions": 1,
+        "patch": "--- a/src/file6.ts\n+++ b/src/file6.ts\n@@ -1 +1 @@\n-export const value = 1;\n+export const value = 2;\n",
+        "supported": true
+      }
+    ]
+  },
+  "config": {
+    "ruleVersion": "sprint1-v1",
+    "requiredApprovals": 1,
+    "mediumChangedLines": 200,
+    "mediumChangedFiles": 3,
+    "sensitivePaths": [
+      ".github/workflows/**",
+      "src/auth/**",
+      "src/permissions/**",
+      "inspector.config.json"
+    ],
+    "maxReportCharacters": 12000,
+    "budget": {
+      "maxFiles": 5,
+      "localWindowLines": 20,
+      "maxDefinitionsPerFile": 1,
+      "maxDefinitionLines": 80,
+      "maxInputTokens": 6000,
+      "reservedOutputTokens": 1000,
+      "maxCalls": 7,
+      "requestTimeoutMs": 30000,
+      "analysisTimeoutMs": 240000,
+      "publishReserveMs": 30000,
+      "maxRetries": 1
+    }
+  },
+  "snapshots": [
+    {
+      "file": "src/file1.ts",
+      "ref": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+      "contentFile": "base/src/file1.ts.txt"
+    },
+    {
+      "file": "src/file1.ts",
+      "ref": "cccccccccccccccccccccccccccccccccccccccc",
+      "contentFile": "head/src/file1.ts.txt"
+    },
+    {
+      "file": "src/file2.ts",
+      "ref": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+      "contentFile": "base/src/file2.ts.txt"
+    },
+    {
+      "file": "src/file2.ts",
+      "ref": "cccccccccccccccccccccccccccccccccccccccc",
+      "contentFile": "head/src/file2.ts.txt"
+    },
+    {
+      "file": "src/file3.ts",
+      "ref": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+      "contentFile": "base/src/file3.ts.txt"
+    },
+    {
+      "file": "src/file3.ts",
+      "ref": "cccccccccccccccccccccccccccccccccccccccc",
+      "contentFile": "head/src/file3.ts.txt"
+    },
+    {
+      "file": "src/file4.ts",
+      "ref": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+      "contentFile": "base/src/file4.ts.txt"
+    },
+    {
+      "file": "src/file4.ts",
+      "ref": "cccccccccccccccccccccccccccccccccccccccc",
+      "contentFile": "head/src/file4.ts.txt"
+    },
+    {
+      "file": "src/file5.ts",
+      "ref": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+      "contentFile": "base/src/file5.ts.txt"
+    },
+    {
+      "file": "src/file5.ts",
+      "ref": "cccccccccccccccccccccccccccccccccccccccc",
+      "contentFile": "head/src/file5.ts.txt"
+    },
+    {
+      "file": "src/file6.ts",
+      "ref": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+      "contentFile": "base/src/file6.ts.txt"
+    },
+    {
+      "file": "src/file6.ts",
+      "ref": "cccccccccccccccccccccccccccccccccccccccc",
+      "contentFile": "head/src/file6.ts.txt"
+    }
+  ],
+  "modelAttempts": [
+    {
+      "file": "src/file1.ts",
+      "outcome": "response",
+      "content": "{\"findings\": []}",
+      "choices": 1,
+      "elapsedMs": 10,
+      "usage": null
+    },
+    {
+      "file": "src/file2.ts",
+      "outcome": "response",
+      "content": "{\"findings\": []}",
+      "choices": 1,
+      "elapsedMs": 10,
+      "usage": null
+    },
+    {
+      "file": "src/file3.ts",
+      "outcome": "response",
+      "content": "{\"findings\": []}",
+      "choices": 1,
+      "elapsedMs": 10,
+      "usage": null
+    },
+    {
+      "file": "src/file4.ts",
+      "outcome": "response",
+      "content": "{\"findings\": []}",
+      "choices": 1,
+      "elapsedMs": 10,
+      "usage": null
+    },
+    {
+      "file": "src/file5.ts",
+      "outcome": "response",
+      "content": "{\"findings\": []}",
+      "choices": 1,
+      "elapsedMs": 10,
+      "usage": null
+    }
+  ],
+  "gateContext": {
+    "currentHeadSha": "cccccccccccccccccccccccccccccccccccccccc",
+    "reviews": [],
+    "configValid": true,
+    "reviewedHeadSha": "cccccccccccccccccccccccccccccccccccccccc",
+    "prAuthor": "author-a"
+  },
+  "preflight": {
+    "measuredInputTokens": null,
+    "remainingCalls": null
+  },
+  "github": {
+    "existingCommentId": null,
+    "publishError": null
+  },
+  "expected": {
+    "context": {
+      "snippets": [],
+      "omissions": []
+    },
+    "result": {
+      "schemaVersion": "1",
+      "runId": "fixture-file-budget",
+      "repo": {
+        "owner": "sprint1-team",
+        "name": "inspector-demo"
+      },
+      "prNumber": 42,
+      "headSha": "cccccccccccccccccccccccccccccccccccccccc",
+      "mode": "diff-only",
+      "provider": "mock",
+      "analysisStatus": "PARTIAL",
+      "scope": {
+        "supportedFiles": [
+          "src/file1.ts",
+          "src/file2.ts",
+          "src/file3.ts",
+          "src/file4.ts",
+          "src/file5.ts",
+          "src/file6.ts"
+        ],
+        "analyzedFiles": [
+          "src/file1.ts",
+          "src/file2.ts",
+          "src/file3.ts",
+          "src/file4.ts",
+          "src/file5.ts"
+        ],
+        "excludedFiles": []
+      },
+      "snippets": [],
+      "omissions": [
+        {
+          "file": "src/file6.ts",
+          "stage": "input",
+          "reason": "FILE_BUDGET",
+          "required": true
+        }
+      ],
+      "findings": [],
+      "risk": {
+        "level": "UNKNOWN",
+        "factors": [
+          "ANALYSIS_UNAVAILABLE",
+          "CHANGE_SIZE"
+        ],
+        "ruleVersion": "sprint1-v1"
+      },
+      "gate": {
+        "state": "WAITING",
+        "reasons": [
+          "APPROVAL_REQUIRED"
+        ],
+        "requiredApprovals": 1,
+        "validApprovers": []
+      },
+      "metrics": {
+        "model": "scripted-sprint1",
+        "effectiveParameters": {
+          "temperature": 0
+        },
+        "promptVersion": "sprint1-v1",
+        "durationMs": 50,
+        "calls": 5,
+        "inputTokens": null,
+        "outputTokens": null
+      }
+    },
+    "publication": {
+      "status": "PUBLISHED",
+      "commentId": 900,
+      "commitStatus": "pending",
+      "error": null
+    },
+    "report": {
+      "contains": [
+        "MOCK",
+        "cccccccccccccccccccccccccccccccccccccccc",
+        "PARTIAL",
+        "UNKNOWN",
+        "WAITING"
+      ],
+      "mustNotContain": [
+        "代码绝对安全",
+        "生产环境已验证"
+      ],
+      "maxCharacters": 12000,
+      "action": "CREATE"
+    },
+    "shouldCallModel": true,
+    "configValid": true
+  },
+  "notes": [
+    "Fixed oracle for acceptance, not proof that risk/gate/model modules are implemented."
+  ]
+}

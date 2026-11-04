@@ -1,0 +1,28 @@
+{
+  "case_id": "DEV-001",
+  "label_status": "provisional",
+  "human_reviewers": [],
+  "issues": [
+    {
+      "gold_issue_id": "grant-enum-001",
+      "root_cause": "Permission enum values are coerced to booleans, denying granted users and allowing denied or suspended users.",
+      "severity": "high",
+      "severity_rationale": "Allows unauthorized access.",
+      "acceptable_locations": [
+        {
+          "file": "review.js",
+          "start_line": 2,
+          "end_line": 2
+        }
+      ],
+      "required_context_files": [
+        "policy.js"
+      ],
+      "proof_check_indices": [
+        0,
+        1,
+        2
+      ]
+    }
+  ]
+}

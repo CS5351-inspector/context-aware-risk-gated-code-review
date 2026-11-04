@@ -1,0 +1,36 @@
+name: Test and Build
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+permissions:
+  contents: read
+
+concurrency:
+  group: test-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  test-build:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v5
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v5
+        with:
+          node-version: 24
+          cache: npm
+      - run: npm ci
+      - run: npm run typecheck
+      - run: npm test -- --runInBand
+      - run: npm run test:evaluation
+      - run: npm run build
+      - run: node --check action/index.cjs
+      - name: Check committed Action bundle and declarations
+        run: |
+          git diff --exit-code -- action
+          test -z "$(git ls-files --others --exclude-standard action)"

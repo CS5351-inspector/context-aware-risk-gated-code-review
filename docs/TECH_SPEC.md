@@ -74,3 +74,7 @@
 - [bot.ts](https://github.com/CS5351-inspector/context-aware-risk-gated-code-review/blob/8bd66227f057f21e847a8c27c9b356c25271d292/src/bot.ts)：按文件审查、跳过 patch 和空反馈报告等需扩展覆盖记录的路径；API 异常已有重抛，不应概括成所有错误都被吞掉。
 - [GitHub 分支保护](https://docs.github.com/en/repositories/configuring-branches-and-merges-in-your-repository/managing-protected-branches/about-protected-branches)：required checks 与 review 条件。
 - [GitHub PR 的比较基准](https://docs.github.com/en/pull-requests/reference/branches#three-dot-and-two-dot-git-diff-comparisons)：PR 使用 merge-base 到 head 的三点比较。
+
+## Sprint 1 集成补充（2026-11-04）
+
+当前公共类型统一到 `src/review/contracts.ts`；实现范围见 [集成与接手说明](SPRINT1_HANDOFF.md)。无支持文件时额外使用 `NOT_APPLICABLE`，不代表审查通过。报告首版按运行单独创建并注明 SHA，暂不覆盖共享摘要；实现幂等 upsert 前须解决并发一致性。上述调整不改变 Context-Aware 与 Risk Management 两项核心目标，也不把可靠性样例或 oracle 上下文当实际效果验证。
