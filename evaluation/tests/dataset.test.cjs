@@ -4,6 +4,7 @@ const assert = require('node:assert/strict');
 const fs = require('node:fs');
 const os = require('node:os');
 const path = require('node:path');
+const crypto = require('node:crypto');
 const { validate } = require('../validate.cjs');
 const { exportInput } = require('../export-input.cjs');
 const root = path.resolve(__dirname, '..');
@@ -46,6 +47,27 @@ test('rejects a diff contradicting the head snapshot', () => mutate((r) => {
 
 test('rejects a missing defect answer', () => mutate((r) => {
   changeJson(r, 'gold/DEV-001.json', (gold) => { gold.issues = []; });
+}));
+
+test('rejects a changed dependency omitted from the declared diff', () => mutate((r) => {
+  const file = path.join(r, 'families/grant-enum/faulty/policy.js');
+  fs.appendFileSync(file, '\n// An additional change outside review.js\n');
+  const digest = crypto.createHash('sha256').update(fs.readFileSync(file)).digest('hex');
+  changeJson(r, 'families/grant-enum/family.json', (f) => {
+    f.file_hashes.faulty['policy.js'] = digest;
+  });
+}));
+
+test('rejects gold with no acceptable finding location', () => mutate((r) => {
+  changeJson(r, 'gold/DEV-001.json', (gold) => {
+    gold.issues[0].acceptable_locations = [];
+  });
+}));
+
+test('rejects fractional gold line numbers', () => mutate((r) => {
+  changeJson(r, 'gold/DEV-001.json', (gold) => {
+    gold.issues[0].acceptable_locations[0].start_line = 1.5;
+  });
 }));
 
 test('rejects a purported counterexample that also fails on the correct base', () => mutate((r) => {

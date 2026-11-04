@@ -30,7 +30,7 @@ There are **6 families, 10 head snapshots, 4 defect roots and 6 clean/fixed snap
 
 `families/*/family.json` records requirements, provenance, SHA-256 source hashes, executable counterexamples, exact expected faulty observations and context rationale. Every case has a nonempty base-to-head diff. The fixed case uses the same correct base as its faulty sibling and a different, contract-preserving implementation: it is a clean control, not a future patch shown to the model.
 
-`cases/` contains input references and unified diffs; `gold/` contains atomic issue evidence. The validator checks all source hashes, applies diff hunks, checks identifiers/split/locations, runs correct bases and all heads, and rejects counterexamples that also fail on the base. Expected failures are checked for their actual value or specific exception, so a missing dependency does not masquerade as defect evidence.
+`cases/` contains input references and unified diffs; `gold/` contains atomic issue evidence. The validator checks all source hashes, ensures every changed file is declared, applies diff hunks, checks identifiers/split/nonempty integer locations, runs correct bases and all heads, and rejects counterexamples that also fail on the base. Expected failures are checked for their actual value or specific exception, so a missing dependency does not masquerade as defect evidence.
 
 The validator reports 50 behavior-check executions across bases and heads. Eight contract violations are **intentionally expected observations in the four faulty snapshots**. They are not eight independent bugs and not failing validation tests. Clean assertions cover the documented input domain and selected checks; they do not prove absence of every possible defect.
 

@@ -1,6 +1,6 @@
 {
-  "verified_at": "2026-11-03T07:50:57.775803+00:00",
-  "node": "v24.18.0",
+  "verified_at": "2026-11-04T07:04:17.508710+00:00",
+  "node": "v25.0.0",
   "base_commit": "fad72c5229ccef11448c3077a617fb7b2bdd934a",
   "commands": [
     "node evaluation/validate.cjs",
@@ -8,7 +8,7 @@
   ],
   "scope": "Synthetic development data and executable proofs only; no model efficacy or human gold certification.",
   "files": {
-    "evaluation/README.md": "529a261088f8411b071acf6812db83195b9f16237b07ac1624ea699131d59599",
+    "evaluation/README.md": "6f4b7faae1fec2df0e1018f2f0b16b8b121090edbfc80cb994a4fbd8e359bf5f",
     "evaluation/cases/DEV-001.diff": "bdb874a37268b886dbcea22bd08a8b8636f2743fe7a92e9c9f45a84c3a0f4530",
     "evaluation/cases/DEV-001.json": "4b147fbb8a2f0006f97555711fe77432a00d2cc20f00d8ddc70ab147a58d5d19",
     "evaluation/cases/DEV-002.diff": "9326e8da6c1613e17b3ae1179d76bb03c5c5a6bf67e9b95e17f406dda90fd2a6",
@@ -70,7 +70,7 @@
     "evaluation/gold/DEV-010.json": "45cd0cd601ba6393b17043cec9daa5d803c41e5531b9ad437b5a16f97e062918",
     "evaluation/manifest.json": "2a694204cd2924afbd90867e611fffa9ba8a2456e6e8e10b853a449f79d4393d",
     "evaluation/schemas/case.schema.json": "b9c79863007d1eeb9eb273a0da2cf996e0efbe3c155e245710827558babeaa92",
-    "evaluation/tests/dataset.test.cjs": "4848e68e3fb3120fb89e2ed630546bfb032b67fc64df598b5e73d11fd1258c0d",
-    "evaluation/validate.cjs": "e60f297354d5055d24b876aa1cada5795469d27c2dfc3f6bf31148e10b415996"
+    "evaluation/tests/dataset.test.cjs": "cee44175dcaf115e4e0d9a24bd3130392b53dacb7431732e6862baf73b41090c",
+    "evaluation/validate.cjs": "ada0d49b94c42e3f0188def88f1b12a0f395874d13d4b9f2ede92acc8dd6023a"
   }
 }

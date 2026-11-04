@@ -135,6 +135,11 @@ function validate(root = __dirname) {
         assert.equal(hash(fs.readFileSync(inside(root, `families/${c.family_id}/${version}/${file}`))), expected, 'Source hash mismatch');
       }
     }
+    const baseFiles = f.file_hashes.base;
+    const headFiles = f.file_hashes[c.code_variant];
+    assert.deepEqual(Object.keys(headFiles).sort(), Object.keys(baseFiles).sort(), 'v0.1 snapshots must contain the same files');
+    const changedFiles = Object.keys(headFiles).filter((file) => headFiles[file] !== baseFiles[file]).sort();
+    assert.deepEqual(changedFiles, [...c.input.changed_files].sort(), 'Changed files must match the declared diff');
     if (!families.has(f.family_id)) {
       const base = runSnapshot(root, f, 'base');
       assert(base.every((row) => row.matches_contract), 'Base must satisfy the requirement');
@@ -171,8 +176,10 @@ function validate(root = __dirname) {
           assert.deepEqual(actual.actual, expected.actual);
         }
       }
+      assert(Array.isArray(issue.acceptable_locations) && issue.acceptable_locations.length > 0, 'Gold must have at least one acceptable finding location');
       for (const location of issue.acceptable_locations) {
         assert.equal(location.file, 'review.js');
+        assert(Number.isSafeInteger(location.start_line) && Number.isSafeInteger(location.end_line), 'Gold line numbers must be integers');
         assert(location.start_line >= 1 && location.end_line >= location.start_line);
         assert(location.end_line <= headSource.trimEnd().split('\n').length);
       }
