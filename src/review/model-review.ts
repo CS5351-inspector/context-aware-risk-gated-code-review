@@ -114,7 +114,10 @@ export async function reviewFiles(
   }
   const started = Date.now();
   const deadline = started + Math.min(budget.analysisTimeoutMs, runtime.remainingMs ?? Infinity) - budget.publishReserveMs;
-  const parameters: Record<string, unknown> = { ...client.effectiveParameters, max_tokens: budget.reservedOutputTokens, maxRetries: 0 };
+  const parameters: Record<string, unknown> = { ...client.effectiveParameters, maxRetries: 0 };
+  // Match the adapter's actual request field: o-series reject the legacy max_tokens.
+  const outputLimit = 'max_completion_tokens' in parameters ? 'max_completion_tokens' : 'max_tokens';
+  parameters[outputLimit] = budget.reservedOutputTokens;
   const result: ModelAnalysis = { findings: [], omissions: [], analyzedFiles: [], metrics: {
     model: String(parameters.model ?? 'unknown'), effectiveParameters: parameters,
     promptVersion: PROMPT_VERSION, durationMs: 0, calls: 0, inputTokens: 0, outputTokens: 0,

@@ -87,6 +87,8 @@ const input = {
 
 原表达式类似 `+(env || 0) || 1`，显式 0 会因为 JavaScript 把 0 看作 falsy 而变成 1。新的 `numericOption` 只在环境变量未配置时使用默认值，对 0 予以保留，对空字符串、NaN 和越界值报错。`max_tokens` 也要求正整数。
 
+环境变量名继续兼容 `max_tokens`，但 reasoning 模型的实际请求使用 `max_completion_tokens`；o-series 不兼容旧请求字段。运行记录采用实际发出的字段，并记录预算覆盖后的值。
+
 `effectiveParameters` 返回实际发送的模型名、非 reasoning 模型采样参数、最大输出和 reasoning_effort 等，不包含 API Key。reasoning 模型沿用已有参数选择规则，不强塞不适用的采样参数；模型/参数兼容性仍需针对实际 provider 做烟雾测试。
 
 `completeReview` 是新旧入口共用的 API 适配器。C 传入 AbortSignal、timeout、maxRetries=0 和输出上限；旧 `codeReview` 不传新选项以保留调用约定。`maxRetries=0` 是关键：若 SDK 自己也重试，外层说“重试 1 次”可能变成更多 HTTP 请求。
@@ -185,6 +187,8 @@ metrics 记录模型、有效参数、promptVersion、耗时、调用数和 usag
 4. 核对行号是否在相应侧 patch 内。错误坐标清空为 null，并标 UNVERIFIED，不猜一个位置。
 5. 核对 evidenceIds 是否来自实际发给模型的片段，且 ref 与 Finding 的 side 相符。错误引用移除并留下 required omission。
 6. 生成 Finding，保留原 message 和 severity，不生成链接，不因另一文件失败而删除已有 high。
+
+同一响应混有有效与无效条目时，也保留通过校验的发现，并为每个无效条目添加 required `INVALID_OUTPUT`，最终状态为 PARTIAL。若没有任何可用条目则失败；非法 JSON 或异常 API 信封仍整体拒绝。旧 `codeReview` 接口仍保持严格的整份响应校验。
 
 | validation | 解释 | 报告应如何展示 |
 | --- | --- | --- |

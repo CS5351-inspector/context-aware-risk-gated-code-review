@@ -44,54 +44,69 @@ export function patchLines(patch: string): Record<Side, Set<number>> {
   return visible;
 }
 
-/** 先验证结构，再逐条验证来源。结构混杂时整次拒绝，避免静默漏报。 */
+/** 逐条验证结构与来源；保留有效发现，并将混杂的无效条目标为必要遗漏。 */
 export function convertFindings(
   completion: unknown, input: ModelInput, file: string, patch: string,
   snippets: ContextSnippet[]
 ): { findings: Finding[]; omissions: Omission[] } {
-  const parsed = parseReviewResponse(readReviewContent(completion));
-  const reviews = Array.isArray(parsed) ? parsed : [parsed];
+  let payload: unknown;
+  try { payload = JSON.parse(readReviewContent(completion)); }
+  catch (error) {
+    if (error instanceof InvalidReviewResponseError) throw error;
+    throw new InvalidReviewResponseError('expected valid JSON');
+  }
+  const reviews = record(payload) && Array.isArray(payload.reviews) ? payload.reviews : [payload];
   const lines = patchLines(patch);
   const findings: Finding[] = [];
   const omissions: Omission[] = [];
   const omit = (reason: Omission['reason'], required = true) =>
     omissions.push({ file, stage: 'model', reason, required });
 
-  for (const review of reviews) {
-    if (review.lgtm) continue;
-    const raw: unknown = review;
-    if (!record(raw)) throw new InvalidReviewResponseError('invalid finding');
-    const legacy = ['file', 'side', 'line', 'severity', 'evidenceIds'].every(key => !(key in raw));
-    // 旧格式没有位置、证据和严重性：保留文字，明确未验证，不能装成可靠空结果。
-    if (legacy) {
-      findings.push({ id: `${file}:${findings.length + 1}`, file, side: 'RIGHT', line: null,
-        severity: 'medium', message: review.review_comment, evidenceIds: [], validation: 'UNVERIFIED' });
-      omit('UNVERIFIED_FINDING');
-      continue;
+  let validReviews = 0;
+  for (const raw of reviews) {
+    try {
+      const review = parseReviewResponse(JSON.stringify(raw));
+      if (Array.isArray(review)) throw new InvalidReviewResponseError('invalid nested review');
+      if (review.lgtm) { validReviews++; continue; }
+      if (!record(raw)) throw new InvalidReviewResponseError('invalid finding');
+      const legacy = ['file', 'side', 'line', 'severity', 'evidenceIds'].every(key => !(key in raw));
+      // 旧格式没有位置、证据和严重性：保留文字，明确未验证，不能装成可靠空结果。
+      if (legacy) {
+        findings.push({ id: `${file}:${findings.length + 1}`, file, side: 'RIGHT', line: null,
+          severity: 'medium', message: review.review_comment, evidenceIds: [], validation: 'UNVERIFIED' });
+        omit('UNVERIFIED_FINDING');
+        validReviews++;
+        continue;
+      }
+      if (raw.file !== file || typeof raw.side !== 'string' || !['LEFT', 'RIGHT'].includes(raw.side)
+        || typeof raw.severity !== 'string' || !['low', 'medium', 'high'].includes(raw.severity)
+        || !(raw.line === null || (typeof raw.line === 'number' && Number.isSafeInteger(raw.line) && raw.line > 0))
+        || !Array.isArray(raw.evidenceIds) || !raw.evidenceIds.every(id => typeof id === 'string' && id.trim())) {
+        throw new InvalidReviewResponseError('invalid finding fields');
+      }
+      const side = raw.side as Side;
+      let line = raw.line as number | null;
+      let validation: Finding['validation'] = line === null ? 'UNLOCATED' : 'VERIFIED';
+      // 不在本次 diff 中的行号降级到正文，同时使该文件分析不完整。
+      if (line !== null && !lines[side].has(line)) {
+        line = null; validation = 'UNVERIFIED'; omit('UNVERIFIED_FINDING');
+      } else if (line === null) omit('UNLOCATED_FINDING', false);
+      const expectedRef = side === 'RIGHT' ? input.headSha : input.diffBaseSha;
+      const evidenceIds = [...new Set(raw.evidenceIds as string[])];
+      const validIds = evidenceIds.filter(id => snippets.some(s => s.id === id && s.ref === expectedRef));
+      // diff-only 没有上下文 ID；context 中也可以直接以 patch 为依据，不强制伪造引用。
+      if (validIds.length !== evidenceIds.length) {
+        validation = 'UNVERIFIED'; omit('INVALID_EVIDENCE');
+      }
+      findings.push({ id: `${file}:${findings.length + 1}`, file, side, line,
+        severity: raw.severity as Finding['severity'], message: review.review_comment,
+        evidenceIds: validIds, validation });
+      validReviews++;
+    } catch (error) {
+      if (!(error instanceof InvalidReviewResponseError)) throw error;
+      omit('INVALID_OUTPUT');
     }
-    if (raw.file !== file || typeof raw.side !== 'string' || !['LEFT', 'RIGHT'].includes(raw.side)
-      || typeof raw.severity !== 'string' || !['low', 'medium', 'high'].includes(raw.severity)
-      || !(raw.line === null || (typeof raw.line === 'number' && Number.isSafeInteger(raw.line) && raw.line > 0))
-      || !Array.isArray(raw.evidenceIds) || !raw.evidenceIds.every(id => typeof id === 'string' && id.trim())) {
-      throw new InvalidReviewResponseError('invalid finding fields');
-    }
-    const side = raw.side as Side;
-    let line = raw.line as number | null;
-    let validation: Finding['validation'] = line === null ? 'UNLOCATED' : 'VERIFIED';
-    // 不在本次 diff 中的行号降级到正文，同时使该文件分析不完整。
-    if (line !== null && !lines[side].has(line)) {
-      line = null; validation = 'UNVERIFIED'; omit('UNVERIFIED_FINDING');
-    } else if (line === null) omit('UNLOCATED_FINDING', false);
-    const expectedRef = side === 'RIGHT' ? input.headSha : input.diffBaseSha;
-    const evidenceIds = [...new Set(raw.evidenceIds as string[])];
-    const validIds = evidenceIds.filter(id => snippets.some(s => s.id === id && s.ref === expectedRef));
-    // diff-only 没有上下文 ID；context 中也可以直接以 patch 为依据，不强制伪造引用。
-    if (validIds.length !== evidenceIds.length) {
-      validation = 'UNVERIFIED'; omit('INVALID_EVIDENCE');
-    }
-    findings.push({ id: `${file}:${findings.length + 1}`, file, side, line,
-      severity: raw.severity as Finding['severity'], message: review.review_comment,
-      evidenceIds: validIds, validation });
   }
+  if (reviews.length && !validReviews) throw new InvalidReviewResponseError('invalid finding fields');
   return { findings, omissions };
 }

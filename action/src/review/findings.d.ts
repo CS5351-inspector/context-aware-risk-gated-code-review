@@ -3,7 +3,7 @@ import type { ContextSnippet, Finding, ModelInput, Omission, Side } from './mode
  * 同时验证 hunk 声明长度，防止截断的 patch 被当成完整必要输入。
  */
 export declare function patchLines(patch: string): Record<Side, Set<number>>;
-/** 先验证结构，再逐条验证来源。结构混杂时整次拒绝，避免静默漏报。 */
+/** 逐条验证结构与来源；保留有效发现，并将混杂的无效条目标为必要遗漏。 */
 export declare function convertFindings(completion: unknown, input: ModelInput, file: string, patch: string, snippets: ContextSnippet[]): {
     findings: Finding[];
     omissions: Omission[];
