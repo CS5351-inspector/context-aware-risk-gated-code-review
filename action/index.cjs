@@ -147183,10 +147183,8 @@ const getChangedFiles = async (context) => {
         loglevel_1.default.debug('failed to detect previous bot review', err);
         return pullRequestFiles;
     }
-    // 缺少上次 review 的提交时，尝试用本次推送事件之前的 SHA 作比较起点。
-    if (!comparisonBase) {
-        comparisonBase = context.payload.before;
-    }
+    // before only describes the latest push; without a completed review, older
+    // unchanged files may never have been analyzed. Start from the whole PR.
     if (!comparisonBase) {
         return pullRequestFiles;
     }
@@ -147225,9 +147223,12 @@ const getChangedFiles = async (context) => {
 exports.getChangedFiles = getChangedFiles;
 const robot = (app) => {
     // 在注册事件时读取 patch 长度上限。length 使用 JavaScript 字符串长度。
-    const maxPatchLength = process.env.MAX_PATCH_LENGTH
-        ? Number(process.env.MAX_PATCH_LENGTH)
-        : Infinity;
+    const configuredLimit = process.env.MAX_PATCH_LENGTH;
+    const maxPatchLength = configuredLimit === undefined ? Infinity : Number(configuredLimit);
+    if (configuredLimit !== undefined && (!configuredLimit.trim()
+        || !Number.isSafeInteger(maxPatchLength) || maxPatchLength < 1)) {
+        throw new Error('Invalid MAX_PATCH_LENGTH: expected a positive integer');
+    }
     // 在 GitHub Actions 中把未处理错误反映到进程退出码，供工作流识别失败。
     if (process.env.GITHUB_ACTIONS === 'true') {
         app.onError(() => {
@@ -147326,6 +147327,7 @@ const robot = (app) => {
         const ress = [];
         const bodyComments = [];
         const skippedFiles = [];
+        let modelFailure = null;
         // 对每份必要 patch 做预检。跳过的文件进入覆盖记录，方便审阅人安排重审。
         for (const file of eligibleFiles) {
             const { patch } = file;
@@ -147338,7 +147340,7 @@ const robot = (app) => {
                 continue;
             }
             try {
-                (0, findings_js_1.patchLines)(patch);
+                (0, findings_js_1.patchLines)(patch, file);
             }
             catch (error) {
                 if (!(error instanceof chat_js_1.InvalidReviewResponseError))
@@ -147366,9 +147368,12 @@ const robot = (app) => {
                 }
             }
             catch (e) {
-                // 旧入口遇到请求或解析错误会抛出，流程在后面的 createReview 之前结束。
+                // Preserve earlier findings and record a rerun marker before surfacing
+                // the API/response failure to the workflow. Do not publish raw error text.
                 loglevel_1.default.info(`review ${file.filename} failed`, e);
-                throw e;
+                skippedFiles.push({ filename: file.filename, reason: e instanceof chat_js_1.InvalidReviewResponseError
+                        ? 'model response invalid' : 'model request failed' });
+                modelFailure ??= { error: e };
             }
         }
         // 统一发布一次 COMMENT review，携带事件中的 head SHA 和收集到的行内评论。
@@ -147391,6 +147396,8 @@ const robot = (app) => {
             throw e;
         }
         console.timeEnd('gpt cost');
+        if (modelFailure)
+            throw modelFailure.error;
         loglevel_1.default.info(skippedFiles.length ? 'review published with skipped files' : 'successfully reviewed', context.payload.pull_request.html_url);
         return 'success';
     });
@@ -147643,9 +147650,10 @@ const record = (value) => typeof value === 'object' && value !== null && !Array.
 /** 解析 unified diff 的两侧可见行；只允许 patch 内真实出现的行，不猜测 hunk 首行。
  * 同时验证 hunk 声明长度，防止截断的 patch 被当成完整必要输入。
  */
-function patchLines(patch) {
+function patchLines(patch, expectedChanges) {
     const visible = { LEFT: new Set(), RIGHT: new Set() };
     let left = 0, right = 0, oldRemaining = 0, newRemaining = 0, hunks = 0;
+    let additions = 0, deletions = 0;
     const rows = patch.replace(/\r\n/g, '\n').split('\n');
     for (let i = 0; i < rows.length; i++) {
         const row = rows[i];
@@ -147670,6 +147678,10 @@ function patchLines(patch) {
             continue; // 允许 diff --git、---、+++ 等文件头。
         if (row === '\\ No newline at end of file' || (row === '' && i === rows.length - 1))
             continue;
+        if (row.startsWith('+'))
+            additions++;
+        if (row.startsWith('-'))
+            deletions++;
         if (row.startsWith(' ') || row.startsWith('-')) {
             visible.LEFT.add(left++);
             oldRemaining--;
@@ -147684,6 +147696,15 @@ function patchLines(patch) {
     }
     if (!hunks || oldRemaining || newRemaining)
         throw new chat_js_1.InvalidReviewResponseError('missing or incomplete diff');
+    // Internal hunk lengths cannot reveal a whole omitted hunk. When the file API
+    // supplies change counts, require the complete patch to account for all of them.
+    if (expectedChanges?.additions !== undefined || expectedChanges?.deletions !== undefined) {
+        const { additions: expectedAdded, deletions: expectedDeleted } = expectedChanges;
+        if (!Number.isSafeInteger(expectedAdded) || !Number.isSafeInteger(expectedDeleted)
+            || expectedAdded !== additions || expectedDeleted !== deletions) {
+            throw new chat_js_1.InvalidReviewResponseError('patch does not cover file change counts');
+        }
+    }
     return visible;
 }
 exports.patchLines = patchLines;
