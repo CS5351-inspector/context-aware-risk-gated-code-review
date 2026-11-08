@@ -17,6 +17,11 @@ function validateResult(r, config) {
   assert(r.metrics && Number.isInteger(r.metrics.calls) && r.metrics.calls>=0 && r.metrics.calls<=config.budget.maxCalls);
   for(const k of ['inputTokens','outputTokens']) assert(r.metrics[k]===null || (Number.isInteger(r.metrics[k]) && r.metrics[k]>=0));
   assert(typeof r.metrics.model==='string' && r.metrics.model);
+  if(config.provider_kind==='live') {
+    assert.equal(r.metrics.model,config.model,'Recorded model differs from frozen plan');
+    assert.deepEqual(r.metrics.effectiveParameters,config.effective_parameters,'Recorded parameters differ from frozen plan');
+    assert.equal(r.metrics.promptVersion,config.prompt_version,'Recorded prompt differs from frozen plan');
+  }
   if (r.analysis_status==='FAILED' || r.analysis_status==='NOT_APPLICABLE') assert.equal(r.findings.length,0);
 }
 function runPlan(root, plan, output, adapter, bridge, allowLive=false) {
@@ -91,6 +96,7 @@ function verifyRuns(root,dir) {
   assert.equal(runs.implementation_sha256,plan.implementation_sha256);assert.equal(runs.code_sha,plan.code_sha);
   assert.equal(runs.provider_kind,plan.config.provider_kind);assert.equal(runs.output_boundary,plan.config.output_boundary);
   assert.equal(runs.evaluation_scope,plan.config.evaluation_scope);
+  if(plan.config.provider_kind==='live')assert.equal(runs.adapter_sha256,plan.config.adapter_sha256,'Recorded adapter differs from frozen plan');
   const expected=new Set(plan.pairs.flatMap(p=>p.conditions.map(c=>`${p.case_id}/${c}/${p.trial_id}`))),seen=new Set();
   const cases=new Map(load(root).map(x=>[x.case.case_id,x]));
   for(const r of runs.records){
@@ -101,14 +107,24 @@ function verifyRuns(root,dir) {
     assert.equal(r.label_status,data.case.label_status);assert.equal(r.input_sha256,hash(inputFor(root,data)));
     assert(['not_executed','complete','partial','failed','not_applicable'].includes(r.status));
     if(r.status!=='not_executed'){assert(Number.isFinite(r.latency_ms)&&r.latency_ms>=0);assert(Number.isFinite(Date.parse(r.started_at))&&Number.isFinite(Date.parse(r.ended_at)));}
-    if(r.status==='not_executed'){assert.equal(r.raw_file,null);assert.equal(r.findings.length,0);continue;}
+    if(r.status==='not_executed'){
+      for(const key of ['raw_file','raw_sha256','started_at','ended_at','latency_ms','calls','input_tokens','output_tokens','cost_usd','error'])assert.equal(r[key],null,`Unexecuted run has ${key}`);
+      assert.equal(r.stop_reason,'pair_budget_reservation');assert.equal(r.findings.length,0);continue;
+    }
     assert(/^raw\/[0-9]+\.json$/.test(r.raw_file));assert.equal(hash(fs.readFileSync(path.join(dir,r.raw_file))),r.raw_sha256,'Raw output changed');
     const raw=read(path.join(dir,r.raw_file));
     if(!r.error){validateResult(raw,plan.config);assert.equal(raw.analysis_status.toLowerCase(),r.status);assert.deepEqual(raw.findings,r.findings);
+      assert.equal(raw.context_kind,r.review_condition==='B2'?'actual-retrieval':r.review_condition==='B1'?'none':'oracle','Recorded context differs from condition');
+      if(r.review_condition==='B2'&&plan.config.provider_kind==='live')assert.equal(raw.context_version,plan.config.context_version);
       assert.equal(raw.metrics.calls,r.calls);assert.equal(raw.metrics.inputTokens,r.input_tokens);assert.equal(raw.metrics.outputTokens,r.output_tokens);
       const c=plan.config;const expectedCost=c.provider_kind==='scripted'?0:r.input_tokens===null||r.output_tokens===null?null:(r.input_tokens*c.pricing.input_per_million+r.output_tokens*c.pricing.output_per_million)/1e6;
       assert.equal(r.cost_usd,expectedCost,'Cost record does not match usage/pricing');
-    } else {assert.equal(r.status,'failed');assert.equal(r.findings.length,0);assert.equal(r.cost_usd,null);}
+    } else {
+      assert(['worker_timeout','adapter_or_output_error'].includes(r.error),'Unknown worker failure');
+      assert.equal(raw.failure,r.error,'Worker failure contradicts raw output');assert.equal(raw.usage_unknown,true);
+      assert.equal(r.status,'failed');assert.equal(r.findings.length,0);
+      for(const key of ['calls','input_tokens','output_tokens','cost_usd'])assert.equal(r[key],null,'Worker failure must preserve unknown usage');
+    }
   }
   return {plan,runs,complete:seen.size===expected.size&&runs.records.every(r=>r.status!=='not_executed')};
 }
