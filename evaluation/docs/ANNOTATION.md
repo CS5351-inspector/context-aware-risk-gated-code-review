@@ -14,7 +14,7 @@ A rejected/uncertain case remains provisional and outside formal gold. Editing t
 
 ## Output adjudication (after a run)
 
-Use `blind` to export `review/packets.json`; a coordinator keeps `private/mapping.json` and original runs away from graders. Packets contain source, requirement, gold and actual findings, but no condition name, provider or run key. At least one human output adjudicator records their name/date; another adjudicator should resolve disputed or novel findings. This is separate from the two humans approving the dataset.
+Use `blind` to export `review/packets.json`; a coordinator keeps `private/mapping.json` and original runs away from graders. Packets contain source, requirement, gold and actual findings including predicted severity, but no condition name, provider or run key. At least one human output adjudicator records their name/date; another adjudicator should resolve disputed or novel findings. This is separate from the two humans approving the dataset.
 
 For each finding:
 
@@ -25,6 +25,6 @@ For each finding:
 5. Use `unresolved` if evidence is insufficient. Include pending reasoning but never guess to improve precision.
 6. Record `location_acceptable` / `severity_acceptable` as true/false or null when not assessed. Grade semantic correctness independently.
 
-The scorer rejects unknown gold IDs, unknown findings, duplicate atoms, conflicting root verdicts, stale labels, and final verdicts without reviewer/date/evidence. It cannot prove the human's reasoning: keep review evidence for team inspection. Missing annotations become unresolved.
+The scorer rejects unknown gold IDs, unknown findings, duplicate atoms, conflicting root verdicts, stale labels, and final verdicts without reviewer/date/evidence. It cannot prove the human's reasoning: keep review evidence for team inspection. Missing annotations become unresolved. Atom/root IDs must be nonblank strings. Location and severity judgments are scored per adjudicated true atom, including duplicate-root assertions that may point at different coordinates; the summary exposes assessed-atom counts. Semantic precision and recall still deduplicate root causes.
 
-A novel defect on a supposedly clean case requires relabeling, a new dataset version and consistent rescoring of both conditions/trials. Until resolved, the summary flags reclassification and does not count the case as clean success. Preserve the original frozen labels and original report; never silently improve only one condition.
+A novel defect on a supposedly clean case requires relabeling, a new dataset version and consistent rescoring of both conditions/trials. Until resolved, the summary lists the affected case IDs and excludes that case from clean success in every condition and trial, including runs that did not discover the novel issue. Preserve the original frozen labels and original report; never silently improve only one condition.

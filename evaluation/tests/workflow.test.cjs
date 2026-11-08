@@ -108,6 +108,7 @@ test('blind packets hide condition/provider, and mapping round-trip preserves ru
  const out=fixture(dir);injectFinding(out,'DEV-001/B1/1',[finding()]);const dest=path.join(dir,'blind');
  const cli=path.join(root,'cli.cjs');let r=spawnSync(process.execPath,[cli,'blind','--runs',out,'--out',dest],{encoding:'utf8'});assert.equal(r.status,0,r.stderr);
  const packets=fs.readFileSync(path.join(dest,'review/packets.json'),'utf8');assert(!packets.includes('/B1/')&&!packets.includes('B2-oracle')&&!packets.includes('provider_kind'));
+ const gradedFindings=JSON.parse(packets).packets.flatMap(p=>p.findings);assert.equal(gradedFindings[0].severity,'high');
  const labels=path.join(dir,'labels.json');r=spawnSync(process.execPath,[cli,'unblind','--mapping',path.join(dest,'private/mapping.json'),'--packets',path.join(dest,'review/packets.json'),'--out',labels],{encoding:'utf8'});assert.equal(r.status,0,r.stderr);
  assert.equal(read(labels).judgments[0].run_key,'DEV-001/B1/1');assert.equal(score(root,out,read(labels)).conditions.B1.unresolved,1);
 }));

@@ -1,5 +1,6 @@
 'use strict';
 const assert=require('node:assert/strict');
+const fs=require('node:fs');
 const {load,hash}=require('./data.cjs');
 const {verifyRuns}=require('./runner.cjs');
 const {random}=require('./plan.cjs');
@@ -16,10 +17,12 @@ function score(root,dir,labels){
   assert(Array.isArray(labels.judgments));
   const rowMap=new Map(runs.records.map(r=>[r.run_key,r]));const cases=new Map(load(root).map(x=>[x.case.case_id,x]));
   const seen=new Set();const groups=new Map();
+  assert.equal(labels.schema_version,1,'Unsupported judgment schema');
   for(const j of labels.judgments){
     const r=rowMap.get(j.run_key);assert(r && r.findings.some(f=>f.id===j.finding_id),'Unknown finding in judgment');
-    const key=`${j.run_key}/${j.finding_id}/${j.atom_id}`;assert(j.atom_id && !seen.has(key),'Duplicate atom');seen.add(key);
-    assert(typeof j.root_id==='string'&&j.root_id);assert(['gold','novel','false_positive','out_of_scope','unresolved'].includes(j.verdict));
+    assert(typeof j.atom_id==='string'&&j.atom_id.trim(),'Atom ID must be a nonblank string');
+    const key=JSON.stringify([j.run_key,j.finding_id,j.atom_id]);assert(!seen.has(key),'Duplicate atom');seen.add(key);
+    assert(typeof j.root_id==='string'&&j.root_id.trim(),'Root ID must be a nonblank string');assert(['gold','novel','false_positive','out_of_scope','unresolved'].includes(j.verdict));
     if(j.verdict!=='unresolved')assert(labels.reviewer?.trim() && Number.isFinite(Date.parse(labels.reviewed_at)) && j.evidence?.trim(),'Adjudication requires reviewer, date and evidence');
     const gold=cases.get(r.case_id).gold.issues;
     if(j.verdict==='gold')assert(gold.some(g=>g.gold_issue_id===j.gold_issue_id),'Unknown gold root');
@@ -51,14 +54,22 @@ function score(root,dir,labels){
       clean_eligible:clean&&novel===0&&unresolved===0,clean_reclassification_needed:clean&&novel>0,
       clean_success:clean&&novel===0&&unresolved===0?(r.status==='complete'&&claims.length===0?1:0):null,
       latency_ms:r.latency_ms,cost_usd:r.cost_usd,input_tokens:r.input_tokens,output_tokens:r.output_tokens,
-      location:claims.filter(x=>x.verdict==='gold'||x.verdict==='novel').map(x=>x.location_acceptable),severity:claims.filter(x=>x.verdict==='gold'||x.verdict==='novel').map(x=>x.severity_acceptable)});
+      // Coordinates/severity belong to individual assertions, even when their bug root repeats.
+      location:atoms.filter(x=>x.verdict==='gold'||x.verdict==='novel').map(x=>x.location_acceptable),severity:atoms.filter(x=>x.verdict==='gold'||x.verdict==='novel').map(x=>x.severity_acceptable)});
+  }
+  // A newly confirmed bug invalidates this case's clean label for both treatments and every trial.
+  const cleanReclassificationCases=[...new Set(rows.filter(r=>r.clean_reclassification_needed).map(r=>r.case_id))].sort();
+  for(const r of rows) if(cleanReclassificationCases.includes(r.case_id)) {
+    r.clean_eligible=false;r.clean_reclassification_needed=true;r.clean_success=null;
   }
   const conditions={};
   for(const condition of plan.config.conditions){
     const rs=rows.filter(r=>r.condition===condition);const sum=k=>rs.reduce((a,r)=>a+r[k],0);
     const caseMacro=k=>mean([...new Set(rs.map(r=>r.case_id))].map(id=>mean(rs.filter(r=>r.case_id===id).map(r=>r[k]))));
     const lat=rs.map(r=>r.latency_ms).sort((a,b)=>a-b),quant=p=>lat.length?lat[Math.ceil(p*lat.length)-1]:null;
-    conditions[condition]={started:rs.length,not_executed:runs.records.filter(r=>r.review_condition===condition&&r.status==='not_executed').length,
+    const planned=plan.pairs.filter(p=>p.conditions.includes(condition)).length;
+    const recorded=runs.records.filter(r=>r.review_condition===condition).length;
+    conditions[condition]={planned,missing:planned-recorded,started:rs.length,not_executed:runs.records.filter(r=>r.review_condition===condition&&r.status==='not_executed').length,
       calls_known_subtotal:rs.reduce((n,r)=>n+(rowMap.get(r.run_key).calls??0),0),calls_unknown_runs:rs.filter(r=>rowMap.get(r.run_key).calls===null).length,
       status_counts:Object.fromEntries(['complete','partial','failed','not_applicable'].map(s=>[s,rs.filter(r=>r.status===s).length])),
       frozen_gold:sum('frozen_gold'),hits:sum('hits'),tp:sum('tp'),fp:sum('fp'),unresolved:sum('unresolved'),novel:sum('novel'),duplicate_atoms:sum('duplicates'),
@@ -71,6 +82,8 @@ function score(root,dir,labels){
       cost_basis:'configured-rate estimate; not provider invoice',cost_known_subtotal_usd:rs.reduce((a,r)=>a+(r.cost_usd??0),0),cost_unknown_runs:rs.filter(r=>r.cost_usd===null).length,
       input_tokens_known_subtotal:rs.reduce((a,r)=>a+(r.input_tokens??0),0),input_tokens_unknown_runs:rs.filter(r=>r.input_tokens===null).length,
       output_tokens_known_subtotal:rs.reduce((a,r)=>a+(r.output_tokens??0),0),output_tokens_unknown_runs:rs.filter(r=>r.output_tokens===null).length,
+      location_assessed_atoms:rs.flatMap(r=>r.location).filter(x=>x!==null).length,
+      severity_assessed_atoms:rs.flatMap(r=>r.severity).filter(x=>x!==null).length,
       location_accuracy:mean(rs.flatMap(r=>r.location).filter(x=>x!==null).map(Number)),severity_agreement:mean(rs.flatMap(r=>r.severity).filter(x=>x!==null).map(Number))};
   }
   const bootstrap={};
@@ -89,9 +102,9 @@ function score(root,dir,labels){
     for(let i=0;i<2000;i++){const sampled=[];for(const group of strata.values())sampled.push(...group.map(()=>group[Math.floor(rng()*group.length)]));samples.push(mean(sampled));}
     samples.sort((a,b)=>a-b);bootstrap[category]={family_count:families.length,delta:mean(diffs),ci95:[samples[49],samples[1949]],method:'paired family bootstrap within category strata, trial means first; 2000 resamples',warning:'Small synthetic family count; interval does not prove generalization'};
   }
-  return {schema_version:1,plan_id:plan.plan_id,provider_kind:runs.provider_kind,purpose:plan.config.purpose,evaluation_scope:runs.evaluation_scope,output_boundary:runs.output_boundary,
+  return {schema_version:1,scorer_sha256:hash(fs.readFileSync(__filename)),plan_id:plan.plan_id,provider_kind:runs.provider_kind,purpose:plan.config.purpose,evaluation_scope:runs.evaluation_scope,output_boundary:runs.output_boundary,
     evidence_status:runs.provider_kind==='scripted'?'PLUMBING_CONTROL_NOT_MODEL_EVIDENCE':plan.config.purpose==='formal'&&complete&&!rows.some(r=>r.unresolved||r.clean_reclassification_needed)?'FORMAL_COMPONENT_RESULTS':'EXPLORATORY_OR_INCOMPLETE',
-    paired_plan_complete:complete,conditions,paired_recall:bootstrap,rows,
+    paired_plan_complete:complete,clean_reclassification_cases:cleanReclassificationCases,conditions,paired_recall:bootstrap,rows,
     limitations:['Synthetic cases only; no real-PR generalization','Family labels may remain provisional; see run records','No product gate/UX/human-efficiency conclusions','No mixed-scope F1; novel precision and frozen recall are intentionally separate']};
 }
 module.exports={score,template};

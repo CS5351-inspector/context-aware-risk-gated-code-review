@@ -36,7 +36,7 @@ try{
      const review_id=`R${String(i+1).padStart(4,'0')}`,item=cases.get(r.case_id);mapping[review_id]=r.run_key;
      const input=inputFor(root,item);
      packets.push({review_id,requirement:input.requirement,diff:input.diff,head_files:input.files,gold_issues:item.gold.issues,
-       findings:r.findings.map(f=>({id:f.id,file:f.file,side:f.side,line:f.line,message:f.message})),
+       findings:r.findings.map(f=>({id:f.id,file:f.file,side:f.side,line:f.line,severity:f.severity,message:f.message})),
        annotations:r.findings.map(f=>({finding_id:f.id,atom_id:'1',root_id:f.id,verdict:'unresolved',gold_issue_id:null,evidence:'',location_acceptable:null,severity_acceptable:null}))});
    });
    write(path.join(output,'private/mapping.json'),{plan_id:plan.plan_id,runs_sha256:hash(runs),mapping});
