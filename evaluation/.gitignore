@@ -1,3 +1,6 @@
 .cache/
 runs/
 local-provider.*
+# The root ignores generated lib/ directories; this one contains evaluation source.
+!lib/
+!lib/**
