@@ -67,7 +67,7 @@
 | `test/chat.test.ts` | 旧 Chat 的模型选择、reasoning 参数和请求构造回归测试 |
 | `test/index.test.ts` | 既有 bot/PR 处理流程回归测试，包括 diff 与反馈等行为 |
 | `test/review-validation.test.ts` | PR #2 原有信封和 JSON/字段错误回归测试 |
-| `test/review-handler.test.ts` | PR #2 原有集成边界，非法响应不能调用 createReview；有效空结果可正常走反馈 |
+| `test/review-handler.test.ts` | PR handler 集成边界：非法响应记录 FAILED/PARTIAL 并保留其他文件意见，发布后仍抛出错误；有效空结果正常反馈 |
 | `test/fixtures/issues.opened.json` | 固定 GitHub webhook 示例输入，避免依赖真实事件 |
 | `test/fixtures/mock-cert.pem` | 测试使用的假证书材料，不是真实服务密钥 |
 

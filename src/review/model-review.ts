@@ -144,7 +144,7 @@ export async function reviewFiles(
     if (++fileCount > budget.maxFiles) { omit(file.path, 'FILE_BUDGET'); continue; }
     if (!file.patch?.trim()) { omit(file.path, 'MISSING_PATCH'); continue; }
     if (!contextValid) { omit(file.path, 'INVALID_EVIDENCE'); continue; }
-    try { patchLines(file.patch); } catch { omit(file.path, 'MISSING_PATCH'); continue; }
+    try { patchLines(file.patch, file); } catch { omit(file.path, 'MISSING_PATCH'); continue; }
     const prompt = buildModelPrompt(file.path, file.patch, context);
     const tokens = runtime.countInputTokens(prompt);
     if (!Number.isSafeInteger(tokens) || tokens < 0) throw new Error('Invalid input token count');

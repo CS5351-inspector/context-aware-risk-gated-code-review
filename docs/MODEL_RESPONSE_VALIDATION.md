@@ -24,7 +24,7 @@
 
 ## 失败如何传播
 
-`Chat.codeReview` 校验失败 → `bot.ts` 原有 catch 继续抛出 → 跳过 `pulls.createReview` → GitHub Action 原有 `onError` 将退出码设为 1。因此失败响应不会形成新的 LGTM 评论。
+`Chat.codeReview` 校验失败 → `bot.ts` 记录必要遗漏并保留其他文件的已知意见 → 发布 PARTIAL/FAILED 的 COMMENT review（含下次重审标记）→ 重新抛出原始失败，GitHub Action 的 `onError` 将退出码设为 1。失败响应不会形成 LGTM；API 错误仍反映为 workflow 失败。
 
 这里没有把异常伪装成普通 finding，也没有实现完整的 `ReviewResult`、PARTIAL/FAILED 状态、risk gate 或 GitHub required status。后续模块可按错误类型转成覆盖状态。空 patch 的旧接口行为、缺失/超大 patch 的跳过逻辑、过期审查和证据引用规则仍需后续任务处理；本模块不能证明整个 PR 被充分审查。
 
@@ -53,8 +53,12 @@ npm.cmd run build --script-shell='C:\Program Files\Git\bin\bash.exe'
 
 - 原有 2 个测试套件：52/52 通过。
 - 新增 35 项测试在原版 `src/chat.ts` 上：30 项失败、5 项通过；替换回实现后，共 4 套件、87/87 通过。
-- 新增 PR handler 测试验证非法响应不会调用 `pulls.createReview`；显式空 findings 仍能发布正常结果。
+- PR handler 回归测试验证非法响应发布明确的 FAILED/PARTIAL 记录后仍抛出；此前已得到的意见被保留。显式空 findings 仍能发布正常结果。
 - `npm run build` 成功，更新 `action/index.cjs` 与 `action/src/chat.d.ts`。模型 API 全部使用固定 mock，未调用付费服务。
 - `tsc --noEmit --incremental false --checkJs false` 通过；完整 `tsc` 仍报告基线已有的 6 个 `.cjs` 类型错误。已在未修改的原版适配器上复现同样错误，不将其描述为完整类型检查通过。
 
 基线 `npm ci` 因缺少 21 个 esbuild 0.17.11 平台可选包而失败，补齐锁文件后安装成功。没有更改已有包版本或 `package.json`。
+
+## PR 覆盖复核补充
+
+GitHub 提供的 additions/deletions 会与 patch 的实际增删行数核对，从而识别恰好截断在完整 hunk 之间的遗漏；只有内部 hunk 长度校验无法识别这种情况。最小 C 输入若没有文件计数，仍只能验证内部结构。没有成功 bot 审查记录时，synchronize 重审整个 PR，不能用事件 before SHA 推断此前已经审过。显式 MAX_PATCH_LENGTH 必须为正整数；配置错误在调用模型前失败。

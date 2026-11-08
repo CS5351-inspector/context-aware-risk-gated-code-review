@@ -202,16 +202,8 @@ describe('getChangedFiles', () => {
       ],
     });
 
-    await expect(getChangedFiles(context)).resolves.toEqual([
-      pullRequestFiles[1],
-    ]);
-    expect(compareCommits).toHaveBeenCalledTimes(1);
-    expect(compareCommits).toHaveBeenCalledWith({
-      owner: 'owner',
-      repo: 'repo',
-      base: 'previous-head',
-      head: 'current-head',
-    });
+    await expect(getChangedFiles(context)).resolves.toEqual(pullRequestFiles);
+    expect(compareCommits).not.toHaveBeenCalled();
   });
 
   test('uses the full pull request for a legacy bot review without the marker', async () => {
@@ -328,7 +320,7 @@ describe('getChangedFiles', () => {
     });
   });
 
-  test('uses the synchronize before SHA when no prior bot review exists', async () => {
+  test('reviews the whole PR when no completed bot review exists', async () => {
     const { context, compareCommits } = createContext({
       comparisons: [
         {
@@ -338,15 +330,8 @@ describe('getChangedFiles', () => {
       ],
     });
 
-    await expect(getChangedFiles(context)).resolves.toEqual([
-      pullRequestFiles[1],
-    ]);
-    expect(compareCommits).toHaveBeenCalledWith({
-      owner: 'owner',
-      repo: 'repo',
-      base: 'previous-head',
-      head: 'current-head',
-    });
+    await expect(getChangedFiles(context)).resolves.toEqual(pullRequestFiles);
+    expect(compareCommits).not.toHaveBeenCalled();
   });
 
   test('uses the full pull request when the trusted review comparison fails', async () => {

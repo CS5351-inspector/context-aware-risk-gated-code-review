@@ -208,11 +208,8 @@ export const getChangedFiles = async (context: PullRequestContext) => {
     return pullRequestFiles;
   }
 
-  // 缺少上次 review 的提交时，尝试用本次推送事件之前的 SHA 作比较起点。
-  if (!comparisonBase) {
-    comparisonBase = context.payload.before;
-  }
-
+  // before only describes the latest push; without a completed review, older
+  // unchanged files may never have been analyzed. Start from the whole PR.
   if (!comparisonBase) {
     return pullRequestFiles;
   }
@@ -267,9 +264,12 @@ export const getChangedFiles = async (context: PullRequestContext) => {
 
 export const robot = (app: Probot) => {
   // 在注册事件时读取 patch 长度上限。length 使用 JavaScript 字符串长度。
-  const maxPatchLength = process.env.MAX_PATCH_LENGTH
-    ? Number(process.env.MAX_PATCH_LENGTH)
-    : Infinity;
+  const configuredLimit = process.env.MAX_PATCH_LENGTH;
+  const maxPatchLength = configuredLimit === undefined ? Infinity : Number(configuredLimit);
+  if (configuredLimit !== undefined && (!configuredLimit.trim()
+    || !Number.isSafeInteger(maxPatchLength) || maxPatchLength < 1)) {
+    throw new Error('Invalid MAX_PATCH_LENGTH: expected a positive integer');
+  }
 
   // 在 GitHub Actions 中把未处理错误反映到进程退出码，供工作流识别失败。
   if (process.env.GITHUB_ACTIONS === 'true') {
@@ -403,6 +403,7 @@ export const robot = (app: Probot) => {
       const ress = [];
       const bodyComments = [];
       const skippedFiles: ReviewCoverage['skippedFiles'] = [];
+      let modelFailure: { error: unknown } | null = null;
 
       // 对每份必要 patch 做预检。跳过的文件进入覆盖记录，方便审阅人安排重审。
       for (const file of eligibleFiles) {
@@ -416,7 +417,7 @@ export const robot = (app: Probot) => {
           continue;
         }
         try {
-          patchLines(patch);
+          patchLines(patch, file);
         } catch (error) {
           if (!(error instanceof InvalidReviewResponseError)) throw error;
           skippedFiles.push({ filename: file.filename, reason: 'invalid or incomplete patch' });
@@ -452,9 +453,12 @@ export const robot = (app: Probot) => {
             }
           }
         } catch (e) {
-          // 旧入口遇到请求或解析错误会抛出，流程在后面的 createReview 之前结束。
+          // Preserve earlier findings and record a rerun marker before surfacing
+          // the API/response failure to the workflow. Do not publish raw error text.
           log.info(`review ${file.filename} failed`, e);
-          throw e;
+          skippedFiles.push({ filename: file.filename, reason: e instanceof InvalidReviewResponseError
+            ? 'model response invalid' : 'model request failed' });
+          modelFailure ??= { error: e };
         }
       }
       // 统一发布一次 COMMENT review，携带事件中的 head SHA 和收集到的行内评论。
@@ -477,6 +481,7 @@ export const robot = (app: Probot) => {
       }
 
       console.timeEnd('gpt cost');
+      if (modelFailure) throw modelFailure.error;
       log.info(
         skippedFiles.length ? 'review published with skipped files' : 'successfully reviewed',
         context.payload.pull_request.html_url

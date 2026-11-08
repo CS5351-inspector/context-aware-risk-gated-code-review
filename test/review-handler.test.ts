@@ -13,7 +13,7 @@ jest.mock('openai', () => {
 const { mockCreate } = require('openai');
 const completePatch = '@@ -1 +1 @@\n-old\n+new';
 const changedFile = (filename: string, patch?: string, status = 'modified') => ({
-  filename, status, patch,
+  filename, status, patch, additions: 1, deletions: 1,
   contents_url: `https://api.github.com/repos/owner/repo/contents/${filename}`,
 });
 
@@ -62,10 +62,10 @@ describe('review response validation in the PR handler', () => {
     mockCreate.mockResolvedValue(response);
     const { handler, context, createReview } = setup();
 
-    await expect(handler(context)).rejects.toMatchObject({
-      name: 'InvalidReviewResponseError',
-    });
-    expect(createReview).not.toHaveBeenCalled();
+    await expect(handler(context)).rejects.toMatchObject({ name: 'InvalidReviewResponseError' });
+    expect(createReview.mock.calls[0][0].body).toContain('Code review incomplete (FAILED)');
+    expect(createReview.mock.calls[0][0].body).toContain('model response invalid');
+    expect(createReview.mock.calls[0][0].body).not.toContain('LGTM');
   });
 
   test('still publishes a review for a valid explicit no-findings response', async () => {
@@ -120,6 +120,44 @@ describe('review response validation in the PR handler', () => {
     expect(body).toContain('<!-- chatgpt-code-review-incomplete -->');
     expect(comments).toEqual([{ path: 'src/reviewed.ts', body: 'Check this change.', side: 'RIGHT', line: 1 }]);
     expect(commit_id).toBe('reviewed-head');
+  });
+
+  test('detects a whole missing hunk using GitHub change counts', async () => {
+    const { handler, context, createReview } = setup([
+      { ...changedFile('src/truncated.ts', completePatch), additions: 2, deletions: 2 },
+    ]);
+    mockCreate.mockResolvedValue({ choices: [{ finish_reason: 'stop', message: { content: '{"reviews":[]}' } }] });
+
+    await handler(context);
+
+    expect(mockCreate).not.toHaveBeenCalled();
+    expect(createReview.mock.calls[0][0].body).toContain('Code review incomplete (FAILED)');
+    expect(createReview.mock.calls[0][0].body).toContain('invalid or incomplete patch');
+  });
+
+  test('preserves prior findings and retries omitted files after a later model failure', async () => {
+    mockCreate.mockResolvedValueOnce({ choices: [{ finish_reason: 'stop', message: {
+      content: JSON.stringify({ reviews: [{ lgtm: false, review_comment: 'Existing finding', hunk_header: '@@ -1 +1 @@' }] }),
+    } }] }).mockRejectedValueOnce(new Error('upstream private details'));
+    const { handler, context, createReview } = setup([
+      changedFile('src/reviewed.ts', completePatch), changedFile('src/failed.ts', completePatch),
+    ]);
+
+    await expect(handler(context)).rejects.toThrow('upstream private details');
+
+    const { body, comments } = createReview.mock.calls[0][0];
+    expect(body).toContain('Code review incomplete (PARTIAL)');
+    expect(body).toContain('Reviewed 1 of 2 eligible files.');
+    expect(body).toContain('model request failed');
+    expect(body).toContain('<!-- chatgpt-code-review-incomplete -->');
+    expect(body).not.toContain('upstream private details');
+    expect(comments).toEqual([{ path: 'src/reviewed.ts', body: 'Existing finding', side: 'RIGHT', line: 1 }]);
+  });
+
+  test.each(['NaN', 'Infinity', '-1', '0', '1.5', ''])('rejects invalid MAX_PATCH_LENGTH=%j before provider calls', value => {
+    process.env.MAX_PATCH_LENGTH = value;
+    expect(() => setup()).toThrow('Invalid MAX_PATCH_LENGTH');
+    expect(mockCreate).not.toHaveBeenCalled();
   });
 
   test('leaves a PR with only excluded statuses without a review', async () => {
