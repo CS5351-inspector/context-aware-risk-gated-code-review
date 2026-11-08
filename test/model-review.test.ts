@@ -137,6 +137,24 @@ describe('controlled modes, coverage and resource limits', () => {
       expect(result.metrics.calls).toBe(0); expect(result.omissions[0].reason).toBe('INVALID_EVIDENCE');
     });
   });
+    // 模拟边界输入绕过编译期类型检查，观察错误是否进入覆盖记录。
+  test.each([
+    { name: 'non-array list', value: null },
+    { name: 'null item', value: [null] },
+    { name: 'numeric ID', value: [{ ...snippet(), id: 123 }] },
+    { name: 'numeric file', value: [{ ...snippet(), file: 123 }] },
+    { name: 'numeric reason', value: [{ ...snippet(), reason: 123 }] },
+  ])('records invalid evidence for a $name before calling the model', async ({ value }) => {
+    const incoming = JSON.parse(JSON.stringify(value));
+    const result = await reviewFiles(client(), input(), incoming, budget(), runtime);
+
+    expect(result.metrics.calls).toBe(0);
+    expect(result.omissions).toEqual([
+      { file: 'src/a.ts', stage: 'model', reason: 'INVALID_EVIDENCE', required: true },
+    ]);
+    expect(deriveModelStatus(input(), result)).toBe('FAILED');
+  });
+  
   test('token limit covers full prompt and reserves output; no request above limit', async () => {
     const countInputTokens = jest.fn().mockReturnValue(3900);
     const result = await reviewFiles(client(), input(), [], budget(), { countInputTokens });

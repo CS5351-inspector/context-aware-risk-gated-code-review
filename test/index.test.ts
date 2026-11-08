@@ -142,6 +142,19 @@ const createContext = ({
 };
 
 describe('getChangedFiles', () => {
+  test('rechecks the full PR after its latest bot review recorded skipped files', async () => {
+    const { context, compareCommits } = createContext({
+      reviews: [
+        createBotReview('LGTM 👍', 'older-head'),
+        createBotReview('Code review incomplete (PARTIAL)\n\n<!-- chatgpt-code-review-incomplete -->'),
+      ],
+      comparisons: [{ status: 'ahead', files: incrementalFiles }],
+    });
+
+    await expect(getChangedFiles(context)).resolves.toEqual(pullRequestFiles);
+    expect(compareCommits).not.toHaveBeenCalled();
+  });
+
   test('uses the current pull request files when the pull request is opened', async () => {
     const { context, compareCommits } = createContext({ action: 'opened' });
 

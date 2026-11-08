@@ -147030,13 +147030,15 @@ Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.robot = exports.getChangedFiles = exports.createReviewBody = exports.createInlineReviewComment = exports.isHunkHeaderInPatch = exports.getReviewCommentLocation = void 0;
 const minimatch_1 = __nccwpck_require__(4501);
 const chat_js_1 = __nccwpck_require__(85365);
+const findings_js_1 = __nccwpck_require__(2798);
 const loglevel_1 = __importDefault(__nccwpck_require__(78063));
 const OPENAI_API_KEY = 'OPENAI_API_KEY';
+// 比较接口返回接近文件上限时，下面会退回完整的 PR 文件列表，避免漏审。
 const COMPARE_FILES_LIMIT = 300;
+// 隐藏的 Markdown 标记帮助机器人在历史 review 中找到自己的记录。
 const REVIEW_MARKER = '<!-- chatgpt-code-review -->';
-const MAX_PATCH_COUNT = process.env.MAX_PATCH_LENGTH
-    ? +process.env.MAX_PATCH_LENGTH
-    : Infinity;
+const INCOMPLETE_REVIEW_MARKER = '<!-- chatgpt-code-review-incomplete -->';
+// 解析 @@ -旧起点,旧行数 +新起点,新行数 @@。返回 null 让调用者选择正文评论。
 const parseHunkHeader = (hunkHeader) => {
     if (!hunkHeader) {
         return null;
@@ -147045,6 +147047,7 @@ const parseHunkHeader = (hunkHeader) => {
     if (!match) {
         return null;
     }
+    // match[0] 是整段匹配结果，解构时第一个逗号跳过它。省略行数时默认为 1。
     const [, oldStartValue, oldCountValue, newStartValue, newCountValue] = match;
     const oldStart = Number(oldStartValue);
     const oldCount = oldCountValue === undefined ? 1 : Number(oldCountValue);
@@ -147058,6 +147061,7 @@ const getReviewCommentLocation = (hunkHeader) => {
         return null;
     }
     const { oldStart, oldCount, newStart, newCount } = range;
+    // 旧评论定位优先用新侧的最后一行。纯删除时用旧侧的最后一行。
     if (newCount > 0) {
         return {
             line: newStart + newCount - 1,
@@ -147078,6 +147082,7 @@ const isHunkHeaderInPatch = (hunkHeader, patch) => {
     if (!expectedRange) {
         return false;
     }
+    // some 找到任一真实 hunk 匹配即可。比较四个数字，也接受省略逗号行数的等价格式。
     return patch.split('\n').some((line) => {
         if (!line.startsWith('@@')) {
             return false;
@@ -147091,6 +147096,7 @@ const isHunkHeaderInPatch = (hunkHeader, patch) => {
 };
 exports.isHunkHeaderInPatch = isHunkHeaderInPatch;
 const createInlineReviewComment = (path, body, hunkHeader, patch) => {
+    // 先算坐标，再核对模型给的 hunk 确实出现在本文件 patch。成功时返回 GitHub 行内评论字段。
     const location = (0, exports.getReviewCommentLocation)(hunkHeader);
     if (!location || !(0, exports.isHunkHeaderInPatch)(hunkHeader, patch)) {
         return null;
@@ -147103,7 +147109,26 @@ const createInlineReviewComment = (path, body, hunkHeader, patch) => {
     };
 };
 exports.createInlineReviewComment = createInlineReviewComment;
-const createReviewBody = (hasInlineComments, bodyComments) => {
+const createReviewBody = (hasInlineComments, bodyComments, coverage) => {
+    // 必要 patch 被跳过时，先披露覆盖情况，再保留已经得到的意见。
+    if (coverage?.skippedFiles.length) {
+        const { reviewedFiles, skippedFiles } = coverage;
+        const status = reviewedFiles === 0 ? 'FAILED' : 'PARTIAL';
+        const skipped = skippedFiles.map(({ filename, reason }) => {
+            // 转义文件名里的换行和反引号，确保文件名完整留在 Markdown 行内代码中。
+            const displayName = JSON.stringify(filename).slice(1, -1).replace(/`/g, '\\u0060');
+            return `- \`${displayName}\` (${reason})`;
+        });
+        return [
+            `Code review incomplete (${status})`,
+            `Reviewed ${reviewedFiles} of ${reviewedFiles + skippedFiles.length} eligible files.`,
+            ['Skipped files:', ...skipped].join('\n'),
+            ...bodyComments,
+            REVIEW_MARKER,
+            INCOMPLETE_REVIEW_MARKER,
+        ].join('\n\n');
+    }
+    // 完整审查根据是否有意见选择标题。尾部标记供下一次 synchronize 找回记录。
     const heading = hasInlineComments || bodyComments.length
         ? 'Code review by ChatGPT'
         : 'LGTM 👍';
@@ -147111,6 +147136,7 @@ const createReviewBody = (hasInlineComments, bodyComments) => {
 };
 exports.createReviewBody = createReviewBody;
 const getChangedFiles = async (context) => {
+    // Octokit 是 GitHub API 客户端。paginate 按每页 100 条取齐 PR 文件。
     const repo = context.repo();
     const pullRequestFiles = await context.octokit.paginate(context.octokit.pulls.listFiles, {
         owner: repo.owner,
@@ -147118,6 +147144,7 @@ const getChangedFiles = async (context) => {
         pull_number: context.pullRequest().pull_number,
         per_page: 100,
     });
+    // 初次打开 PR 直接使用完整文件列表。synchronize 才尝试找需要重新审查的文件。
     if (context.payload.action !== 'synchronize') {
         return pullRequestFiles;
     }
@@ -147129,13 +147156,15 @@ const getChangedFiles = async (context) => {
             pull_number: context.pullRequest().pull_number,
             per_page: 100,
         });
+        // slice 复制数组，reverse 让 find 优先查较后的记录，只认 Bot 用户和自己的隐藏标记。
         const botReview = reviews
             .slice()
             .reverse()
             .find((r) => r.user?.type === 'Bot' &&
             r.body?.includes(REVIEW_MARKER));
         if (botReview) {
-            if (!botReview.commit_id) {
+            // 上次覆盖不足时重新检查整个 PR，确保本次没改动的遗漏文件也有机会重审。
+            if (!botReview.commit_id || botReview.body?.includes(INCOMPLETE_REVIEW_MARKER)) {
                 return pullRequestFiles;
             }
             comparisonBase = botReview.commit_id;
@@ -147154,6 +147183,7 @@ const getChangedFiles = async (context) => {
         loglevel_1.default.debug('failed to detect previous bot review', err);
         return pullRequestFiles;
     }
+    // 缺少上次 review 的提交时，尝试用本次推送事件之前的 SHA 作比较起点。
     if (!comparisonBase) {
         comparisonBase = context.payload.before;
     }
@@ -147167,6 +147197,7 @@ const getChangedFiles = async (context) => {
             base: comparisonBase,
             head: context.payload.pull_request.head.sha,
         });
+        // identical 表示这次比较没有差异。ahead 表示可从旧提交到新提交筛出变化文件。
         if (data.status === 'identical') {
             return [];
         }
@@ -147180,6 +147211,7 @@ const getChangedFiles = async (context) => {
                 loglevel_1.default.debug('commit comparison reached the GitHub file limit; using the full pull request diff');
                 return pullRequestFiles;
             }
+            // compareCommits 提供要重审的文件名，实际传下去的文件对象及 patch 仍来自 PR 文件列表。
             const changedFilenames = new Set(comparisonFiles.map((file) => file.filename));
             return pullRequestFiles.filter((file) => changedFilenames.has(file.filename));
         }
@@ -147192,11 +147224,17 @@ const getChangedFiles = async (context) => {
 };
 exports.getChangedFiles = getChangedFiles;
 const robot = (app) => {
+    // 在注册事件时读取 patch 长度上限。length 使用 JavaScript 字符串长度。
+    const maxPatchLength = process.env.MAX_PATCH_LENGTH
+        ? Number(process.env.MAX_PATCH_LENGTH)
+        : Infinity;
+    // 在 GitHub Actions 中把未处理错误反映到进程退出码，供工作流识别失败。
     if (process.env.GITHUB_ACTIONS === 'true') {
         app.onError(() => {
             process.exitCode = 1;
         });
     }
+    // 按顺序尝试 GitHub Models token、环境中的 API Key、仓库 Actions 变量。
     const loadChat = async (context) => {
         if (process.env.USE_GITHUB_MODELS === 'true' && process.env.GITHUB_TOKEN) {
             return new chat_js_1.Chat(process.env.GITHUB_TOKEN);
@@ -147226,6 +147264,7 @@ const robot = (app) => {
             return null;
         }
     };
+    // 注册事件入口。opened 是创建 PR，synchronize 是已有 PR 的来源分支更新。
     app.on(['pull_request.opened', 'pull_request.synchronize'], async (context) => {
         const repo = context.repo();
         const chat = await loadChat(context);
@@ -147240,6 +147279,7 @@ const robot = (app) => {
             loglevel_1.default.info('invalid event payload');
             return 'invalid event payload';
         }
+        // 只有配置 TARGET_LABEL 时才检查标签。every 为真表示没有一个标签与目标匹配。
         const target_label = process.env.TARGET_LABEL;
         if (target_label &&
             (!pull_request.labels?.length ||
@@ -147250,6 +147290,7 @@ const robot = (app) => {
         let changedFiles = await (0, exports.getChangedFiles)(context);
         loglevel_1.default.debug('changedFiles:', changedFiles);
         loglevel_1.default.debug;
+        // IGNORE 按换行拆成精确文件名，IGNORE_PATTERNS 与 INCLUDE_PATTERNS 按逗号拆成模式。
         const ignoreList = (process.env.IGNORE || process.env.ignore || '')
             .split('\n')
             .filter((v) => v !== '');
@@ -147262,6 +147303,7 @@ const robot = (app) => {
             const url = new URL(file.contents_url);
             const pathname = decodeURIComponent(url.pathname);
             // if includePatterns is not empty, only include files that match the pattern
+            // include 有配置时直接返回它的匹配结果，这个文件的筛选到此结束。
             if (includePatterns.length) {
                 return matchPatterns(includePatterns, pathname);
             }
@@ -147274,30 +147316,45 @@ const robot = (app) => {
             }
             return true;
         });
-        if (!changedFiles?.length) {
+        const eligibleFiles = changedFiles?.filter(file => file.status === 'modified' || file.status === 'added') ?? [];
+        if (!eligibleFiles.length) {
             loglevel_1.default.info('no change found');
             return 'no change';
         }
         console.time('gpt cost');
+        // ress 收集可以发布在代码行上的评论，bodyComments 收集需要放在 PR review 正文的意见。
         const ress = [];
         const bodyComments = [];
-        for (let i = 0; i < changedFiles.length; i++) {
-            const file = changedFiles[i];
-            const patch = file.patch || '';
-            if (file.status !== 'modified' && file.status !== 'added') {
+        const skippedFiles = [];
+        // 对每份必要 patch 做预检。跳过的文件进入覆盖记录，方便审阅人安排重审。
+        for (const file of eligibleFiles) {
+            const { patch } = file;
+            if (!patch?.trim()) {
+                skippedFiles.push({ filename: file.filename, reason: 'patch missing' });
                 continue;
             }
-            if (!patch || patch.length > MAX_PATCH_COUNT) {
-                loglevel_1.default.info(`${file.filename} skipped caused by its diff is too large`);
+            if (patch.length > maxPatchLength) {
+                skippedFiles.push({ filename: file.filename, reason: 'patch exceeds MAX_PATCH_LENGTH' });
                 continue;
             }
             try {
+                (0, findings_js_1.patchLines)(patch);
+            }
+            catch (error) {
+                if (!(error instanceof chat_js_1.InvalidReviewResponseError))
+                    throw error;
+                skippedFiles.push({ filename: file.filename, reason: 'invalid or incomplete patch' });
+                continue;
+            }
+            try {
+                // PR 事件当前调用旧的逐文件 codeReview。整次 PR 的 reviewFiles 入口位于 review/model-review.ts。
                 const res = await chat?.codeReview(patch);
                 // res can be a single review or an array of reviews (one for each hunk)
                 const reviews = Array.isArray(res) ? res : [res];
                 for (const review of reviews) {
                     if (!review.lgtm && !!review.review_comment) {
                         const inlineComment = (0, exports.createInlineReviewComment)(file.filename, review.review_comment, review.hunk_header, patch);
+                        // 定位不成功时保留意见正文。文件名中的反引号先转义，以便放进 Markdown。
                         if (!inlineComment) {
                             const filename = file.filename.replace(/`/g, '\\`');
                             bodyComments.push(`**File:** \`${filename}\`\n\n${review.review_comment}`);
@@ -147309,16 +147366,21 @@ const robot = (app) => {
                 }
             }
             catch (e) {
+                // 旧入口遇到请求或解析错误会抛出，流程在后面的 createReview 之前结束。
                 loglevel_1.default.info(`review ${file.filename} failed`, e);
                 throw e;
             }
         }
+        // 统一发布一次 COMMENT review，携带事件中的 head SHA 和收集到的行内评论。
         try {
             await context.octokit.pulls.createReview({
                 repo: repo.repo,
                 owner: repo.owner,
                 pull_number: context.pullRequest().pull_number,
-                body: (0, exports.createReviewBody)(ress.length > 0, bodyComments),
+                body: (0, exports.createReviewBody)(ress.length > 0, bodyComments, {
+                    reviewedFiles: eligibleFiles.length - skippedFiles.length,
+                    skippedFiles,
+                }),
                 event: 'COMMENT',
                 commit_id: context.payload.pull_request.head.sha,
                 comments: ress,
@@ -147329,12 +147391,13 @@ const robot = (app) => {
             throw e;
         }
         console.timeEnd('gpt cost');
-        loglevel_1.default.info('successfully reviewed', context.payload.pull_request.html_url);
+        loglevel_1.default.info(skippedFiles.length ? 'review published with skipped files' : 'successfully reviewed', context.payload.pull_request.html_url);
         return 'success';
     });
 };
 exports.robot = robot;
 const matchPatterns = (patterns, path) => {
+    // 每个模式先按 glob 匹配。glob 处理抛错时再尝试正则，任一模式匹配即可。
     return patterns.some((pattern) => {
         try {
             return (0, minimatch_1.minimatch)(path, pattern.startsWith('/') ? "**" + pattern : pattern.startsWith("**") ? pattern : "**/" + pattern);
@@ -147563,6 +147626,145 @@ Object.defineProperty(exports, "__esModule", ({ value: true }));
 const loglevel_1 = __importDefault(__nccwpck_require__(78063));
 loglevel_1.default.setLevel(process.env.LOG_LEVEL || "info");
 exports["default"] = loglevel_1.default;
+
+
+/***/ }),
+
+/***/ 2798:
+/***/ ((__unused_webpack_module, exports, __nccwpck_require__) => {
+
+"use strict";
+
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+exports.convertFindings = exports.patchLines = void 0;
+/** 把旧 Review 协议显式转换为统一 Finding，校验坐标与引用，不生成 URL。 */
+const chat_js_1 = __nccwpck_require__(85365);
+const record = (value) => typeof value === 'object' && value !== null && !Array.isArray(value);
+/** 解析 unified diff 的两侧可见行；只允许 patch 内真实出现的行，不猜测 hunk 首行。
+ * 同时验证 hunk 声明长度，防止截断的 patch 被当成完整必要输入。
+ */
+function patchLines(patch) {
+    const visible = { LEFT: new Set(), RIGHT: new Set() };
+    let left = 0, right = 0, oldRemaining = 0, newRemaining = 0, hunks = 0;
+    const rows = patch.replace(/\r\n/g, '\n').split('\n');
+    for (let i = 0; i < rows.length; i++) {
+        const row = rows[i];
+        const header = /^@@ -(\d+)(?:,(\d+))? \+(\d+)(?:,(\d+))? @@/.exec(row);
+        if (header) {
+            if (oldRemaining || newRemaining)
+                throw new chat_js_1.InvalidReviewResponseError('incomplete diff hunk');
+            left = Number(header[1]);
+            right = Number(header[3]);
+            oldRemaining = Number(header[2] ?? 1);
+            newRemaining = Number(header[4] ?? 1);
+            if (![left, right, oldRemaining, newRemaining].every(Number.isSafeInteger)) {
+                throw new chat_js_1.InvalidReviewResponseError('invalid diff coordinates');
+            }
+            if ((oldRemaining > 0 && left < 1) || (newRemaining > 0 && right < 1)) {
+                throw new chat_js_1.InvalidReviewResponseError('invalid diff origin');
+            }
+            hunks++;
+            continue;
+        }
+        if (!hunks)
+            continue; // 允许 diff --git、---、+++ 等文件头。
+        if (row === '\\ No newline at end of file' || (row === '' && i === rows.length - 1))
+            continue;
+        if (row.startsWith(' ') || row.startsWith('-')) {
+            visible.LEFT.add(left++);
+            oldRemaining--;
+        }
+        if (row.startsWith(' ') || row.startsWith('+')) {
+            visible.RIGHT.add(right++);
+            newRemaining--;
+        }
+        if (!/^[ +\-]/.test(row) || oldRemaining < 0 || newRemaining < 0) {
+            throw new chat_js_1.InvalidReviewResponseError('invalid diff hunk body');
+        }
+    }
+    if (!hunks || oldRemaining || newRemaining)
+        throw new chat_js_1.InvalidReviewResponseError('missing or incomplete diff');
+    return visible;
+}
+exports.patchLines = patchLines;
+/** 逐条验证结构与来源；保留有效发现，并将混杂的无效条目标为必要遗漏。 */
+function convertFindings(completion, input, file, patch, snippets) {
+    let payload;
+    try {
+        payload = JSON.parse((0, chat_js_1.readReviewContent)(completion));
+    }
+    catch (error) {
+        if (error instanceof chat_js_1.InvalidReviewResponseError)
+            throw error;
+        throw new chat_js_1.InvalidReviewResponseError('expected valid JSON');
+    }
+    const reviews = record(payload) && Array.isArray(payload.reviews) ? payload.reviews : [payload];
+    const lines = patchLines(patch);
+    const findings = [];
+    const omissions = [];
+    const omit = (reason, required = true) => omissions.push({ file, stage: 'model', reason, required });
+    let validReviews = 0;
+    for (const raw of reviews) {
+        try {
+            const review = (0, chat_js_1.parseReviewResponse)(JSON.stringify(raw));
+            if (Array.isArray(review))
+                throw new chat_js_1.InvalidReviewResponseError('invalid nested review');
+            if (review.lgtm) {
+                validReviews++;
+                continue;
+            }
+            if (!record(raw))
+                throw new chat_js_1.InvalidReviewResponseError('invalid finding');
+            const legacy = ['file', 'side', 'line', 'severity', 'evidenceIds'].every(key => !(key in raw));
+            // 旧格式没有位置、证据和严重性：保留文字，明确未验证，不能装成可靠空结果。
+            if (legacy) {
+                findings.push({ id: `${file}:${findings.length + 1}`, file, side: 'RIGHT', line: null,
+                    severity: 'medium', message: review.review_comment, evidenceIds: [], validation: 'UNVERIFIED' });
+                omit('UNVERIFIED_FINDING');
+                validReviews++;
+                continue;
+            }
+            if (raw.file !== file || typeof raw.side !== 'string' || !['LEFT', 'RIGHT'].includes(raw.side)
+                || typeof raw.severity !== 'string' || !['low', 'medium', 'high'].includes(raw.severity)
+                || !(raw.line === null || (typeof raw.line === 'number' && Number.isSafeInteger(raw.line) && raw.line > 0))
+                || !Array.isArray(raw.evidenceIds) || !raw.evidenceIds.every(id => typeof id === 'string' && id.trim())) {
+                throw new chat_js_1.InvalidReviewResponseError('invalid finding fields');
+            }
+            const side = raw.side;
+            let line = raw.line;
+            let validation = line === null ? 'UNLOCATED' : 'VERIFIED';
+            // 不在本次 diff 中的行号降级到正文，同时使该文件分析不完整。
+            if (line !== null && !lines[side].has(line)) {
+                line = null;
+                validation = 'UNVERIFIED';
+                omit('UNVERIFIED_FINDING');
+            }
+            else if (line === null)
+                omit('UNLOCATED_FINDING', false);
+            const expectedRef = side === 'RIGHT' ? input.headSha : input.diffBaseSha;
+            const evidenceIds = [...new Set(raw.evidenceIds)];
+            const validIds = evidenceIds.filter(id => snippets.some(s => s.id === id && s.ref === expectedRef));
+            // diff-only 没有上下文 ID；context 中也可以直接以 patch 为依据，不强制伪造引用。
+            if (validIds.length !== evidenceIds.length) {
+                validation = 'UNVERIFIED';
+                omit('INVALID_EVIDENCE');
+            }
+            findings.push({ id: `${file}:${findings.length + 1}`, file, side, line,
+                severity: raw.severity, message: review.review_comment,
+                evidenceIds: validIds, validation });
+            validReviews++;
+        }
+        catch (error) {
+            if (!(error instanceof chat_js_1.InvalidReviewResponseError))
+                throw error;
+            omit('INVALID_OUTPUT');
+        }
+    }
+    if (reviews.length && !validReviews)
+        throw new chat_js_1.InvalidReviewResponseError('invalid finding fields');
+    return { findings, omissions };
+}
+exports.convertFindings = convertFindings;
 
 
 /***/ }),

@@ -1,4 +1,11 @@
 import { Context, Probot } from 'probot';
+type ReviewCoverage = {
+    reviewedFiles: number;
+    skippedFiles: Array<{
+        filename: string;
+        reason: string;
+    }>;
+};
 type PullRequestContext = Context<'pull_request.opened' | 'pull_request.synchronize'>;
 export declare const getReviewCommentLocation: (hunkHeader?: string) => {
     line: number;
@@ -14,7 +21,7 @@ export declare const createInlineReviewComment: (path: string, body: string, hun
     line: number;
     side: "RIGHT" | "LEFT";
 } | null;
-export declare const createReviewBody: (hasInlineComments: boolean, bodyComments: string[]) => string;
+export declare const createReviewBody: (hasInlineComments: boolean, bodyComments: string[], coverage?: ReviewCoverage) => string;
 export declare const getChangedFiles: (context: PullRequestContext) => Promise<{
     sha: string;
     filename: string;
