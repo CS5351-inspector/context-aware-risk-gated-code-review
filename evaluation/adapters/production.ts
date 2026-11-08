@@ -4,8 +4,21 @@ import { deriveAnalysisStatus } from '../../src/pipeline.js';
 import type { ReviewInput, ContextResult, ContextSnippet, Budget } from '../../src/review/contracts.js';
 import type { ModelClient } from '../../src/review/model-review.js';
 
+/** Providers may read the frozen experiment, never rewrite the values we verify. */
+function snapshot<T>(value: T): T {
+  const copy = structuredClone(value);
+  const freeze = (item: any): void => {
+    if (item && typeof item === 'object') {
+      for (const child of Object.values(item)) freeze(child);
+      Object.freeze(item);
+    }
+  };
+  freeze(copy);
+  return copy;
+}
+
 export async function evaluate(payload: any, plugin: any): Promise<any> {
-  const { input: source, condition, config } = payload;
+  const { input: source, condition, config } = snapshot(payload);
   if (!['B1', 'B2', 'B2-oracle'].includes(condition)) throw new Error('Unsupported condition');
   if (!plugin.metadata?.version) throw new Error('Provider version required');
   if (plugin.metadata?.kind !== config.provider_kind) throw new Error('Provider kind does not match frozen plan');
@@ -13,13 +26,20 @@ export async function evaluate(payload: any, plugin: any): Promise<any> {
   if (condition === 'B2' && (typeof plugin.collectContext !== 'function' || plugin.metadata.context_kind !== 'actual-retrieval' || !plugin.metadata.context_version)) throw new Error('B2 requires a versioned actual B collectContext implementation');
   if(condition === 'B2' && config.provider_kind === 'live' && config.context_version !== plugin.metadata.context_version) throw new Error('B context version mismatch');
   const budget: Budget = config.budget;
-  const input: ReviewInput = { schemaVersion: '1', runId: payload.opaque_id,
+  // Dataset cases contain one file. Once a hunk begins, +++/--- are code lines,
+  // such as an added ++i or removed --i; only pre-hunk headers are excluded.
+  let inHunk = false, additions = 0, deletions = 0;
+  for (const line of source.diff.split('\n')) {
+    if (line.startsWith('@@ ')) { inHunk = true; continue; }
+    if (inHunk && line.startsWith('+')) additions++;
+    if (inHunk && line.startsWith('-')) deletions++;
+  }
+  const input: ReviewInput = snapshot({ schemaVersion: '1', runId: payload.opaque_id,
     repo: {owner:'evaluation',name:'isolated-snapshot'}, sourceRepo: {owner:'evaluation',name:'isolated-snapshot'}, prNumber:1,
     author:'evaluation', trigger:'manual', baseSha:source.diffBaseSha, diffBaseSha:source.diffBaseSha, headSha:source.headSha,
     mode:condition === 'B1' ? 'diff-only' : 'context', diff:source.diff,
     changedFiles:source.changedFiles.map((file: string) => ({path:file,status:'modified',patch:source.diff,supported:true,
-      additions:source.diff.split('\n').filter((l:string)=>l.startsWith('+')&&!l.startsWith('+++')).length,
-      deletions:source.diff.split('\n').filter((l:string)=>l.startsWith('-')&&!l.startsWith('---')).length})) };
+      additions, deletions})) });
   const started=Date.now();
   let context: ContextResult={snippets:[],omissions:[]};
   const readFile = async (file: string, ref: string): Promise<string> => {

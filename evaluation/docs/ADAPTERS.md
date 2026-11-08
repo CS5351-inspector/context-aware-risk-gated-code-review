@@ -15,7 +15,7 @@ Write a **local ignored** `evaluation/local-provider.cjs` that exports:
 - `countInputTokens(prompt, config)`: exact model/message-aware counter, including the decorated requirement and message framing; no character/byte estimate labelled exact.
 - `collectContext(input, readFile, budget)`: B's actual function. Only needed for B2. Return versioned snippets and omissions under the common contract. Do not call full source delivery actual retrieval.
 
-This PR supplies no live provider or API key, and does not guess B's future export name. A/C own real client/tokenizer configuration; B owns retrieval. The default `scripted.cjs` contains an explicit zero-token counter **only because no model is invoked**; never reuse it in live execution. Live adapters are trusted local code, not OS-isolated; avoid loading gold or the whole evaluation directory in them.
+This PR supplies no live provider or API key, and does not guess B's future export name. A/C own real client/tokenizer configuration; B owns retrieval. The default `scripted.cjs` contains an explicit zero-token counter **only because no model is invoked**; never reuse it in live execution. The bridge gives providers deeply frozen copies of the configuration and input, including changed-file patches and budgets. Treat these as read-only; create a private copy for local transformations. A client cannot change the expected model/settings by editing the configuration passed to it. Live adapters are trusted local code, not OS-isolated; avoid loading gold or the whole evaluation directory in them.
 
 ## Configure, freeze, execute
 
