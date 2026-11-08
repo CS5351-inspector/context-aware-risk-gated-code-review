@@ -1,0 +1,61 @@
+{
+  "provider_kind": "scripted",
+  "provider_version": "empty-response-control-v1",
+  "context_kind": "oracle",
+  "context_version": null,
+  "analysis_status": "COMPLETE",
+  "findings": [],
+  "omissions": [],
+  "snippets": [
+    {
+      "id": "ctx-1",
+      "file": "review.js",
+      "ref": "f6c7a6bfbbebee94712d6ae120a00242a00ed63278a0da56a269c3cb2f82074e",
+      "startLine": 1,
+      "endLine": 5,
+      "code": "const { after } = require('./scheduler.js');\nexports.scheduleRetry = (delayMs) => {\n  const seconds = delayMs / 1000;\n  return after(seconds);\n};\n",
+      "reason": "direct-definition"
+    },
+    {
+      "id": "ctx-2",
+      "file": "scheduler.js",
+      "ref": "f6c7a6bfbbebee94712d6ae120a00242a00ed63278a0da56a269c3cb2f82074e",
+      "startLine": 1,
+      "endLine": 2,
+      "code": "// Scheduler API contract: delay is expressed in SECONDS.\nexports.after = (delaySeconds) => ({ scheduledAfterSeconds: delaySeconds });\n",
+      "reason": "direct-definition"
+    }
+  ],
+  "metrics": {
+    "model": "scripted-empty-control",
+    "effectiveParameters": {
+      "model": "scripted-empty-control",
+      "temperature": 0,
+      "maxRetries": 0,
+      "max_tokens": 1000
+    },
+    "promptVersion": "inspector-c-v1+public-requirement-v1",
+    "durationMs": 1,
+    "calls": 1,
+    "inputTokens": 0,
+    "outputTokens": 0
+  },
+  "raw": [
+    {
+      "response": {
+        "choices": [
+          {
+            "finish_reason": "stop",
+            "message": {
+              "content": "{\"reviews\":[]}"
+            }
+          }
+        ],
+        "usage": {
+          "prompt_tokens": 0,
+          "completion_tokens": 0
+        }
+      }
+    }
+  ]
+}

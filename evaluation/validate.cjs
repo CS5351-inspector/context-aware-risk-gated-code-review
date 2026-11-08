@@ -21,6 +21,7 @@ function inside(root, relative) {
   assert.equal(typeof relative, 'string', 'Path must be a string');
   const resolved = path.resolve(root, relative);
   assert(resolved.startsWith(path.resolve(root) + path.sep), 'Path escapes dataset');
+  if (fs.existsSync(resolved)) assert(fs.realpathSync(resolved).startsWith(fs.realpathSync(root) + path.sep), 'Symlink escapes dataset');
   return resolved;
 }
 
@@ -77,9 +78,10 @@ function runSnapshot(root, family, version) {
       assert(Array.isArray(check.args));
       assert(Object.hasOwn(check, 'expected'));
       try {
-        const actual = module[family.entry_function](...structuredClone(check.args));
+        const args = structuredClone(check.args);
+        const actual = module[family.entry_function](...args);
         assert(!(actual && typeof actual.then === 'function'), 'Async examples require an async runner');
-        return { check_index: checkIndex, matches_contract: isDeepStrictEqual(actual, check.expected), actual };
+        return { check_index: checkIndex, matches_contract: isDeepStrictEqual(actual, check.expected) && (!Object.hasOwn(check, 'expected_args_after') || isDeepStrictEqual(args, check.expected_args_after)), actual };
       } catch (error) {
         return { check_index: checkIndex, matches_contract: false, error_name: error.name, error_message: error.message };
       }
@@ -94,10 +96,12 @@ function runSnapshot(root, family, version) {
 
 function validate(root = __dirname) {
   const manifest = readJson(path.join(root, 'manifest.json'));
-  assert.equal(manifest.schema_version, 1);
-  assert.equal(manifest.split, 'development');
-  assert.equal(manifest.label_status, 'provisional');
-  assert.equal(manifest.cases.length, 10, 'v0.1 has exactly 10 snapshots');
+  assert.equal(manifest.schema_version, 2);
+  assert.equal(manifest.split, 'family-assigned');
+  assert.equal(manifest.label_status, 'per-case');
+  assert(Array.isArray(manifest.cases) && manifest.cases.length > 0);
+  const snapshotSplits = new Map();
+  let reviewed = 0;
   const seen = new Set();
   const families = new Map();
   const issueIds = new Set();
@@ -105,15 +109,17 @@ function validate(root = __dirname) {
   for (const item of manifest.cases) {
     assert(!seen.has(item.case_id), 'Duplicate case ID');
     seen.add(item.case_id);
+    assert.equal(item.file, `cases/${item.case_id}.json`, 'Noncanonical case path');
     const c = readJson(inside(root, item.file));
     exactKeys(c, ['case_id', 'family_id', 'split', 'code_variant', 'evaluation_layer', 'semantic_gold_eligible', 'label_status', 'input', 'gold_file']);
     exactKeys(c.input, ['base_dir', 'head_dir', 'changed_files', 'diff_file']);
-    assert.match(c.case_id, /^DEV-[0-9]{3}$/);
+    assert.match(c.case_id, /^(DEV|EVAL)-[0-9]{3,}$/);
     assert.equal(typeof c.family_id, 'string');
     assert(c.family_id.length > 0);
     assert.equal(c.case_id, item.case_id);
-    assert.equal(c.split, manifest.split);
-    assert.equal(c.label_status, 'provisional');
+    assert(['development', 'heldout'].includes(c.split));
+    assert(['provisional', 'reviewed'].includes(c.label_status));
+    if (c.split === 'heldout') assert.equal(c.label_status, 'reviewed', 'Heldout requires reviewed gold');
     assert.equal(c.evaluation_layer, 'L2-input-preparation');
     assert.equal(c.semantic_gold_eligible, true);
     assert(['faulty', 'fixed', 'clean'].includes(c.code_variant));
@@ -121,8 +127,8 @@ function validate(root = __dirname) {
     const f = readJson(inside(root, `families/${c.family_id}/family.json`));
     assert.equal(f.family_id, c.family_id);
     assert.equal(f.split, c.split);
-    assert.equal(f.label_status, 'provisional');
-    assert.deepEqual(f.human_reviewers, []);
+    assert.equal(f.label_status, c.label_status);
+    assert(Array.isArray(f.human_reviewers));
     assert.equal(f.provenance.kind, 'synthetic');
     assert.equal(f.provenance.external_code_copied, false);
     assert(f.provenance.license && f.requirement && f.behavior_checks.length > 0);
@@ -135,6 +141,9 @@ function validate(root = __dirname) {
         assert.equal(hash(fs.readFileSync(inside(root, `families/${c.family_id}/${version}/${file}`))), expected, 'Source hash mismatch');
       }
     }
+    const snapshotDigest = hash(JSON.stringify(Object.entries(f.file_hashes[c.code_variant]).sort()));
+    assert(!snapshotSplits.has(snapshotDigest) || snapshotSplits.get(snapshotDigest) === c.split, 'Duplicate snapshot crosses splits');
+    snapshotSplits.set(snapshotDigest, c.split);
     const baseFiles = f.file_hashes.base;
     const headFiles = f.file_hashes[c.code_variant];
     assert.deepEqual(Object.keys(headFiles).sort(), Object.keys(baseFiles).sort(), 'v0.1 snapshots must contain the same files');
@@ -143,8 +152,9 @@ function validate(root = __dirname) {
     if (!families.has(f.family_id)) {
       const base = runSnapshot(root, f, 'base');
       assert(base.every((row) => row.matches_contract), 'Base must satisfy the requirement');
-      families.set(f.family_id, { category: f.category, variants: [], base });
+      families.set(f.family_id, { category: f.category, split: c.split, variants: [], base });
     }
+    assert.equal(families.get(f.family_id).split, c.split, 'Family crosses splits');
     families.get(f.family_id).variants.push(c.code_variant);
     const baseSource = fs.readFileSync(inside(root, `${c.input.base_dir}/review.js`), 'utf8');
     const headSource = fs.readFileSync(inside(root, `${c.input.head_dir}/review.js`), 'utf8');
@@ -152,8 +162,23 @@ function validate(root = __dirname) {
     verifyDiff(baseSource, headSource, fs.readFileSync(inside(root, c.input.diff_file), 'utf8'));
     const gold = readJson(inside(root, c.gold_file));
     assert.equal(gold.case_id, c.case_id);
-    assert.equal(gold.label_status, 'provisional');
-    assert.deepEqual(gold.human_reviewers, []);
+    assert.equal(gold.label_status, c.label_status);
+    assert.deepEqual(gold.human_reviewers, f.human_reviewers);
+    if (c.label_status === 'provisional') {
+      assert.deepEqual(gold.human_reviewers, []);
+    } else {
+      const reviewers = [...new Set(gold.human_reviewers)];
+      assert(reviewers.length >= 2 && reviewers.every(r => typeof r === 'string' && r.trim()), 'Two independent human reviewers required');
+      const records = readJson(inside(root, `reviews/${c.case_id}.json`));
+      assert.equal(records.case_id, c.case_id);
+      const digest = hash(JSON.stringify({ case: c, requirement: f.requirement, hashes: f.file_hashes, checks: f.behavior_checks, issues: gold.issues }));
+      assert.equal(records.content_sha256, digest, 'Review record is stale');
+      for (const reviewer of reviewers) {
+        const record = records.reviews.find(r => r.reviewer === reviewer);
+        assert(record && record.decision === 'accepted' && record.is_human === true && record.evidence?.trim() && Number.isFinite(Date.parse(record.reviewed_at)), 'Missing accepted human review');
+      }
+      reviewed++;
+    }
     const observations = runSnapshot(root, f, c.code_variant);
     if (c.code_variant === 'faulty') {
       assert.equal(gold.issues.length, 1);
@@ -191,20 +216,21 @@ function validate(root = __dirname) {
     }
     outputs.push({ case_id: c.case_id, family_id: f.family_id, code_variant: c.code_variant, observations });
   }
-  assert.equal(families.size, 6);
+  assert(families.size > 0);
   const counts = { 'cross-file': 0, 'diff-sufficient': 0, 'clean-only': 0 };
   for (const f of families.values()) {
     assert(Object.hasOwn(counts, f.category));
     counts[f.category]++;
     assert.deepEqual(f.variants.sort(), f.category === 'clean-only' ? ['clean'] : ['faulty', 'fixed']);
   }
-  assert.deepEqual(Object.values(counts), [2, 2, 2]);
+
   return {
-    dataset_id: manifest.dataset_id, status: 'validated-development-only', label_status: 'provisional',
+    dataset_id: manifest.dataset_id, status: 'validated-data-not-model-results', label_status: reviewed === outputs.length ? 'reviewed' : 'contains-provisional',
+    reviewed_snapshots: reviewed,
     families: families.size, snapshots: outputs.length, categories: counts, gold_defects: issueIds.size,
     behavior_checks: [...families.values()].reduce((n, f) => n + f.base.length, 0) + outputs.reduce((n, c) => n + c.observations.length, 0),
     observed_contract_violations: outputs.flatMap((c) => c.observations).filter((row) => !row.matches_contract).length,
-    model_calls: 0, human_gold_review_complete: false, cases: outputs,
+    model_calls: 0, human_gold_review_complete: reviewed === outputs.length, cases: outputs,
   };
 }
 

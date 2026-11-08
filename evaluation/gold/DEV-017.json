@@ -1,0 +1,27 @@
+{
+  "case_id": "DEV-017",
+  "label_status": "provisional",
+  "human_reviewers": [],
+  "issues": [
+    {
+      "gold_issue_id": "cached-false-001",
+      "root_cause": "Truthiness is used as cache membership, replacing valid false/0/null/empty-string entries with the fallback.",
+      "severity": "medium",
+      "severity_rationale": "Returns incorrect cached decisions and values.",
+      "acceptable_locations": [
+        {
+          "file": "review.js",
+          "start_line": 1,
+          "end_line": 1
+        }
+      ],
+      "required_context_files": [],
+      "proof_check_indices": [
+        0,
+        1,
+        2,
+        3
+      ]
+    }
+  ]
+}

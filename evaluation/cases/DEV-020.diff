@@ -1,0 +1,9 @@
+--- a/review.js
++++ b/review.js
+@@ -1,5 +1 @@
+-exports.names = obj => {
+-  const result = [];
+-  for (const key of Object.keys(obj)) if (obj[key] !== null) result.push(key);
+-  return result;
+-};
++exports.names = obj => Object.keys(obj).filter(key => obj[key] !== null);

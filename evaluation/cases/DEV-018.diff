@@ -1,0 +1,5 @@
+--- a/review.js
++++ b/review.js
+@@ -1 +1 @@
+-exports.get = (cache, key, fallback) => Object.prototype.hasOwnProperty.call(cache, key) ? cache[key] : fallback;
++exports.get = (cache, key, fallback) => Object.hasOwn(cache, key) ? cache[key] : fallback;

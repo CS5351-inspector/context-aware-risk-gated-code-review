@@ -26,13 +26,13 @@ function changeJson(root, relative, fn) {
   fs.writeFileSync(file, JSON.stringify(data));
 }
 
-test('six families have real bug/fixed evidence and clean controls', () => {
+test('twelve families have real bug/fixed evidence and clean controls', () => {
   const result = validate();
-  assert.equal(result.families, 6);
-  assert.equal(result.snapshots, 10);
-  assert.equal(result.gold_defects, 4);
-  assert.equal(result.behavior_checks, 50);
-  assert.equal(result.observed_contract_violations, 8);
+  assert.equal(result.families, 12);
+  assert.equal(result.snapshots, 20);
+  assert.equal(result.gold_defects, 8);
+  assert.equal(result.behavior_checks, 113);
+  assert.equal(result.observed_contract_violations, 17);
   assert.equal(result.model_calls, 0);
 });
 
@@ -88,3 +88,35 @@ test('exports only allowed model input and labels full context as oracle', () =>
   assert(!JSON.stringify(oracle).includes('proof_check_indices'));
   assert.throws(() => exportInput('DEV-001', 'B2'), /not implemented/);
 });
+
+test('rejects a forged reviewed label without two independent review records',()=>mutate(r=>{
+  for(const id of ['DEV-001','DEV-002']){
+    changeJson(r,`cases/${id}.json`,c=>{c.label_status='reviewed';});
+    changeJson(r,`gold/${id}.json`,g=>{g.label_status='reviewed';g.human_reviewers=['reviewer-a','reviewer-b'];});
+  }
+  changeJson(r,'families/grant-enum/family.json',f=>{f.label_status='reviewed';f.human_reviewers=['reviewer-a','reviewer-b'];});
+}));
+test('allows versioned human-review records, rejects stale evidence after a label edit',()=>{
+ const {hash,write}=require('../lib/data.cjs');const temp=fs.mkdtempSync(path.join(os.tmpdir(),'review-record-check-'));
+ try{
+  const r=path.join(temp,'evaluation');fs.cpSync(root,r,{recursive:true});
+  changeJson(r,'families/grant-enum/family.json',f=>{f.label_status='reviewed';f.human_reviewers=['synthetic-review-a','synthetic-review-b'];});
+  for(const id of ['DEV-001','DEV-002']){
+    changeJson(r,`cases/${id}.json`,c=>{c.label_status='reviewed';});
+    changeJson(r,`gold/${id}.json`,g=>{g.label_status='reviewed';g.human_reviewers=['synthetic-review-a','synthetic-review-b'];});
+    const c=JSON.parse(fs.readFileSync(path.join(r,`cases/${id}.json`))),f=JSON.parse(fs.readFileSync(path.join(r,'families/grant-enum/family.json'))),g=JSON.parse(fs.readFileSync(path.join(r,`gold/${id}.json`)));
+    write(path.join(r,`reviews/${id}.json`),{case_id:id,content_sha256:hash({case:c,requirement:f.requirement,hashes:f.file_hashes,checks:f.behavior_checks,issues:g.issues}),reviews:g.human_reviewers.map(reviewer=>({reviewer,is_human:true,decision:'accepted',reviewed_at:'2026-11-08T00:00:00Z',evidence:'Test fixture only, never a dataset human sign-off'}))});
+  }
+  assert.equal(validate(r).reviewed_snapshots,2);
+  changeJson(r,'gold/DEV-001.json',g=>{g.issues[0].severity='medium';});assert.throws(()=>validate(r),/stale/);
+ }finally{fs.rmSync(temp,{recursive:true,force:true});}
+});
+test('rejects source files symlinked outside the dataset',()=>mutate(r=>{
+ const file=path.join(r,'families/grant-enum/base/review.js');fs.unlinkSync(file);fs.symlinkSync(__filename,file);
+}));
+test('checks the nonmutation promise as well as returned values',()=>mutate(r=>{
+ const file=path.join(r,'families/copy-reverse/clean/review.js');fs.writeFileSync(file,'exports.reverse = values => values.reverse();\n');
+ // Supply consistent hashes and diff: only behavior should catch the violation.
+ const family=path.join(r,'families/copy-reverse/family.json');const f=JSON.parse(fs.readFileSync(family));f.file_hashes.clean['review.js']=crypto.createHash('sha256').update(fs.readFileSync(file)).digest('hex');fs.writeFileSync(family,JSON.stringify(f));
+ fs.writeFileSync(path.join(r,'cases/DEV-019.diff'),'--- a/review.js\n+++ b/review.js\n@@ -1 +1 @@\n-exports.reverse = values => values.slice().reverse();\n+exports.reverse = values => values.reverse();\n');
+}));

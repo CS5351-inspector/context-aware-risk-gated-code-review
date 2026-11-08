@@ -1,0 +1,18 @@
+{
+  "case_id": "DEV-019",
+  "family_id": "copy-reverse",
+  "split": "development",
+  "code_variant": "clean",
+  "evaluation_layer": "L2-input-preparation",
+  "semantic_gold_eligible": true,
+  "label_status": "provisional",
+  "input": {
+    "base_dir": "families/copy-reverse/base",
+    "head_dir": "families/copy-reverse/clean",
+    "changed_files": [
+      "review.js"
+    ],
+    "diff_file": "cases/DEV-019.diff"
+  },
+  "gold_file": "gold/DEV-019.json"
+}

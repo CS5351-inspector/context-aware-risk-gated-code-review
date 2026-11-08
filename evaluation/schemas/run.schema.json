@@ -1,0 +1,147 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "type": "object",
+  "title": "Evaluation run record v1",
+  "required": [
+    "run_key",
+    "case_id",
+    "family_id",
+    "review_condition",
+    "trial_id",
+    "status",
+    "findings",
+    "raw_file",
+    "raw_sha256",
+    "calls",
+    "input_tokens",
+    "output_tokens",
+    "cost_usd"
+  ],
+  "properties": {
+    "run_key": {
+      "type": "string"
+    },
+    "case_id": {
+      "type": "string"
+    },
+    "family_id": {
+      "type": "string"
+    },
+    "review_condition": {
+      "enum": [
+        "B1",
+        "B2",
+        "B2-oracle"
+      ]
+    },
+    "trial_id": {
+      "type": "integer",
+      "minimum": 1
+    },
+    "status": {
+      "enum": [
+        "not_executed",
+        "complete",
+        "partial",
+        "failed",
+        "not_applicable"
+      ]
+    },
+    "findings": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": [
+          "id",
+          "file",
+          "side",
+          "line",
+          "severity",
+          "message"
+        ],
+        "properties": {
+          "id": {
+            "type": "string",
+            "minLength": 1
+          },
+          "file": {
+            "type": "string"
+          },
+          "side": {
+            "enum": [
+              "LEFT",
+              "RIGHT"
+            ]
+          },
+          "line": {
+            "type": [
+              "integer",
+              "null"
+            ],
+            "minimum": 1
+          },
+          "severity": {
+            "enum": [
+              "low",
+              "medium",
+              "high"
+            ]
+          },
+          "message": {
+            "type": "string",
+            "minLength": 1
+          }
+        }
+      }
+    },
+    "raw_file": {
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "raw_sha256": {
+      "type": [
+        "string",
+        "null"
+      ],
+      "pattern": "^[a-f0-9]{64}$"
+    },
+    "calls": {
+      "type": [
+        "integer",
+        "null"
+      ],
+      "minimum": 0
+    },
+    "input_tokens": {
+      "type": [
+        "integer",
+        "null"
+      ],
+      "minimum": 0
+    },
+    "output_tokens": {
+      "type": [
+        "integer",
+        "null"
+      ],
+      "minimum": 0
+    },
+    "cost_usd": {
+      "type": [
+        "number",
+        "null"
+      ],
+      "minimum": 0
+    },
+    "latency_ms": {
+      "type": [
+        "number",
+        "null"
+      ],
+      "minimum": 0
+    }
+  },
+  "$comment": "Run envelope pins plan, data, implementation and raw hashes. verifyRuns enforces identity and data correspondence. This schema does not attest semantic correctness."
+}

@@ -1,0 +1,18 @@
+{
+  "case_id": "DEV-014",
+  "family_id": "range-end-contract",
+  "split": "development",
+  "code_variant": "fixed",
+  "evaluation_layer": "L2-input-preparation",
+  "semantic_gold_eligible": true,
+  "label_status": "provisional",
+  "input": {
+    "base_dir": "families/range-end-contract/base",
+    "head_dir": "families/range-end-contract/fixed",
+    "changed_files": [
+      "review.js"
+    ],
+    "diff_file": "cases/DEV-014.diff"
+  },
+  "gold_file": "gold/DEV-014.json"
+}

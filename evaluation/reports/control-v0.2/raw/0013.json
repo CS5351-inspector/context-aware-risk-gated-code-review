@@ -1,0 +1,61 @@
+{
+  "provider_kind": "scripted",
+  "provider_version": "empty-response-control-v1",
+  "context_kind": "oracle",
+  "context_version": null,
+  "analysis_status": "COMPLETE",
+  "findings": [],
+  "omissions": [],
+  "snippets": [
+    {
+      "id": "ctx-1",
+      "file": "review.js",
+      "ref": "0893e1adf755a2c14c2c8515d967462bf27abd90a704879ba1d2096c6200748b",
+      "startLine": 1,
+      "endLine": 5,
+      "code": "const { lookup, GRANTED } = require('./policy.js');\nexports.canDownload = (account) => {\n  const decision = lookup(account);\n  return decision === GRANTED;\n};\n",
+      "reason": "direct-definition"
+    },
+    {
+      "id": "ctx-2",
+      "file": "policy.js",
+      "ref": "0893e1adf755a2c14c2c8515d967462bf27abd90a704879ba1d2096c6200748b",
+      "startLine": 1,
+      "endLine": 6,
+      "code": "// External policy protocol: numeric values are not booleans.\nconst GRANTED = 0;\nconst DENIED = 1;\nconst SUSPENDED = 2;\nexports.GRANTED = GRANTED;\nexports.lookup = (account) => ({ granted: GRANTED, denied: DENIED, suspended: SUSPENDED })[account.status];\n",
+      "reason": "direct-definition"
+    }
+  ],
+  "metrics": {
+    "model": "scripted-empty-control",
+    "effectiveParameters": {
+      "model": "scripted-empty-control",
+      "temperature": 0,
+      "maxRetries": 0,
+      "max_tokens": 1000
+    },
+    "promptVersion": "inspector-c-v1+public-requirement-v1",
+    "durationMs": 0,
+    "calls": 1,
+    "inputTokens": 0,
+    "outputTokens": 0
+  },
+  "raw": [
+    {
+      "response": {
+        "choices": [
+          {
+            "finish_reason": "stop",
+            "message": {
+              "content": "{\"reviews\":[]}"
+            }
+          }
+        ],
+        "usage": {
+          "prompt_tokens": 0,
+          "completion_tokens": 0
+        }
+      }
+    }
+  ]
+}

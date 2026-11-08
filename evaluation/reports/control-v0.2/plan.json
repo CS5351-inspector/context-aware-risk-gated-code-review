@@ -1,0 +1,205 @@
+{
+  "schema_version": 1,
+  "config": {
+    "protocol_version": "eval-v0.2",
+    "purpose": "development",
+    "split": "development",
+    "conditions": [
+      "B1",
+      "B2-oracle"
+    ],
+    "trials": 1,
+    "seed": 5351,
+    "evaluation_scope": "component",
+    "output_boundary": "C.reviewFiles.validated-findings",
+    "provider_kind": "scripted",
+    "budget": {
+      "maxFiles": 1,
+      "maxCalls": 2,
+      "maxRetries": 0,
+      "requestTimeoutMs": 5000,
+      "analysisTimeoutMs": 6000,
+      "publishReserveMs": 0,
+      "maxInputTokens": 12000,
+      "reservedOutputTokens": 1000,
+      "localWindowLines": 20,
+      "maxDefinitionsPerFile": 3,
+      "maxDefinitionLines": 80
+    },
+    "limits": {
+      "max_runs": 40,
+      "max_wall_ms": 600000,
+      "worker_timeout_ms": 10000,
+      "max_tokens": 1040000,
+      "max_cost_usd": 0
+    },
+    "pricing": null,
+    "formal_approval": null
+  },
+  "implementation_sha256": "e4d4236ec9541a7e66c6bb3dc4edfc4b07d0174ed8d4419e882b8fcad7f3698a",
+  "dataset_sha256": "7432c0abc0242ab0fb7213673679cae4d40a1754d088005d5a43a5ed072063a7",
+  "code_sha": "c9b4e4054fd1325bd072a736622c028459dcf7b4",
+  "pairs": [
+    {
+      "case_id": "DEV-013",
+      "trial_id": 1,
+      "conditions": [
+        "B2-oracle",
+        "B1"
+      ]
+    },
+    {
+      "case_id": "DEV-020",
+      "trial_id": 1,
+      "conditions": [
+        "B2-oracle",
+        "B1"
+      ]
+    },
+    {
+      "case_id": "DEV-018",
+      "trial_id": 1,
+      "conditions": [
+        "B2-oracle",
+        "B1"
+      ]
+    },
+    {
+      "case_id": "DEV-008",
+      "trial_id": 1,
+      "conditions": [
+        "B2-oracle",
+        "B1"
+      ]
+    },
+    {
+      "case_id": "DEV-010",
+      "trial_id": 1,
+      "conditions": [
+        "B2-oracle",
+        "B1"
+      ]
+    },
+    {
+      "case_id": "DEV-003",
+      "trial_id": 1,
+      "conditions": [
+        "B2-oracle",
+        "B1"
+      ]
+    },
+    {
+      "case_id": "DEV-002",
+      "trial_id": 1,
+      "conditions": [
+        "B2-oracle",
+        "B1"
+      ]
+    },
+    {
+      "case_id": "DEV-009",
+      "trial_id": 1,
+      "conditions": [
+        "B2-oracle",
+        "B1"
+      ]
+    },
+    {
+      "case_id": "DEV-001",
+      "trial_id": 1,
+      "conditions": [
+        "B1",
+        "B2-oracle"
+      ]
+    },
+    {
+      "case_id": "DEV-007",
+      "trial_id": 1,
+      "conditions": [
+        "B2-oracle",
+        "B1"
+      ]
+    },
+    {
+      "case_id": "DEV-019",
+      "trial_id": 1,
+      "conditions": [
+        "B1",
+        "B2-oracle"
+      ]
+    },
+    {
+      "case_id": "DEV-012",
+      "trial_id": 1,
+      "conditions": [
+        "B1",
+        "B2-oracle"
+      ]
+    },
+    {
+      "case_id": "DEV-016",
+      "trial_id": 1,
+      "conditions": [
+        "B2-oracle",
+        "B1"
+      ]
+    },
+    {
+      "case_id": "DEV-014",
+      "trial_id": 1,
+      "conditions": [
+        "B1",
+        "B2-oracle"
+      ]
+    },
+    {
+      "case_id": "DEV-006",
+      "trial_id": 1,
+      "conditions": [
+        "B2-oracle",
+        "B1"
+      ]
+    },
+    {
+      "case_id": "DEV-004",
+      "trial_id": 1,
+      "conditions": [
+        "B2-oracle",
+        "B1"
+      ]
+    },
+    {
+      "case_id": "DEV-017",
+      "trial_id": 1,
+      "conditions": [
+        "B1",
+        "B2-oracle"
+      ]
+    },
+    {
+      "case_id": "DEV-015",
+      "trial_id": 1,
+      "conditions": [
+        "B2-oracle",
+        "B1"
+      ]
+    },
+    {
+      "case_id": "DEV-005",
+      "trial_id": 1,
+      "conditions": [
+        "B2-oracle",
+        "B1"
+      ]
+    },
+    {
+      "case_id": "DEV-011",
+      "trial_id": 1,
+      "conditions": [
+        "B2-oracle",
+        "B1"
+      ]
+    }
+  ],
+  "plan_id": "9a7c4b222de70b759d85fcaf2af8e14758712088cbf5688d964732d3ba0e95a0"
+}

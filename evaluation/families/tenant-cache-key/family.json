@@ -1,0 +1,87 @@
+{
+  "family_id": "tenant-cache-key",
+  "split": "development",
+  "category": "cross-file",
+  "language": "javascript",
+  "requirement": "Profiles are isolated per tenant. A lookup returns the profile for the requested tenant/user pair, or null when absent.",
+  "context_required": true,
+  "context_rationale": "cache.js defines the positional key encoding. The changed wrapper alone does not specify the parameter order accepted by lookup.",
+  "entry_file": "review.js",
+  "entry_function": "readProfile",
+  "behavior_checks": [
+    {
+      "args": [
+        {
+          "[\"red\",\"blue\"]": {
+            "role": "reader"
+          },
+          "[\"blue\",\"red\"]": {
+            "role": "owner"
+          }
+        },
+        "red",
+        "blue"
+      ],
+      "expected": {
+        "role": "reader"
+      }
+    },
+    {
+      "args": [
+        {
+          "[\"acme\",\"u1\"]": {
+            "name": "A"
+          }
+        },
+        "acme",
+        "u1"
+      ],
+      "expected": {
+        "name": "A"
+      }
+    },
+    {
+      "args": [
+        {},
+        "acme",
+        "absent"
+      ],
+      "expected": null
+    }
+  ],
+  "file_hashes": {
+    "base": {
+      "review.js": "58716443514ff85097319cb7cd3a1bfd8c1b1a9a8e0e6649fbf35e9bb09da28f",
+      "cache.js": "0364e2ac55f3410c3ab980a8fe304db22ab4b76a2602799c632837786cba4ba5"
+    },
+    "faulty": {
+      "review.js": "7e65e0e497739dea1cf790fd30a86291db847c28288f19d077f1e1c1e47ac6f2",
+      "cache.js": "0364e2ac55f3410c3ab980a8fe304db22ab4b76a2602799c632837786cba4ba5"
+    },
+    "fixed": {
+      "review.js": "0005fba06d3812f130a2b5f55d7c522c4ee5133bba89a7ccf43e161a65f1febe",
+      "cache.js": "0364e2ac55f3410c3ab980a8fe304db22ab4b76a2602799c632837786cba4ba5"
+    }
+  },
+  "provenance": {
+    "kind": "synthetic",
+    "authoring": "AI-assisted original CS5351 evaluation example; not a real PR",
+    "license": "ISC (repository license)",
+    "external_code_copied": false,
+    "inspiration": "Independently authored API-contract and clean controls."
+  },
+  "label_status": "provisional",
+  "human_reviewers": [],
+  "expected_faulty_failures": [
+    {
+      "check_index": 0,
+      "actual": {
+        "role": "owner"
+      }
+    },
+    {
+      "check_index": 1,
+      "actual": null
+    }
+  ]
+}

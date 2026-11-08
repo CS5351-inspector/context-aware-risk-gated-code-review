@@ -1,0 +1,18 @@
+{
+  "case_id": "DEV-015",
+  "family_id": "numeric-priority",
+  "split": "development",
+  "code_variant": "faulty",
+  "evaluation_layer": "L2-input-preparation",
+  "semantic_gold_eligible": true,
+  "label_status": "provisional",
+  "input": {
+    "base_dir": "families/numeric-priority/base",
+    "head_dir": "families/numeric-priority/faulty",
+    "changed_files": [
+      "review.js"
+    ],
+    "diff_file": "cases/DEV-015.diff"
+  },
+  "gold_file": "gold/DEV-015.json"
+}

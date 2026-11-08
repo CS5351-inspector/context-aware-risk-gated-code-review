@@ -1,0 +1,9 @@
+{
+  "schema_version": 1,
+  "plan_id": "9a7c4b222de70b759d85fcaf2af8e14758712088cbf5688d964732d3ba0e95a0",
+  "runs_sha256": "c56f8a01153c5726de25caacde30d7c148c4b70ec48cb2a88540f6c0ccb26b43",
+  "reviewer": null,
+  "reviewed_at": null,
+  "instructions": "Split multi-issue comments into atomic claims; assign a shared root_id only for true duplicates. Verdicts need human evidence. Unmatched is unresolved, not automatically false_positive.",
+  "judgments": []
+}

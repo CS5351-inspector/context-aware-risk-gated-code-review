@@ -1,10 +1,10 @@
 {
-  "schema_version": 1,
-  "dataset_id": "cs5351-quality-development-v0.1",
-  "split": "development",
-  "label_status": "provisional",
+  "schema_version": 2,
+  "dataset_id": "cs5351-quality-development-v0.2",
+  "split": "family-assigned",
+  "label_status": "per-case",
   "created_at": "2026-11-03",
-  "source_commit": "fad72c5229ccef11448c3077a617fb7b2bdd934a",
+  "source_commit": "c9b4e4054fd1325bd072a736622c028459dcf7b4",
   "cases": [
     {
       "case_id": "DEV-001",
@@ -45,6 +45,47 @@
     {
       "case_id": "DEV-010",
       "file": "cases/DEV-010.json"
+    },
+    {
+      "case_id": "DEV-011",
+      "file": "cases/DEV-011.json"
+    },
+    {
+      "case_id": "DEV-012",
+      "file": "cases/DEV-012.json"
+    },
+    {
+      "case_id": "DEV-013",
+      "file": "cases/DEV-013.json"
+    },
+    {
+      "case_id": "DEV-014",
+      "file": "cases/DEV-014.json"
+    },
+    {
+      "case_id": "DEV-015",
+      "file": "cases/DEV-015.json"
+    },
+    {
+      "case_id": "DEV-016",
+      "file": "cases/DEV-016.json"
+    },
+    {
+      "case_id": "DEV-017",
+      "file": "cases/DEV-017.json"
+    },
+    {
+      "case_id": "DEV-018",
+      "file": "cases/DEV-018.json"
+    },
+    {
+      "case_id": "DEV-019",
+      "file": "cases/DEV-019.json"
+    },
+    {
+      "case_id": "DEV-020",
+      "file": "cases/DEV-020.json"
     }
-  ]
+  ],
+  "updated_at": "2026-11-08"
 }

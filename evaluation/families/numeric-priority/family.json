@@ -1,0 +1,112 @@
+{
+  "family_id": "numeric-priority",
+  "split": "development",
+  "category": "diff-sufficient",
+  "language": "javascript",
+  "requirement": "Return a new array of finite numeric priorities in ascending numeric order. Preserve duplicates and leave the input unchanged.",
+  "context_required": false,
+  "context_rationale": "The numeric comparator removal and ordinary Array.sort semantics are visible in the diff.",
+  "entry_file": "review.js",
+  "entry_function": "priority",
+  "behavior_checks": [
+    {
+      "args": [
+        [
+          2,
+          10,
+          1
+        ]
+      ],
+      "expected": [
+        1,
+        2,
+        10
+      ],
+      "expected_args_after": [
+        [
+          2,
+          10,
+          1
+        ]
+      ]
+    },
+    {
+      "args": [
+        [
+          -2,
+          -10,
+          3
+        ]
+      ],
+      "expected": [
+        -10,
+        -2,
+        3
+      ],
+      "expected_args_after": [
+        [
+          -2,
+          -10,
+          3
+        ]
+      ]
+    },
+    {
+      "args": [
+        []
+      ],
+      "expected": [],
+      "expected_args_after": [
+        []
+      ]
+    },
+    {
+      "args": [
+        [
+          4,
+          4
+        ]
+      ],
+      "expected": [
+        4,
+        4
+      ],
+      "expected_args_after": [
+        [
+          4,
+          4
+        ]
+      ]
+    }
+  ],
+  "file_hashes": {
+    "base": {
+      "review.js": "335204f6dce6be22c0343e3ea4875d222d7cb63836d04140437c06f173b17663"
+    },
+    "faulty": {
+      "review.js": "6710c2cde2ae68835482e6d6d1b2c4a74aaf587122d6770a6e9c33a465ad5837"
+    },
+    "fixed": {
+      "review.js": "88bc51b5732226aeafdade88aad058fe698495e038888d446f934e4a2cd565ee"
+    }
+  },
+  "provenance": {
+    "kind": "synthetic",
+    "authoring": "AI-assisted original CS5351 evaluation example; not a real PR",
+    "license": "ISC (repository license)",
+    "external_code_copied": false,
+    "inspiration": "Independently authored API-contract and clean controls."
+  },
+  "label_status": "provisional",
+  "human_reviewers": [],
+  "expected_faulty_failures": [
+    {
+      "check_index": 0,
+      "actual": [
+        1,
+        10,
+        2
+      ]
+    }
+  ]
+}
