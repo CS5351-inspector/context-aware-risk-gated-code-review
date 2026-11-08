@@ -1,0 +1,106 @@
+{
+  "family_id": "range-end-contract",
+  "split": "development",
+  "category": "cross-file",
+  "language": "javascript",
+  "requirement": "page(items, start, count) returns at most count consecutive items from start, never an extra item; start/count are nonnegative integers.",
+  "context_required": true,
+  "context_rationale": "range.js specifies an inclusive end, unlike Array.slice. It is not included in the changed diff.",
+  "entry_file": "review.js",
+  "entry_function": "page",
+  "behavior_checks": [
+    {
+      "args": [
+        [
+          10,
+          20,
+          30,
+          40
+        ],
+        1,
+        2
+      ],
+      "expected": [
+        20,
+        30
+      ]
+    },
+    {
+      "args": [
+        [
+          10,
+          20
+        ],
+        0,
+        1
+      ],
+      "expected": [
+        10
+      ]
+    },
+    {
+      "args": [
+        [
+          10,
+          20
+        ],
+        1,
+        0
+      ],
+      "expected": []
+    },
+    {
+      "args": [
+        [
+          10,
+          20
+        ],
+        1,
+        9
+      ],
+      "expected": [
+        20
+      ]
+    }
+  ],
+  "file_hashes": {
+    "base": {
+      "review.js": "ba476dde6367f98732458c5cb177a6a5b996f6c8003ba1463204c4ea89f83ccf",
+      "range.js": "b27a305c9780ce0e194ec1eaa4fdb7ef6fe0f656c7aac8434c8ef71fef9dcef6"
+    },
+    "faulty": {
+      "review.js": "c699e6f7411d8e4bb5df1afd9fd6f829788d81354c439cc6f1c8df8cbd746acc",
+      "range.js": "b27a305c9780ce0e194ec1eaa4fdb7ef6fe0f656c7aac8434c8ef71fef9dcef6"
+    },
+    "fixed": {
+      "review.js": "6e657fb582448d0f1fc61d4680ef57a44c00efb35b01e7acb3fc5cba9e33e1bb",
+      "range.js": "b27a305c9780ce0e194ec1eaa4fdb7ef6fe0f656c7aac8434c8ef71fef9dcef6"
+    }
+  },
+  "provenance": {
+    "kind": "synthetic",
+    "authoring": "AI-assisted original CS5351 evaluation example; not a real PR",
+    "license": "ISC (repository license)",
+    "external_code_copied": false,
+    "inspiration": "Independently authored API-contract and clean controls."
+  },
+  "label_status": "provisional",
+  "human_reviewers": [],
+  "expected_faulty_failures": [
+    {
+      "check_index": 0,
+      "actual": [
+        20,
+        30,
+        40
+      ]
+    },
+    {
+      "check_index": 1,
+      "actual": [
+        10,
+        20
+      ]
+    }
+  ]
+}

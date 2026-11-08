@@ -1,0 +1,62 @@
+{
+  "family_id": "own-key-filter",
+  "split": "development",
+  "category": "clean-only",
+  "language": "javascript",
+  "requirement": "Return the own enumerable property names whose values are not null; zero, false and empty string are retained, in Object.keys order.",
+  "context_required": false,
+  "context_rationale": "Equivalent iteration over own enumerable keys.",
+  "entry_file": "review.js",
+  "entry_function": "names",
+  "behavior_checks": [
+    {
+      "args": [
+        {
+          "a": 0,
+          "b": false,
+          "c": null,
+          "d": ""
+        }
+      ],
+      "expected": [
+        "a",
+        "b",
+        "d"
+      ]
+    },
+    {
+      "args": [
+        {}
+      ],
+      "expected": []
+    },
+    {
+      "args": [
+        {
+          "x": 1
+        }
+      ],
+      "expected": [
+        "x"
+      ]
+    }
+  ],
+  "file_hashes": {
+    "base": {
+      "review.js": "b73d91a8ba971140bee5a1af45afc1a9e8552160c472021a20779d9d414a4953"
+    },
+    "clean": {
+      "review.js": "25eb3abe208408e6b960429c8002de66d3470cbf21548410d86098a44a0fda96"
+    }
+  },
+  "provenance": {
+    "kind": "synthetic",
+    "authoring": "AI-assisted original CS5351 evaluation example; not a real PR",
+    "license": "ISC (repository license)",
+    "external_code_copied": false,
+    "inspiration": "Independently authored API-contract and clean controls."
+  },
+  "label_status": "provisional",
+  "human_reviewers": [],
+  "expected_faulty_failures": []
+}

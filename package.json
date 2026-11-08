@@ -19,7 +19,8 @@
     "build": "rm -rf dist && rollup -c rollup.config.mjs && ncc build src/github-action.cjs -o action",
     "build:lambda": "ncc build src/aws-lambda.cjs -o lambda",
     "typecheck": "tsc --noEmit --incremental false --checkJs false",
-    "test:evaluation": "node evaluation/validate.cjs && node --test --test-reporter=tap evaluation/tests/dataset.test.cjs"
+    "test:evaluation": "node evaluation/validate.cjs && npm run typecheck:evaluation && node evaluation/build-adapter.cjs && node --test --test-reporter=tap evaluation/tests/*.test.cjs",
+    "typecheck:evaluation": "tsc --noEmit --target ESNext --module NodeNext --moduleResolution node --esModuleInterop --skipLibCheck --strict evaluation/adapters/production.ts"
   },
   "dependencies": {
     "@probot/adapter-aws-lambda-serverless": "^3.0.2",

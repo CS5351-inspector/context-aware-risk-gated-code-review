@@ -1,0 +1,27 @@
+{
+  "case_id": "DEV-013",
+  "label_status": "provisional",
+  "human_reviewers": [],
+  "issues": [
+    {
+      "gold_issue_id": "range-end-contract-001",
+      "root_cause": "The end passed to takeRange is start + count although the helper uses an inclusive end; pages gain one extra item.",
+      "severity": "medium",
+      "severity_rationale": "Violates page cardinality and duplicates boundary items between pages.",
+      "acceptable_locations": [
+        {
+          "file": "review.js",
+          "start_line": 2,
+          "end_line": 2
+        }
+      ],
+      "required_context_files": [
+        "range.js"
+      ],
+      "proof_check_indices": [
+        0,
+        1
+      ]
+    }
+  ]
+}

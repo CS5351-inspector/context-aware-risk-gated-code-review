@@ -1,0 +1,6 @@
+--- a/review.js
++++ b/review.js
+@@ -1,2 +1,2 @@
+ const { lookup } = require('./cache');
+-exports.readProfile = (cache, tenant, user) => lookup(cache, tenant, user);
++exports.readProfile = (cache, tenant, user) => lookup(cache, user, tenant);

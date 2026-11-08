@@ -1,0 +1,61 @@
+{
+  "provider_kind": "scripted",
+  "provider_version": "empty-response-control-v1",
+  "context_kind": "oracle",
+  "context_version": null,
+  "analysis_status": "COMPLETE",
+  "findings": [],
+  "omissions": [],
+  "snippets": [
+    {
+      "id": "ctx-1",
+      "file": "review.js",
+      "ref": "6715f6bd26374a81757428b7630f8862e6e0bb70dd4b7d08e91c5af340bf8b79",
+      "startLine": 1,
+      "endLine": 2,
+      "code": "const { takeRange } = require('./range');\nexports.page = (items, start, count) => count === 0 ? [] : takeRange(items, start, start + count);\n",
+      "reason": "direct-definition"
+    },
+    {
+      "id": "ctx-2",
+      "file": "range.js",
+      "ref": "6715f6bd26374a81757428b7630f8862e6e0bb70dd4b7d08e91c5af340bf8b79",
+      "startLine": 1,
+      "endLine": 1,
+      "code": "exports.takeRange = (items, first, lastInclusive) => items.slice(first, lastInclusive + 1);\n",
+      "reason": "direct-definition"
+    }
+  ],
+  "metrics": {
+    "model": "scripted-empty-control",
+    "effectiveParameters": {
+      "model": "scripted-empty-control",
+      "temperature": 0,
+      "maxRetries": 0,
+      "max_tokens": 1000
+    },
+    "promptVersion": "inspector-c-v1+public-requirement-v1",
+    "durationMs": 1,
+    "calls": 1,
+    "inputTokens": 0,
+    "outputTokens": 0
+  },
+  "raw": [
+    {
+      "response": {
+        "choices": [
+          {
+            "finish_reason": "stop",
+            "message": {
+              "content": "{\"reviews\":[]}"
+            }
+          }
+        ],
+        "usage": {
+          "prompt_tokens": 0,
+          "completion_tokens": 0
+        }
+      }
+    }
+  ]
+}

@@ -1,6 +1,6 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "title": "CS5351 quality development case v0.1",
+  "title": "CS5351 quality case v0.2",
   "type": "object",
   "required": [
     "case_id",
@@ -17,14 +17,17 @@
   "properties": {
     "case_id": {
       "type": "string",
-      "pattern": "^DEV-[0-9]{3}$"
+      "pattern": "^(DEV|EVAL)-[0-9]{3,}$"
     },
     "family_id": {
       "type": "string",
       "minLength": 1
     },
     "split": {
-      "const": "development"
+      "enum": [
+        "development",
+        "heldout"
+      ]
     },
     "code_variant": {
       "enum": [
@@ -40,7 +43,10 @@
       "const": true
     },
     "label_status": {
-      "const": "provisional"
+      "enum": [
+        "provisional",
+        "reviewed"
+      ]
     },
     "input": {
       "type": "object",

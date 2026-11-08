@@ -1,0 +1,5 @@
+--- a/review.js
++++ b/review.js
+@@ -1 +1 @@
+-exports.priority = values => values.slice().sort((a, b) => a - b);
++exports.priority = values => values.slice().sort();

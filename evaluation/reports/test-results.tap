@@ -1,70 +1,196 @@
 TAP version 13
-# Subtest: six families have real bug/fixed evidence and clean controls
-ok 1 - six families have real bug/fixed evidence and clean controls
+# Subtest: twelve families have real bug/fixed evidence and clean controls
+ok 1 - twelve families have real bug/fixed evidence and clean controls
   ---
-  duration_ms: 22.909042
+  duration_ms: 57.546625
   type: 'test'
   ...
 # Subtest: rejects source tampering
 ok 2 - rejects source tampering
   ---
-  duration_ms: 23.615208
+  duration_ms: 78.625125
   type: 'test'
   ...
 # Subtest: rejects a diff contradicting the head snapshot
 ok 3 - rejects a diff contradicting the head snapshot
   ---
-  duration_ms: 27.323875
+  duration_ms: 68.889417
   type: 'test'
   ...
 # Subtest: rejects a missing defect answer
 ok 4 - rejects a missing defect answer
   ---
-  duration_ms: 24.446875
+  duration_ms: 72.589833
   type: 'test'
   ...
 # Subtest: rejects a changed dependency omitted from the declared diff
 ok 5 - rejects a changed dependency omitted from the declared diff
   ---
-  duration_ms: 22.696333
+  duration_ms: 68.423042
   type: 'test'
   ...
 # Subtest: rejects gold with no acceptable finding location
 ok 6 - rejects gold with no acceptable finding location
   ---
-  duration_ms: 24.08125
+  duration_ms: 69.784375
   type: 'test'
   ...
 # Subtest: rejects fractional gold line numbers
 ok 7 - rejects fractional gold line numbers
   ---
-  duration_ms: 29.738167
+  duration_ms: 68.7925
   type: 'test'
   ...
 # Subtest: rejects a purported counterexample that also fails on the correct base
 ok 8 - rejects a purported counterexample that also fails on the correct base
   ---
-  duration_ms: 67.859875
+  duration_ms: 82.400708
   type: 'test'
   ...
 # Subtest: rejects family variants crossing into holdout
 ok 9 - rejects family variants crossing into holdout
   ---
-  duration_ms: 28.590416
+  duration_ms: 69.559333
   type: 'test'
   ...
 # Subtest: exports only allowed model input and labels full context as oracle
 ok 10 - exports only allowed model input and labels full context as oracle
   ---
-  duration_ms: 0.774958
+  duration_ms: 1.202125
   type: 'test'
   ...
-1..10
-# tests 10
+# Subtest: rejects a forged reviewed label without two independent review records
+ok 11 - rejects a forged reviewed label without two independent review records
+  ---
+  duration_ms: 72.070542
+  type: 'test'
+  ...
+# Subtest: allows versioned human-review records, rejects stale evidence after a label edit
+ok 12 - allows versioned human-review records, rejects stale evidence after a label edit
+  ---
+  duration_ms: 116.919625
+  type: 'test'
+  ...
+# Subtest: rejects source files symlinked outside the dataset
+ok 13 - rejects source files symlinked outside the dataset
+  ---
+  duration_ms: 66.178667
+  type: 'test'
+  ...
+# Subtest: checks the nonmutation promise as well as returned values
+ok 14 - checks the nonmutation promise as well as returned values
+  ---
+  duration_ms: 113.021625
+  type: 'test'
+  ...
+# Subtest: paired schedule deterministic, complete, and frozen against edits
+ok 15 - paired schedule deterministic, complete, and frozen against edits
+  ---
+  duration_ms: 197.445791
+  type: 'test'
+  ...
+# Subtest: formal protocol cannot run provisional development labels
+ok 16 - formal protocol cannot run provisional development labels
+  ---
+  duration_ms: 0.190792
+  type: 'test'
+  ...
+# Subtest: actual B2 never silently falls back to oracle context
+ok 17 - actual B2 never silently falls back to oracle context
+  ---
+  duration_ms: 5.471834
+  type: 'test'
+  ...
+# Subtest: bridge invokes real C with requirement in both modes and no labels in prompts
+ok 18 - bridge invokes real C with requirement in both modes and no labels in prompts
+  ---
+  duration_ms: 5.563375
+  type: 'test'
+  ...
+# Subtest: B read port blocks sibling versions and rejects fabricated source snippets
+ok 19 - B read port blocks sibling versions and rejects fabricated source snippets
+  ---
+  duration_ms: 5.022958
+  type: 'test'
+  ...
+# Subtest: end-to-end offline C control keeps buggy misses and clean successes, never model evidence
+ok 20 - end-to-end offline C control keeps buggy misses and clean successes, never model evidence
+  ---
+  duration_ms: 306.231833
+  type: 'test'
+  ...
+# Subtest: pair budget exhaustion creates not_executed for both modes, not false misses
+ok 21 - pair budget exhaustion creates not_executed for both modes, not false misses
+  ---
+  duration_ms: 149.14225
+  type: 'test'
+  ...
+# Subtest: worker failure is recorded with unknown cost and retained in recall denominator
+ok 22 - worker failure is recorded with unknown cost and retained in recall denominator
+  ---
+  duration_ms: 272.590459
+  type: 'test'
+  ...
+# Subtest: raw output tamper and stale human judgments are rejected
+ok 23 - raw output tamper and stale human judgments are rejected
+  ---
+  duration_ms: 288.275375
+  type: 'test'
+  ...
+# Subtest: same gold root duplicates count once, unresolved outputs create precision bounds
+ok 24 - same gold root duplicates count once, unresolved outputs create precision bounds
+  ---
+  duration_ms: 273.224375
+  type: 'test'
+  ...
+# Subtest: a novel clean-case defect triggers reclassification, not an automatic false positive
+ok 25 - a novel clean-case defect triggers reclassification, not an automatic false positive
+  ---
+  duration_ms: 266.4625
+  type: 'test'
+  ...
+# Subtest: out-of-scope claims count against actionable precision; missing labels stay unresolved
+ok 26 - out-of-scope claims count against actionable precision; missing labels stay unresolved
+  ---
+  duration_ms: 269.966416
+  type: 'test'
+  ...
+# Subtest: repeat trials are averaged, never unioned into best-of-k recall
+ok 27 - repeat trials are averaged, never unioned into best-of-k recall
+  ---
+  duration_ms: 585.677083
+  type: 'test'
+  ...
+# Subtest: blind packets hide condition/provider, and mapping round-trip preserves run identity
+ok 28 - blind packets hide condition/provider, and mapping round-trip preserves run identity
+  ---
+  duration_ms: 351.608875
+  type: 'test'
+  ...
+# Subtest: paired recall interval resamples families within category and preserves condition pairing
+ok 29 - paired recall interval resamples families within category and preserves condition pairing
+  ---
+  duration_ms: 409.817291
+  type: 'test'
+  ...
+# Subtest: C invalid-response failures are never counted as clean successes
+ok 30 - C invalid-response failures are never counted as clean successes
+  ---
+  duration_ms: 4.392375
+  type: 'test'
+  ...
+# Subtest: live parameter mismatches are rejected before any provider request
+ok 31 - live parameter mismatches are rejected before any provider request
+  ---
+  duration_ms: 3.644375
+  type: 'test'
+  ...
+1..31
+# tests 31
 # suites 0
-# pass 10
+# pass 31
 # fail 0
 # cancelled 0
 # skipped 0
 # todo 0
-# duration_ms 320.742083
+# duration_ms 3452.257334

@@ -1,0 +1,27 @@
+{
+  "case_id": "DEV-011",
+  "label_status": "provisional",
+  "human_reviewers": [],
+  "issues": [
+    {
+      "gold_issue_id": "tenant-cache-key-001",
+      "root_cause": "The tenant and user arguments are swapped at the cache lookup boundary, producing a different tenant/user key and potentially returning another profile.",
+      "severity": "high",
+      "severity_rationale": "Tenant isolation can be violated.",
+      "acceptable_locations": [
+        {
+          "file": "review.js",
+          "start_line": 2,
+          "end_line": 2
+        }
+      ],
+      "required_context_files": [
+        "cache.js"
+      ],
+      "proof_check_indices": [
+        0,
+        1
+      ]
+    }
+  ]
+}

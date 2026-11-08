@@ -1,0 +1,65 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "type": "object",
+  "title": "Atomic human judgment v1",
+  "required": [
+    "run_key",
+    "finding_id",
+    "atom_id",
+    "root_id",
+    "verdict",
+    "gold_issue_id",
+    "evidence",
+    "location_acceptable",
+    "severity_acceptable"
+  ],
+  "properties": {
+    "run_key": {
+      "type": "string",
+      "minLength": 1
+    },
+    "finding_id": {
+      "type": "string",
+      "minLength": 1
+    },
+    "atom_id": {
+      "type": "string",
+      "minLength": 1
+    },
+    "root_id": {
+      "type": "string",
+      "minLength": 1
+    },
+    "verdict": {
+      "enum": [
+        "gold",
+        "novel",
+        "false_positive",
+        "out_of_scope",
+        "unresolved"
+      ]
+    },
+    "gold_issue_id": {
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "evidence": {
+      "type": "string"
+    },
+    "location_acceptable": {
+      "type": [
+        "boolean",
+        "null"
+      ]
+    },
+    "severity_acceptable": {
+      "type": [
+        "boolean",
+        "null"
+      ]
+    }
+  },
+  "$comment": "Envelope requires plan_id, runs_sha256, reviewer/date for adjudicated claims. Runtime score validates actual gold identity, atoms and duplicate roots."
+}

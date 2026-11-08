@@ -1,0 +1,18 @@
+{
+  "case_id": "DEV-012",
+  "family_id": "tenant-cache-key",
+  "split": "development",
+  "code_variant": "fixed",
+  "evaluation_layer": "L2-input-preparation",
+  "semantic_gold_eligible": true,
+  "label_status": "provisional",
+  "input": {
+    "base_dir": "families/tenant-cache-key/base",
+    "head_dir": "families/tenant-cache-key/fixed",
+    "changed_files": [
+      "review.js"
+    ],
+    "diff_file": "cases/DEV-012.diff"
+  },
+  "gold_file": "gold/DEV-012.json"
+}

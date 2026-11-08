@@ -1,0 +1,5 @@
+--- a/review.js
++++ b/review.js
+@@ -1 +1 @@
+-exports.reverse = values => values.slice().reverse();
++exports.reverse = values => [...values].reverse();

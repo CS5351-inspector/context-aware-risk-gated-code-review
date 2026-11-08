@@ -1,0 +1,54 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "type": "object",
+  "title": "Human gold sign-off v1",
+  "required": [
+    "case_id",
+    "content_sha256",
+    "reviews"
+  ],
+  "properties": {
+    "case_id": {
+      "type": "string"
+    },
+    "content_sha256": {
+      "type": "string",
+      "pattern": "^[a-f0-9]{64}$"
+    },
+    "reviews": {
+      "type": "array",
+      "minItems": 2,
+      "items": {
+        "type": "object",
+        "required": [
+          "reviewer",
+          "is_human",
+          "decision",
+          "reviewed_at",
+          "evidence"
+        ],
+        "properties": {
+          "reviewer": {
+            "type": "string",
+            "minLength": 1
+          },
+          "is_human": {
+            "const": true
+          },
+          "decision": {
+            "const": "accepted"
+          },
+          "reviewed_at": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "evidence": {
+            "type": "string",
+            "minLength": 1
+          }
+        }
+      }
+    }
+  },
+  "$comment": "Draft templates intentionally fail accepted-signoff schema until actual humans complete review. Runtime validates reviewer uniqueness and content digest."
+}

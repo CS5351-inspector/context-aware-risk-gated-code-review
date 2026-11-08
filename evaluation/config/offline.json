@@ -1,0 +1,20 @@
+{
+  "protocol_version": "eval-v0.2",
+  "purpose": "development",
+  "split": "development",
+  "conditions": ["B1", "B2-oracle"],
+  "trials": 1,
+  "seed": 5351,
+  "evaluation_scope": "component",
+  "output_boundary": "C.reviewFiles.validated-findings",
+  "provider_kind": "scripted",
+  "budget": {
+    "maxFiles": 1, "maxCalls": 2, "maxRetries": 0,
+    "requestTimeoutMs": 5000, "analysisTimeoutMs": 6000, "publishReserveMs": 0,
+    "maxInputTokens": 12000, "reservedOutputTokens": 1000,
+    "localWindowLines": 20, "maxDefinitionsPerFile": 3, "maxDefinitionLines": 80
+  },
+  "limits": { "max_runs": 40, "max_wall_ms": 600000, "worker_timeout_ms": 10000, "max_tokens": 1040000, "max_cost_usd": 0 },
+  "pricing": null,
+  "formal_approval": null
+}

@@ -1,0 +1,82 @@
+{
+  "family_id": "copy-reverse",
+  "split": "development",
+  "category": "clean-only",
+  "language": "javascript",
+  "requirement": "Return reversed elements without mutating the input array, preserving duplicate values.",
+  "context_required": false,
+  "context_rationale": "Both versions copy before reversing.",
+  "entry_file": "review.js",
+  "entry_function": "reverse",
+  "behavior_checks": [
+    {
+      "args": [
+        [
+          1,
+          2,
+          1
+        ]
+      ],
+      "expected": [
+        1,
+        2,
+        1
+      ],
+      "expected_args_after": [
+        [
+          1,
+          2,
+          1
+        ]
+      ]
+    },
+    {
+      "args": [
+        [
+          1,
+          2,
+          3
+        ]
+      ],
+      "expected": [
+        3,
+        2,
+        1
+      ],
+      "expected_args_after": [
+        [
+          1,
+          2,
+          3
+        ]
+      ]
+    },
+    {
+      "args": [
+        []
+      ],
+      "expected": [],
+      "expected_args_after": [
+        []
+      ]
+    }
+  ],
+  "file_hashes": {
+    "base": {
+      "review.js": "15042573b19674e00991bbc438af83cacc4e4786051fc8253a3f1c1d2980e66d"
+    },
+    "clean": {
+      "review.js": "cc02c70fb091c3a3c478b5d4c186b29558f3c1bd32ff58107dcf5e11f7fff6cb"
+    }
+  },
+  "provenance": {
+    "kind": "synthetic",
+    "authoring": "AI-assisted original CS5351 evaluation example; not a real PR",
+    "license": "ISC (repository license)",
+    "external_code_copied": false,
+    "inspiration": "Independently authored API-contract and clean controls."
+  },
+  "label_status": "provisional",
+  "human_reviewers": [],
+  "expected_faulty_failures": []
+}

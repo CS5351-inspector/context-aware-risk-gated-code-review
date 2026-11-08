@@ -1,0 +1,52 @@
+{
+  "provider_kind": "scripted",
+  "provider_version": "empty-response-control-v1",
+  "context_kind": "oracle",
+  "context_version": null,
+  "analysis_status": "COMPLETE",
+  "findings": [],
+  "omissions": [],
+  "snippets": [
+    {
+      "id": "ctx-1",
+      "file": "review.js",
+      "ref": "0fe3877db484726a84d5596ff8a2ead5cc1f7b210d4a1fb3a9d2ecd0c0e68b2b",
+      "startLine": 1,
+      "endLine": 1,
+      "code": "exports.reverse = values => [...values].reverse();\n",
+      "reason": "direct-definition"
+    }
+  ],
+  "metrics": {
+    "model": "scripted-empty-control",
+    "effectiveParameters": {
+      "model": "scripted-empty-control",
+      "temperature": 0,
+      "maxRetries": 0,
+      "max_tokens": 1000
+    },
+    "promptVersion": "inspector-c-v1+public-requirement-v1",
+    "durationMs": 1,
+    "calls": 1,
+    "inputTokens": 0,
+    "outputTokens": 0
+  },
+  "raw": [
+    {
+      "response": {
+        "choices": [
+          {
+            "finish_reason": "stop",
+            "message": {
+              "content": "{\"reviews\":[]}"
+            }
+          }
+        ],
+        "usage": {
+          "prompt_tokens": 0,
+          "completion_tokens": 0
+        }
+      }
+    }
+  ]
+}

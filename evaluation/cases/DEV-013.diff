@@ -1,0 +1,6 @@
+--- a/review.js
++++ b/review.js
+@@ -1,2 +1,2 @@
+ const { takeRange } = require('./range');
+-exports.page = (items, start, count) => count === 0 ? [] : takeRange(items, start, start + count - 1);
++exports.page = (items, start, count) => count === 0 ? [] : takeRange(items, start, start + count);

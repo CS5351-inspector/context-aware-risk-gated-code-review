@@ -1,0 +1,18 @@
+{
+  "case_id": "DEV-020",
+  "family_id": "own-key-filter",
+  "split": "development",
+  "code_variant": "clean",
+  "evaluation_layer": "L2-input-preparation",
+  "semantic_gold_eligible": true,
+  "label_status": "provisional",
+  "input": {
+    "base_dir": "families/own-key-filter/base",
+    "head_dir": "families/own-key-filter/clean",
+    "changed_files": [
+      "review.js"
+    ],
+    "diff_file": "cases/DEV-020.diff"
+  },
+  "gold_file": "gold/DEV-020.json"
+}

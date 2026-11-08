@@ -1,54 +1,92 @@
-# F evaluation dataset v0.1
+# F evaluation toolkit v0.2
 
-This is an executable **development dataset**, not a measured model benchmark or an independent holdout. All examples are synthetic JavaScript and all labels remain **provisional, awaiting independent human review**. No model API is used by the commands below.
+**Status: executable evaluation tooling + provisional development data. Not a completed model benchmark.**
 
-## Run now
+This continues `feat/evaluation-mvp` after PR #4 was merged. It uses the contracts and C model-review module integrated by PR #6, without changing A–E production code or taking over their module tests.
 
-Requires Node.js 18.17+ (validated here with Node 24.18.0). No npm install or API key is needed for this standalone dataset.
+| Delivered | Evidence / boundary |
+| --- | --- |
+| 12 synthetic families / 20 snapshots | 8 buggy roots, 8 fixed controls, 4 clean-only changes; all development/provisional |
+| Dataset validator | Source/diff consistency, executable counterexamples, nonmutation where promised, split checks and version-bound human-review records |
+| Paired experiment planner / runner | Frozen data and implementation fingerprints, deterministic order, whole-pair budget reservation, raw output checkpoints, failure/unknown accounting |
+| C component adapter | Calls real `reviewFiles` and A's `deriveAnalysisStatus`; same public requirement in both conditions; no replacement parser/risk/gate/retriever |
+| Human grading and statistics | Blind packets, atomic findings, root-cause deduplication, novel/unknown handling, per-trial micro/macro metrics, paired family bootstrap |
+| Reproduction package | CLI, schemas, protocol, annotation guide, adapter contract, self-checks and saved offline control evidence |
+
+**Not yet delivered by this PR:** independent human gold sign-off, licensed real-PR evaluation data, independent heldout measurements, live model results, actual B retrieval implementation, final product reporting/gate results, human-efficiency results. These require the corresponding people/components; this PR never fabricates them. D/E work does not block data/scorer development.
+
+## Quick start: offline, no key or external model
+
+Use Node 24 (project CI); dataset scripts require Node 18.17+. Install the project's locked dependencies to build the bridge:
+
+```sh
+npm ci
+npm run test:evaluation
+node evaluation/cli.cjs plan --config evaluation/config/offline.json --out evaluation/runs/demo-plan.json
+node evaluation/cli.cjs run --plan evaluation/runs/demo-plan.json --out evaluation/runs/demo
+node evaluation/cli.cjs labels --runs evaluation/runs/demo --out evaluation/runs/demo/labels.json
+node evaluation/cli.cjs score --runs evaluation/runs/demo --labels evaluation/runs/demo/labels.json --out evaluation/runs/demo/summary
+```
+
+Use fresh output names: the CLI refuses to overwrite run directories and evidence files. Rebuild with `node evaluation/build-adapter.cjs` and regenerate the plan after changing implementation/config/data. The planner hashes source files and dependencies as well as data, so an uncommitted source change is still pinned. `code_sha` identifies the Git baseline; `implementation_sha256` identifies exact evaluated source content. Runtime bundles are ignored and have their own receipt.
+
+The default adapter is a **scripted no-finding control**, not an LLM. It passes provider-shaped responses through the real C module. Therefore its buggy-case recall should be 0 and its clean controls should succeed; these are plumbing observations, not model quality. Every summary is marked `PLUMBING_CONTROL_NOT_MODEL_EVIDENCE`. Unknown costs remain null on worker failure.
+
+The existing commands remain available:
 
 ```sh
 node evaluation/validate.cjs
-node --test evaluation/tests/dataset.test.cjs
 node evaluation/export-input.cjs DEV-001 B1
 node evaluation/export-input.cjs DEV-001 B2-oracle
 ```
 
-Run from the repository root. `validate.cjs` runs only these trusted local synthetic fixtures, using a fresh temporary CommonJS directory for each snapshot. It is not a sandbox for arbitrary third-party code.
+The exporter deliberately rejects B2. Only the experiment bridge with an explicitly supplied real B `collectContext` adapter can use B2. All source context is labelled **B2-oracle** when supplied in full.
 
-## Contents
+## Dataset and limitations
 
-| Family | Cases | Purpose |
+| Family | Snapshots | Role |
 | --- | --- | --- |
-| grant-enum | DEV-001 faulty / DEV-002 fixed | Cross-file: the policy service's numeric GRANTED/DENIED values are not booleans |
-| scheduler-units | DEV-003 faulty / DEV-004 fixed | Cross-file: the scheduler accepts seconds while the caller receives milliseconds |
-| zero-limit | DEV-005 faulty / DEV-006 fixed | Diff-sufficient: zero is valid and must not select a default |
-| index-boundary | DEV-007 faulty / DEV-008 fixed | Diff-sufficient: index equal to array length must not dereference undefined |
-| active-users | DEV-009 clean | Equivalent filter/map refactoring, preserving id zero and input order |
-| invoice-reduce | DEV-010 clean | Equivalent accumulation with an explicit zero initializer |
+| grant-enum | DEV-001 / 002 | Cross-file enum versus boolean contract |
+| scheduler-units | DEV-003 / 004 | Cross-file seconds/milliseconds contract |
+| zero-limit | DEV-005 / 006 | Valid zero versus default value |
+| index-boundary | DEV-007 / 008 | Array upper-bound check |
+| active-users | DEV-009 | Clean filter/map equivalence |
+| invoice-reduce | DEV-010 | Clean accumulation equivalence |
+| tenant-cache-key | DEV-011 / 012 | Cross-file positional tenant/user key |
+| range-end-contract | DEV-013 / 014 | Cross-file inclusive range endpoint |
+| numeric-priority | DEV-015 / 016 | Numeric comparator removed |
+| cached-false | DEV-017 / 018 | Cache membership versus truthiness |
+| copy-reverse | DEV-019 | Clean copy-before-reverse, including nonmutation |
+| own-key-filter | DEV-020 | Clean own-key/null filtering |
 
-There are **6 families, 10 head snapshots, 4 defect roots and 6 clean/fixed snapshots**. All variants of a family stay in development. The cross-file designation means the stated defect depends on an unchanged API contract outside the diff; it is a provisional annotation, not proof that a model cannot infer the defect from the diff alone.
+For each two-case family the first is buggy and the second fixed. This mapping is researcher metadata and is not given to the reviewing model. There are 113 behavioral check executions, including 17 deliberately expected contract violations across 8 buggy snapshots. These are not 17 independent bugs. Inputs are small, synthetic, and often make the requirement obvious; they support tool development, not real-repository generalization. Context necessity and severity remain provisional hypotheses.
 
-`families/*/family.json` records requirements, provenance, SHA-256 source hashes, executable counterexamples, exact expected faulty observations and context rationale. Every case has a nonempty base-to-head diff. The fixed case uses the same correct base as its faulty sibling and a different, contract-preserving implementation: it is a clean control, not a future patch shown to the model.
+The new cases are independently AI-assisted authored under the repository ISC license; no external project source was copied. Existing authorship and A's additional integrity checks are retained. The peer's 55 reliability scenarios remain in `test/fixtures/`; they are not our quality benchmark, not copied or counted here, and their module tests remain with the respective owners. Historical review gaps were addressed in A's integration; do not reopen old issues without checking current evidence.
 
-`cases/` contains input references and unified diffs; `gold/` contains atomic issue evidence. The validator checks all source hashes, ensures every changed file is declared, applies diff hunks, checks identifiers/split/nonempty integer locations, runs correct bases and all heads, and rejects counterexamples that also fail on the base. Expected failures are checked for their actual value or specific exception, so a missing dependency does not masquerade as defect evidence.
+## Human workflow
 
-The validator reports 50 behavior-check executions across bases and heads. Eight contract violations are **intentionally expected observations in the four faulty snapshots**. They are not eight independent bugs and not failing validation tests. Clean assertions cover the documented input domain and selected checks; they do not prove absence of every possible defect.
+1. Read [annotation guide](docs/ANNOTATION.md). Generate a review-record template with `review-template`; two humans independently review requirements, proofs, clean controls, severity and context necessity.
+2. Until review is complete, leave labels provisional. Reviewed family upgrades are atomic and require current content digests; validators reject stale sign-offs and unreviewed heldout entries.
+3. Configure and run a small live component pilot only when A/B/C inputs and budget are ready; see [adapter contract](docs/ADAPTERS.md). Freeze a new protocol and new family-separated reviewed data for a formal comparison.
+4. Use blind review packets, then score:
 
-## Input isolation and next integration
+```sh
+node evaluation/cli.cjs blind --runs evaluation/runs/demo --out evaluation/runs/blind-demo
+# Share ONLY blind-demo/review/ with graders. Keep private/ and runs/ private from them.
+# Humans fill reviewer, reviewed_at and per-claim annotations in review/packets.json.
+node evaluation/cli.cjs unblind --mapping evaluation/runs/blind-demo/private/mapping.json --packets evaluation/runs/blind-demo/review/packets.json --out evaluation/runs/demo/adjudicated.json
+node evaluation/cli.cjs score --runs evaluation/runs/demo --labels evaluation/runs/demo/adjudicated.json --out evaluation/runs/demo/adjudicated-summary
+```
 
-The exporter emits only an opaque case ID, condition, public behavioral requirement, diff and optional source context. Gold, family variant labels, proof tests, expected outputs and explanations are excluded. Mount only exported inputs in a model/tool environment; do not expose the full `evaluation/` directory to a reviewing agent.
+No LLM judge is enabled. The `labels` shortcut is for tool development; it exposes condition names and is not a blind-review procedure. Empty annotations remain unresolved, not automatic false positives. Case/gold review and output adjudication are separate activities.
 
-`B1` has no extra source context. `B2-oracle` provides all example head source files for diagnostic use. **Actual B2 retrieval is not implemented** and the exporter rejects that condition. Do not label full oracle context as production retrieval or report its performance as the product's Context result.
+## Scope and safety of reproduction
 
-This dataset does not change production contracts, risk rules or gate policy. The peer's 55 reliability fixtures remain a separate asset; they are not copied here or counted as independent quality defects. Their two known sanity-check gaps still need integration work. The zero/default scenario was inspired by the peer discussion; all source code in this dataset is independently authored. Reference: [peer fixtures at e3bd1a5](https://github.com/ayame2847/context-aware-risk-gated-code-review-i-have-no-idea/blob/e3bd1a58633b7a4e44256843d52cf3567b11e76e/docs/SPRINT1_CONTRACTS_AND_FIXTURES.md). Code follows this repository's ISC license.
+- Evaluation output is **C component validated findings**, not E's final user-visible report. Formal component results must retain that label; final product claims require a separately agreed final-output adapter.
+- Head source is allow-listed; the read port refuses base/sibling/gold paths. Client prompts contain patch, public requirement and allowed snippets only. Full dataset metadata is not spread into model input.
+- Provider modules are trusted local code, **not OS-sandboxed**. They must not load sibling datasets or gold. Do not give a tool-using agent the whole checkout. The worker only enforces a process timeout, not filesystem/network containment.
+- Behavioral proofs execute only these trusted local synthetic snippets in temporary CommonJS folders. They are not a sandbox for downloaded third-party code.
+- Local provider modules and `runs/` are ignored. Review raw responses and metadata before explicitly publishing experimental evidence; never commit credentials.
+- Team workflow: normal commits on `feat/evaluation-mvp`, push that branch, new follow-up PR because #4 is merged; review before merge, no direct main push.
 
-Before effect experiments: obtain a second human reviewer for each requirement/gold/context label; review severity; add licensed real-PR examples; build new family-separated heldout data; integrate actual retrieval/model adapters; freeze scoring, budget and paired trial manifest. No precision, recall, human-efficiency improvement or real GitHub gate success has been measured in v0.1.
-
-## Review checklist
-
-- [ ] Confirm the requirement and trigger for each of the four gold defects.
-- [ ] Confirm acceptable locations, severity and required cross-file context.
-- [ ] Review both clean-only changes and the four fixed controls for novel defects.
-- [ ] Record reviewer identity, date, disagreements and evidence before upgrading provisional labels.
-
-The JSON schema is a portable case-format description; `validate.cjs` is the executable validator and adds cross-file, hash, diff and behavioral constraints beyond the schema. Saved validation evidence lives in `reports/`; regenerate it after any data change.
+See [protocol](docs/PROTOCOL.md), [current handoff](docs/HANDOFF.md), and [verification report](reports/VERIFICATION.md). JSON schemas describe exchange formats; runtime validation in `validate.cjs` and `lib/` additionally enforces cross-file and statistical invariants.

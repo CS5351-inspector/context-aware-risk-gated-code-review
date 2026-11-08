@@ -1,0 +1,109 @@
+{
+  "family_id": "cached-false",
+  "split": "development",
+  "category": "diff-sufficient",
+  "language": "javascript",
+  "requirement": "Return any cached value, including false, zero, empty string and null; use fallback only for missing own keys.",
+  "context_required": false,
+  "context_rationale": "Both the own-key guard removal and fallback behavior are in the diff.",
+  "entry_file": "review.js",
+  "entry_function": "get",
+  "behavior_checks": [
+    {
+      "args": [
+        {
+          "x": false
+        },
+        "x",
+        "miss"
+      ],
+      "expected": false
+    },
+    {
+      "args": [
+        {
+          "x": 0
+        },
+        "x",
+        9
+      ],
+      "expected": 0
+    },
+    {
+      "args": [
+        {
+          "x": null
+        },
+        "x",
+        9
+      ],
+      "expected": null
+    },
+    {
+      "args": [
+        {
+          "x": ""
+        },
+        "x",
+        "miss"
+      ],
+      "expected": ""
+    },
+    {
+      "args": [
+        {},
+        "x",
+        "miss"
+      ],
+      "expected": "miss"
+    },
+    {
+      "args": [
+        {
+          "x": "ok"
+        },
+        "x",
+        "miss"
+      ],
+      "expected": "ok"
+    }
+  ],
+  "file_hashes": {
+    "base": {
+      "review.js": "5cd3782959bec8bce2f68249bf6e2b3e1a433406157730f1144e82f1f376cc91"
+    },
+    "faulty": {
+      "review.js": "663e0cef0872a06ad51f7b59abb82b5b8391cbed047a26717fb3e2b9e57f6115"
+    },
+    "fixed": {
+      "review.js": "4009dcd44460b84c363617987973d7ef568579ecf01b3f27b1f5128cba92f609"
+    }
+  },
+  "provenance": {
+    "kind": "synthetic",
+    "authoring": "AI-assisted original CS5351 evaluation example; not a real PR",
+    "license": "ISC (repository license)",
+    "external_code_copied": false,
+    "inspiration": "Independently authored API-contract and clean controls."
+  },
+  "label_status": "provisional",
+  "human_reviewers": [],
+  "expected_faulty_failures": [
+    {
+      "check_index": 0,
+      "actual": "miss"
+    },
+    {
+      "check_index": 1,
+      "actual": 9
+    },
+    {
+      "check_index": 2,
+      "actual": 9
+    },
+    {
+      "check_index": 3,
+      "actual": "miss"
+    }
+  ]
+}

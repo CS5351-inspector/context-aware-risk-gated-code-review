@@ -1,0 +1,24 @@
+{
+  "case_id": "DEV-015",
+  "label_status": "provisional",
+  "human_reviewers": [],
+  "issues": [
+    {
+      "gold_issue_id": "numeric-priority-001",
+      "root_cause": "Default sort compares numeric priorities as strings, placing 10 before 2.",
+      "severity": "medium",
+      "severity_rationale": "Changes scheduling order for multi-digit priorities.",
+      "acceptable_locations": [
+        {
+          "file": "review.js",
+          "start_line": 1,
+          "end_line": 1
+        }
+      ],
+      "required_context_files": [],
+      "proof_check_indices": [
+        0
+      ]
+    }
+  ]
+}
