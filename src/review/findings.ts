@@ -8,9 +8,12 @@ const record = (value: unknown): value is Record<string, unknown> =>
 /** 解析 unified diff 的两侧可见行；只允许 patch 内真实出现的行，不猜测 hunk 首行。
  * 同时验证 hunk 声明长度，防止截断的 patch 被当成完整必要输入。
  */
-export function patchLines(patch: string): Record<Side, Set<number>> {
+export function patchLines(
+  patch: string, expectedChanges?: { additions?: number; deletions?: number },
+): Record<Side, Set<number>> {
   const visible = { LEFT: new Set<number>(), RIGHT: new Set<number>() };
   let left = 0, right = 0, oldRemaining = 0, newRemaining = 0, hunks = 0;
+  let additions = 0, deletions = 0;
   const rows = patch.replace(/\r\n/g, '\n').split('\n');
   for (let i = 0; i < rows.length; i++) {
     const row = rows[i];
@@ -30,6 +33,8 @@ export function patchLines(patch: string): Record<Side, Set<number>> {
     }
     if (!hunks) continue; // 允许 diff --git、---、+++ 等文件头。
     if (row === '\\ No newline at end of file' || (row === '' && i === rows.length - 1)) continue;
+    if (row.startsWith('+')) additions++;
+    if (row.startsWith('-')) deletions++;
     if (row.startsWith(' ') || row.startsWith('-')) {
       visible.LEFT.add(left++); oldRemaining--;
     }
@@ -41,6 +46,15 @@ export function patchLines(patch: string): Record<Side, Set<number>> {
     }
   }
   if (!hunks || oldRemaining || newRemaining) throw new InvalidReviewResponseError('missing or incomplete diff');
+  // Internal hunk lengths cannot reveal a whole omitted hunk. When the file API
+  // supplies change counts, require the complete patch to account for all of them.
+  if (expectedChanges?.additions !== undefined || expectedChanges?.deletions !== undefined) {
+    const { additions: expectedAdded, deletions: expectedDeleted } = expectedChanges;
+    if (!Number.isSafeInteger(expectedAdded) || !Number.isSafeInteger(expectedDeleted)
+      || expectedAdded !== additions || expectedDeleted !== deletions) {
+      throw new InvalidReviewResponseError('patch does not cover file change counts');
+    }
+  }
   return visible;
 }
 

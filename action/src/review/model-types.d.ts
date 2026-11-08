@@ -2,7 +2,7 @@
 import type { Budget, ChangedFile, Omission as SharedOmission, ReviewInput } from './contracts.js';
 export type { Mode, Side, Severity, ContextSnippet, Finding, ModelAnalysis } from './contracts.js';
 export type ModelInput = Pick<ReviewInput, 'headSha' | 'diffBaseSha' | 'mode'> & {
-    changedFiles: Array<Pick<ChangedFile, 'path' | 'status' | 'patch' | 'supported'>>;
+    changedFiles: Array<Pick<ChangedFile, 'path' | 'status' | 'patch' | 'supported'> & Partial<Pick<ChangedFile, 'additions' | 'deletions'>>>;
 };
 export type ModelBudget = Pick<Budget, 'maxFiles' | 'maxCalls' | 'maxRetries' | 'requestTimeoutMs' | 'analysisTimeoutMs' | 'publishReserveMs' | 'maxInputTokens' | 'reservedOutputTokens'>;
 export type Omission = SharedOmission & {

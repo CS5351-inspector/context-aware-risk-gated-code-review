@@ -142,6 +142,19 @@ const createContext = ({
 };
 
 describe('getChangedFiles', () => {
+  test('rechecks the full PR after its latest bot review recorded skipped files', async () => {
+    const { context, compareCommits } = createContext({
+      reviews: [
+        createBotReview('LGTM 👍', 'older-head'),
+        createBotReview('Code review incomplete (PARTIAL)\n\n<!-- chatgpt-code-review-incomplete -->'),
+      ],
+      comparisons: [{ status: 'ahead', files: incrementalFiles }],
+    });
+
+    await expect(getChangedFiles(context)).resolves.toEqual(pullRequestFiles);
+    expect(compareCommits).not.toHaveBeenCalled();
+  });
+
   test('uses the current pull request files when the pull request is opened', async () => {
     const { context, compareCommits } = createContext({ action: 'opened' });
 
@@ -189,16 +202,8 @@ describe('getChangedFiles', () => {
       ],
     });
 
-    await expect(getChangedFiles(context)).resolves.toEqual([
-      pullRequestFiles[1],
-    ]);
-    expect(compareCommits).toHaveBeenCalledTimes(1);
-    expect(compareCommits).toHaveBeenCalledWith({
-      owner: 'owner',
-      repo: 'repo',
-      base: 'previous-head',
-      head: 'current-head',
-    });
+    await expect(getChangedFiles(context)).resolves.toEqual(pullRequestFiles);
+    expect(compareCommits).not.toHaveBeenCalled();
   });
 
   test('uses the full pull request for a legacy bot review without the marker', async () => {
@@ -315,7 +320,7 @@ describe('getChangedFiles', () => {
     });
   });
 
-  test('uses the synchronize before SHA when no prior bot review exists', async () => {
+  test('reviews the whole PR when no completed bot review exists', async () => {
     const { context, compareCommits } = createContext({
       comparisons: [
         {
@@ -325,15 +330,8 @@ describe('getChangedFiles', () => {
       ],
     });
 
-    await expect(getChangedFiles(context)).resolves.toEqual([
-      pullRequestFiles[1],
-    ]);
-    expect(compareCommits).toHaveBeenCalledWith({
-      owner: 'owner',
-      repo: 'repo',
-      base: 'previous-head',
-      head: 'current-head',
-    });
+    await expect(getChangedFiles(context)).resolves.toEqual(pullRequestFiles);
+    expect(compareCommits).not.toHaveBeenCalled();
   });
 
   test('uses the full pull request when the trusted review comparison fails', async () => {

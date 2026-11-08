@@ -79,6 +79,16 @@ describe('Finding conversion and provenance', () => {
     const lines = patchLines('@@ -10,2 +20,2 @@\n-old\n+new\n common');
     expect([...lines.LEFT]).toEqual([10, 11]); expect([...lines.RIGHT]).toEqual([20, 21]);
   });
+  test('file counts exclude headers/context and include every complete hunk', () => {
+    const fullPatch = ['diff --git a/file.ts b/file.ts', '--- a/file.ts', '+++ b/file.ts',
+      '@@ -1,2 +1,2 @@', ' common', '-old', '+new', '@@ -10 +10 @@', '-old2', '+new2'].join('\n');
+    expect(() => patchLines(fullPatch, { additions: 2, deletions: 2 })).not.toThrow();
+    expect(() => patchLines(fullPatch, { additions: 1, deletions: 1 })).toThrow('file change counts');
+  });
+  test('counts content beginning with header-like markers inside a hunk', () => {
+    const headerLikeContent = '--- a/file.ts\n+++ b/file.ts\n@@ -1 +1 @@\n---old\n+++new';
+    expect(() => patchLines(headerLikeContent, { additions: 1, deletions: 1 })).not.toThrow();
+  });
   test.each(['@@ -1,2 +1,2 @@\n+x', '@@ -1 +1 @@\n-x\n+y\n+z', 'binary data'])('rejects incomplete diff %s', text => {
     expect(() => patchLines(text)).toThrow();
   });
@@ -137,6 +147,35 @@ describe('controlled modes, coverage and resource limits', () => {
       expect(result.metrics.calls).toBe(0); expect(result.omissions[0].reason).toBe('INVALID_EVIDENCE');
     });
   });
+    // 模拟边界输入绕过编译期类型检查，观察错误是否进入覆盖记录。
+  test.each([
+    { name: 'non-array list', value: null },
+    { name: 'null item', value: [null] },
+    { name: 'numeric ID', value: [{ ...snippet(), id: 123 }] },
+    { name: 'numeric file', value: [{ ...snippet(), file: 123 }] },
+    { name: 'numeric reason', value: [{ ...snippet(), reason: 123 }] },
+  ])('records invalid evidence for a $name before calling the model', async ({ value }) => {
+    const incoming = JSON.parse(JSON.stringify(value));
+    const result = await reviewFiles(client(), input(), incoming, budget(), runtime);
+
+    expect(result.metrics.calls).toBe(0);
+    expect(result.omissions).toEqual([
+      { file: 'src/a.ts', stage: 'model', reason: 'INVALID_EVIDENCE', required: true },
+    ]);
+    expect(deriveModelStatus(input(), result)).toBe('FAILED');
+  });
+  
+  test('rejects a patch truncated between complete hunks when file counts are available', async () => {
+    const i = input();
+    Object.assign(i.changedFiles[0], { additions: 2, deletions: 2 });
+    const c = client();
+    const result = await reviewFiles(c, i, [], budget(), runtime);
+    expect(c.completeReview).not.toHaveBeenCalled();
+    expect(result.omissions).toEqual([
+      { file: 'src/a.ts', stage: 'model', reason: 'MISSING_PATCH', required: true },
+    ]);
+  });
+
   test('token limit covers full prompt and reserves output; no request above limit', async () => {
     const countInputTokens = jest.fn().mockReturnValue(3900);
     const result = await reviewFiles(client(), input(), [], budget(), { countInputTokens });

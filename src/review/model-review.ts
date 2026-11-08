@@ -89,14 +89,21 @@ async function request(client: ModelClient, prompt: string, timeout: number, out
  * 必要上下文缺失的最终状态由 A 与 B 的 omissions 一起汇总。
  */
 function validSnippets(input: ModelInput, snippets: ContextSnippet[]): boolean {
+  if (!Array.isArray(snippets)) return false;
+  // Set 保存见过的 ID。every 要求每个片段都通过检查。
   const ids = new Set<string>();
   return snippets.every(s => {
-    const valid = !!s.id?.trim() && !ids.has(s.id) && !!s.file?.trim()
+    // 片段可能来自解析后的数据，先确认文本字段类型，再调用 trim。
+    if (!s || typeof s.id !== 'string' || typeof s.file !== 'string' || typeof s.reason !== 'string') {
+      return false;
+    }
+    const valid = !!s.id.trim() && !ids.has(s.id) && !!s.file.trim()
       && [input.headSha, input.diffBaseSha].includes(s.ref)
       && Number.isSafeInteger(s.startLine) && s.startLine > 0
       && Number.isSafeInteger(s.endLine) && s.endLine >= s.startLine
       && typeof s.code === 'string' && s.code.replace(/\r\n/g, '\n').replace(/\n$/, '').split('\n').length === s.endLine - s.startLine + 1;
-    ids.add(s.id); return valid;
+    if (valid) ids.add(s.id);
+    return valid;
   });
 }
 
@@ -137,7 +144,7 @@ export async function reviewFiles(
     if (++fileCount > budget.maxFiles) { omit(file.path, 'FILE_BUDGET'); continue; }
     if (!file.patch?.trim()) { omit(file.path, 'MISSING_PATCH'); continue; }
     if (!contextValid) { omit(file.path, 'INVALID_EVIDENCE'); continue; }
-    try { patchLines(file.patch); } catch { omit(file.path, 'MISSING_PATCH'); continue; }
+    try { patchLines(file.patch, file); } catch { omit(file.path, 'MISSING_PATCH'); continue; }
     const prompt = buildModelPrompt(file.path, file.patch, context);
     const tokens = runtime.countInputTokens(prompt);
     if (!Number.isSafeInteger(tokens) || tokens < 0) throw new Error('Invalid input token count');
