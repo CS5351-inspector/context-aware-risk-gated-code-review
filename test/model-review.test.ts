@@ -85,6 +85,10 @@ describe('Finding conversion and provenance', () => {
     expect(() => patchLines(fullPatch, { additions: 2, deletions: 2 })).not.toThrow();
     expect(() => patchLines(fullPatch, { additions: 1, deletions: 1 })).toThrow('file change counts');
   });
+  test('counts content beginning with header-like markers inside a hunk', () => {
+    const headerLikeContent = '--- a/file.ts\n+++ b/file.ts\n@@ -1 +1 @@\n---old\n+++new';
+    expect(() => patchLines(headerLikeContent, { additions: 1, deletions: 1 })).not.toThrow();
+  });
   test.each(['@@ -1,2 +1,2 @@\n+x', '@@ -1 +1 @@\n-x\n+y\n+z', 'binary data'])('rejects incomplete diff %s', text => {
     expect(() => patchLines(text)).toThrow();
   });
