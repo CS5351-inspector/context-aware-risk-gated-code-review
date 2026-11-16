@@ -71,8 +71,10 @@ export function fixtureDirectory(entry: FixtureEntry): string {
 export function createSnapshotReader(fixture: SprintFixture, directory: string): ReadFileAtRef {
   return async (file, ref) => {
     const snapshot = fixture.snapshots.find((item) => item.file === file && item.ref === ref);
-    if (!snapshot) throw new Error(`UNSCRIPTED_READ ${ref}:${file}`);
-    if (snapshot.error) throw new Error(`${snapshot.error} ${ref}:${file}`);
+    if (!snapshot) throw Object.assign(new Error(`UNSCRIPTED_READ ${ref}:${file}`), { code: 'ENOENT' });
+    if (snapshot.error) throw Object.assign(new Error(`${snapshot.error} ${ref}:${file}`), {
+      status: snapshot.error === 'NOT_FOUND' ? 404 : 403,
+    });
     if (!snapshot.contentFile) throw new Error('Missing snapshot contentFile');
     return readFileSync(confinedPath(directory, snapshot.contentFile), 'utf8');
   };
