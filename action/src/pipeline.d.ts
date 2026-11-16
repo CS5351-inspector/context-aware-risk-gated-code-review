@@ -5,8 +5,10 @@ export interface PipelineProviders {
     readFile: ReadFileAtRef;
     context: CollectContext;
     review: ReviewFiles;
+    /** Live C aborts requests and backoff itself and returns counters on timeout. */
+    reviewHandlesDeadline?: boolean;
     risk: CalculateRisk;
     gate: DecideGate;
 }
 export declare function deriveAnalysisStatus(input: ReviewInput, context: ContextResult, model: ModelAnalysis): AnalysisStatus;
-export declare function runReviewPipeline(input: ReviewInput, config: ReviewConfig, gateContext: GateContext, providers: PipelineProviders): Promise<ReviewResult>;
+export declare function runReviewPipeline(input: ReviewInput, config: ReviewConfig, gateContext: GateContext, providers: PipelineProviders, startedAt?: number): Promise<ReviewResult>;

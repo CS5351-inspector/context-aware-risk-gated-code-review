@@ -11,6 +11,7 @@ CS5351 Software Engineering · Group 2.
 - [开发 Todo](docs/TODO.md)
 - [技术规范](docs/TECH_SPEC.md)
 - [Sprint 1 集成状态与各模块接手入口](docs/SPRINT1_HANDOFF.md)
+- [Sprint 2 live gate and acceptance matrix](docs/SPRINT2_GATE_ACCEPTANCE.md) · [Architecture decisions and pilot budgets](docs/SPRINT2_GATE_ADR.md)
 
 ## Bot Usage
 

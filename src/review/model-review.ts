@@ -19,6 +19,7 @@ export interface ModelClient {
 export interface ReviewRuntime {
   countInputTokens(prompt: string): number;
   remainingMs?: number;
+  signal?: AbortSignal;
 }
 
 /** 共用同一个 prompt 主体，唯一实验变量是 context 数组内容。
@@ -69,20 +70,38 @@ function failure(error: unknown): { reason: Omission['reason']; retry: boolean; 
 }
 
 /** 超时同时中止 HTTP 并结束本地等待；finally 清除定时器，不遗留长等待。 */
-async function request(client: ModelClient, prompt: string, timeout: number, outputTokens: number): Promise<unknown> {
+async function request(client: ModelClient, prompt: string, timeout: number, outputTokens: number, runSignal?: AbortSignal): Promise<unknown> {
   const controller = new AbortController();
   let timer: ReturnType<typeof setTimeout> | undefined;
+  let onTimeout: () => void;
   const deadline = new Promise<never>((_resolve, reject) => {
-    timer = setTimeout(() => {
+    onTimeout = () => {
       const error = new Error('Model request timed out'); error.name = 'ReviewTimeoutError';
       reject(error); controller.abort();
-    }, timeout);
+    };
+    timer = setTimeout(onTimeout, timeout);
+    runSignal?.addEventListener('abort', onTimeout, { once: true });
   });
   try {
     return await Promise.race([client.completeReview(prompt, {
       signal: controller.signal, timeout, maxRetries: 0, maxOutputTokens: outputTokens,
     }), deadline]);
-  } finally { if (timer) clearTimeout(timer); }
+  } finally {
+    if (timer) clearTimeout(timer);
+    runSignal?.removeEventListener('abort', onTimeout!);
+  }
+}
+
+function waitToRetry(ms: number, signal?: AbortSignal): Promise<void> {
+  return new Promise(resolve => {
+    const finish = () => {
+      clearTimeout(timer);
+      signal?.removeEventListener('abort', finish);
+      resolve();
+    };
+    const timer = setTimeout(finish, ms);
+    signal?.addEventListener('abort', finish, { once: true });
+  });
 }
 
 /** B 的片段必须有唯一 ID、有效版本和一致行数；无效片段不发送给模型。
@@ -138,6 +157,7 @@ export async function reviewFiles(
   for (const file of input.changedFiles) {
     // 候选首版只分析新增/修改的 .ts/.js；A 必须把其他文件列入 excludedFiles。
     if (!file.supported) continue;
+    if (runtime.signal?.aborted) { omit(file.path, 'TIMEOUT'); continue; }
     if (!/\.(ts|js)$/.test(file.path) || !['added', 'modified'].includes(file.status)) {
       omit(file.path, 'INVALID_OUTPUT'); continue;
     }
@@ -154,11 +174,11 @@ export async function reviewFiles(
     for (let attempt = 0; ; attempt++) {
       if (result.metrics.calls >= budget.maxCalls) { omit(file.path, 'CALL_BUDGET'); break; }
       const remaining = deadline - Date.now();
-      if (remaining <= 0) { omit(file.path, 'TIMEOUT'); break; }
+      if (runtime.signal?.aborted || remaining <= 0) { omit(file.path, 'TIMEOUT'); break; }
       result.metrics.calls++;
       try {
         // 所有文件及重试共享同一个 deadline；慢请求不能挤占 GitHub 发布预留。
-        const completion = await request(client, prompt, Math.min(budget.requestTimeoutMs, remaining), budget.reservedOutputTokens);
+        const completion = await request(client, prompt, Math.min(budget.requestTimeoutMs, remaining), budget.reservedOutputTokens, runtime.signal);
         const usage = (completion as { usage?: { prompt_tokens?: number; completion_tokens?: number } })?.usage;
         const addUsage = (key: 'inputTokens' | 'outputTokens', value: unknown) => {
           result.metrics[key] = result.metrics[key] !== null && typeof value === 'number'
@@ -173,12 +193,13 @@ export async function reviewFiles(
         if (!(error instanceof InvalidReviewResponseError)) {
           result.metrics.inputTokens = null; result.metrics.outputTokens = null;
         }
+        if (runtime.signal?.aborted) { omit(file.path, 'TIMEOUT'); break; }
         const failed = failure(error);
         if (!failed.retry || attempt >= budget.maxRetries) { omit(file.path, failed.reason); break; }
         const waitMs = Math.max(failed.delayMs, Math.min(250 * 2 ** attempt, 4000));
         if (result.metrics.calls >= budget.maxCalls) { omit(file.path, 'CALL_BUDGET'); break; }
         if (waitMs >= deadline - Date.now()) { omit(file.path, failed.reason); break; }
-        await new Promise(resolve => setTimeout(resolve, waitMs));
+        await waitToRetry(waitMs, runtime.signal);
       }
     }
   }

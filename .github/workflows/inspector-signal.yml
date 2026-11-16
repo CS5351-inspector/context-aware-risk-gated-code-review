@@ -1,0 +1,14 @@
+name: Inspector review signal
+on:
+  pull_request:
+    branches: [sprint2-demo]
+    types: [opened, reopened, synchronize, edited]
+  pull_request_review:
+    types: [submitted, edited, dismissed]
+permissions: {}
+jobs:
+  notify:
+    if: github.event.pull_request.base.ref == 'sprint2-demo' && github.event.pull_request.head.repo.full_name == github.repository
+    runs-on: ubuntu-latest
+    steps:
+      - run: echo 'The trusted Inspector workflow will reconcile this PR.'

@@ -3,7 +3,7 @@
  * GitHub has no atomic compare-head-and-write operation: rechecks detect races,
  * while immutable comments and SHA-pinned statuses keep old runs off the new head.
  */
-import type { PublicationReceipt, PublishResult, Repo } from './contracts.js';
+import type { GateResult, PublicationReceipt, PublishResult, Repo, ReviewResult } from './contracts.js';
 
 export interface PublicationPort {
   readCurrentHead(repo: Repo, prNumber: number): Promise<string>;
@@ -15,7 +15,9 @@ export interface PublicationPort {
   }): Promise<void>;
 }
 
-export function createPublisher(port: PublicationPort): PublishResult {
+export function createPublisher(
+  port: PublicationPort, refreshGate?: (result: ReviewResult) => Promise<GateResult>,
+): PublishResult {
   return async (result, report) => {
     // Capture scalar values before awaiting: callers cannot retarget a running write.
     const repo = { ...result.repo };
@@ -66,18 +68,47 @@ export function createPublisher(port: PublicationPort): PublishResult {
         receipt.error = 'A passing gate requires a published report';
         return receipt;
       }
+      const confirmPass = async (): Promise<PublicationReceipt | undefined> => {
+        if (!refreshGate) return;
+        operation = 'refresh current reviews and permissions';
+        const current = await refreshGate(result);
+        if (current.state === 'STALE') return { ...receipt, status: 'STALE' };
+        if (current.state === 'PASS') return;
+        const state = current.state === 'ERROR' ? 'failure' : 'pending';
+        operation = 'restrict commit after gate changed';
+        await port.createCommitStatus(repo, headSha, {
+          context: 'inspector/risk-gate', state, description: 'Inspector gate changed during publication',
+        });
+        receipt.commitStatus = state;
+        operation = 'report changed gate';
+        await port.createComment(repo, prNumber,
+          `Inspector run \`${runId}\`: gate updated to **${current.state}** for \`${headSha}\`. ${current.reasons.join(', ')}.`);
+        return { ...receipt, status: 'PUBLISHED' };
+      };
       if (gateState === 'PASS') {
+        const changed = await confirmPass();
+        if (changed) return changed;
         operation = 'create commit status';
         await port.createCommitStatus(repo, headSha, {
           context: 'inspector/risk-gate', state: 'success', description: 'Inspector pass for reviewed commit',
         });
         receipt.commitStatus = 'success';
+        const changedAfterWrite = await confirmPass();
+        if (changedAfterWrite) return changedAfterWrite;
         if (!await fresh()) return { ...receipt, status: 'STALE' };
       }
       return { ...receipt, status: 'PUBLISHED' };
     } catch {
       // Keep accepted partial-write receipts; avoid echoing API errors or source text.
       receipt.error = `Failed to ${operation}`;
+      if (refreshGate && receipt.commitStatus === 'success') {
+        try {
+          await port.createCommitStatus(repo, headSha, {
+            context: 'inspector/risk-gate', state: 'failure', description: 'Inspector could not confirm the published gate',
+          });
+          receipt.commitStatus = 'failure';
+        } catch { receipt.error += '; could not retract success'; }
+      }
       return receipt;
     }
   };

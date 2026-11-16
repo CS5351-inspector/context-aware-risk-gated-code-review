@@ -237,6 +237,32 @@ describe('timeouts and bounded retries', () => {
     expect(signal.aborted).toBe(true); expect(result.omissions[0].reason).toBe('TIMEOUT');
     expect(result.metrics.inputTokens).toBeNull(); expect(jest.getTimerCount()).toBe(0);
   });
+  test('the shared deadline aborts an in-flight request without retrying', async () => {
+    const c = client();
+    c.completeReview.mockImplementation(() => new Promise(() => {}));
+    const controller = new AbortController();
+    const pending = reviewFiles(c, input(), [], budget(), { ...runtime, signal: controller.signal });
+    const requestSignal = c.completeReview.mock.calls[0][1].signal;
+    controller.abort();
+    const result = await pending;
+    expect(requestSignal.aborted).toBe(true);
+    expect(result.omissions[0].reason).toBe('TIMEOUT');
+    expect(result.metrics).toMatchObject({ calls: 1, inputTokens: null });
+    expect(jest.getTimerCount()).toBe(0);
+  });
+
+  test('the shared deadline interrupts retry backoff before another request', async () => {
+    const c = client();
+    c.completeReview.mockRejectedValue({ status: 503 });
+    const controller = new AbortController();
+    const pending = reviewFiles(c, input(), [], budget(), { ...runtime, signal: controller.signal });
+    await tick(0);
+    controller.abort();
+    const result = await pending;
+    expect(c.completeReview).toHaveBeenCalledTimes(1);
+    expect(result.omissions[0].reason).toBe('TIMEOUT');
+    expect(jest.getTimerCount()).toBe(0);
+  });
   test('Retry-After beyond remaining budget stops instead of waiting or retrying early', async () => {
     const c = client(); c.completeReview.mockRejectedValue({ status: 429, headers: { get: () => '60' } });
     const result = await reviewFiles(c, input(), [], budget(), runtime);

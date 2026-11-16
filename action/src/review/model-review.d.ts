@@ -15,6 +15,7 @@ export interface ModelClient {
 export interface ReviewRuntime {
     countInputTokens(prompt: string): number;
     remainingMs?: number;
+    signal?: AbortSignal;
 }
 /** 共用同一个 prompt 主体，唯一实验变量是 context 数组内容。
  * JSON 编码使片段边界清晰；提示约束不能从理论上消除 prompt injection。

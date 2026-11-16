@@ -11,6 +11,8 @@ export interface PipelineProviders {
   readFile: ReadFileAtRef;
   context: CollectContext;
   review: ReviewFiles;
+  /** Live C aborts requests and backoff itself and returns counters on timeout. */
+  reviewHandlesDeadline?: boolean;
   risk: CalculateRisk;
   gate: DecideGate;
 }
@@ -45,6 +47,7 @@ async function withinDeadline<T>(work: Promise<T>, timeoutMs: number): Promise<T
 
 export async function runReviewPipeline(
   input: ReviewInput, config: ReviewConfig, gateContext: GateContext, providers: PipelineProviders,
+  startedAt = Date.now(),
 ): Promise<ReviewResult> {
   if (!providers || !['mock', 'live'].includes(providers.provider)
     || ['context', 'review', 'risk', 'gate', 'readFile'].some(key =>
@@ -70,14 +73,16 @@ export async function runReviewPipeline(
       risk: providers.risk(input, analysis, config), gate: { state: 'ERROR',
         reasons: ['UNSUPPORTED_SOURCE_REPOSITORY'], requiredApprovals: config.requiredApprovals, validApprovers: [] } };
   }
-  const startedAt = Date.now();
   const { analysisTimeoutMs, publishReserveMs } = config.budget;
   let context: ContextResult = { snippets: [], omissions: [] };
   const hasScope = input.changedFiles.some(f => f.supported);
-  if (hasScope && input.mode === 'context') {
+  const contextMs = startedAt + analysisTimeoutMs - publishReserveMs - Date.now();
+  if (hasScope && input.mode === 'context' && contextMs <= 0) {
+    context.omissions.push({ file: null, stage: 'context', reason: 'TIMEOUT', required: true });
+  } else if (hasScope && input.mode === 'context') {
     try {
       context = await withinDeadline(
-        providers.context(input, providers.readFile, config.budget), analysisTimeoutMs - publishReserveMs,
+        providers.context(input, providers.readFile, config.budget), contextMs,
       );
     } catch (error) {
       // B distinguishes optional retrieval misses itself. An unhandled stage failure is required.
@@ -91,10 +96,8 @@ export async function runReviewPipeline(
   if (hasScope && remainingMs > publishReserveMs) {
     try {
       // C subtracts the same publication reserve once, from this remaining whole-run budget.
-      model = await withinDeadline(
-        providers.review(input, context.snippets, { ...config.budget, analysisTimeoutMs: remainingMs }),
-        remainingMs - publishReserveMs,
-      );
+      const review = providers.review(input, context.snippets, { ...config.budget, analysisTimeoutMs: remainingMs });
+      model = providers.reviewHandlesDeadline ? await review : await withinDeadline(review, remainingMs - publishReserveMs);
     } catch (error) {
       model.omissions.push({ file: null, stage: 'model',
         reason: error instanceof StageTimeoutError ? 'TIMEOUT' : 'SERVICE_ERROR', required: true });
