@@ -56,6 +56,20 @@ export async function runReviewPipeline(
   if (gateContext.prAuthor.toLowerCase() !== input.author.toLowerCase()) {
     throw new Error('Gate author must match the immutable PR snapshot');
   }
+  // 首版不支持 fork。仓库身份只有 A 的输入具有，不能让 D 凭空推断。
+  const sameRepo = input.repo.owner.toLowerCase() === input.sourceRepo.owner.toLowerCase()
+    && input.repo.name.toLowerCase() === input.sourceRepo.name.toLowerCase();
+  if (!sameRepo) {
+    const model = emptyModel();
+    const analysis: AnalysisResult = { analysisStatus: 'FAILED', snippets: [],
+      findings: model.findings, omissions: model.omissions, metrics: model.metrics,
+      scope: { supportedFiles: input.changedFiles.filter(f => f.supported).map(f => f.path),
+        analyzedFiles: [], excludedFiles: input.changedFiles.filter(f => !f.supported).map(f => f.path) } };
+    return { ...analysis, schemaVersion: '1', runId: input.runId, repo: input.repo,
+      prNumber: input.prNumber, headSha: input.headSha, mode: input.mode, provider: providers.provider,
+      risk: providers.risk(input, analysis, config), gate: { state: 'ERROR',
+        reasons: ['UNSUPPORTED_SOURCE_REPOSITORY'], requiredApprovals: config.requiredApprovals, validApprovers: [] } };
+  }
   const startedAt = Date.now();
   const { analysisTimeoutMs, publishReserveMs } = config.budget;
   let context: ContextResult = { snippets: [], omissions: [] };
