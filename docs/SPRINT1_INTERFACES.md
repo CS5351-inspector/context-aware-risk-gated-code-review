@@ -66,3 +66,9 @@ test/support/sprint1-integrity.ts 是针对受控 LF 文本样例的检查，不
 ## 集成前复核修正
 
 修正 AnalysisResult 重复要求 analyzedFiles 的类型错误；对齐 C 的 invalid-evidence、invalid-file、invalid-line、显式无行号四类结果。可靠性样例仍为 55 个，额外反例测试检查批准阈值篡改、大小写账号去重、时区排序、LEFT/diffBase 证据、悬空引用和 HIGH 保留。这里验证的是受控样例的必要约束；生产 Gate、GitHub 权限查询与实际发布仍由所属模块实现并单独验收。
+
+### Context retrieval limits
+
+`collectContext` reads supported changed files in snapshot order, up to `maxFiles`. Every read is keyed to the reviewed head SHA. Extra changed files receive a required `FILE_BUDGET` omission. Overlapping patch windows merge; each changed file contributes at most 8 windows and 256 local source lines in total. Truncation produces an optional `CONTEXT_BUDGET` omission.
+
+For each selected file, up to `maxDefinitionsPerFile` distinct static import lookups are attempted, including failed lookups. A lookup follows at most two candidate paths. Reads (including failures) and identical evidence spans are shared across the PR. Relative named ESM imports and literal CommonJS imports can resolve top-level declarations or direct assignments to `exports` / `module.exports`. Explicit JavaScript paths take priority. For a TypeScript importer, a missing emitted `.js` can resolve to `.ts` at the same SHA. Permission and transport errors stop that lookup. Package imports, dynamic loading and transitive re-exports are outside this retrieval scope. Unresolved in-scope definitions are reported as optional omissions; an unreadable necessary changed file is a required omission.
