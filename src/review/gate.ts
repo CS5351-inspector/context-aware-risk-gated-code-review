@@ -5,7 +5,7 @@ import { hasCompleteCoverage, isValidAnalysis } from './risk.js';
 
 const sha = (value: string) => typeof value === 'string' && /^[a-f0-9]{40}$/i.test(value);
 const login = (value: string) => typeof value === 'string' && /^[a-z0-9](?:[a-z0-9-]{0,37}[a-z0-9])?$/i.test(value);
-const reviewLogin = (value: string) => login(value) || (typeof value === 'string' && value.endsWith('[bot]') && login(value.slice(0, -5)));
+const actorLogin = (value: string) => login(value) || (typeof value === 'string' && value.endsWith('[bot]') && login(value.slice(0, -5)));
 const identity = (value: string) => value.toLowerCase();
 const writable = new Set(['write', 'maintain', 'admin']);
 const states = new Set(['APPROVED', 'COMMENTED', 'CHANGES_REQUESTED', 'DISMISSED']);
@@ -27,7 +27,7 @@ function orderedHistory(reviews: ApprovalReview[]): ApprovalReview[] {
   const unique = new Map<number, ApprovalReview>();
   const actors = new Map<string, ApprovalReview['actorType']>();
   for (const review of reviews) {
-    if (!review || !Number.isSafeInteger(review.id) || review.id < 1 || !reviewLogin(review.login)
+    if (!review || !Number.isSafeInteger(review.id) || review.id < 1 || !actorLogin(review.login)
       || !['User', 'Bot'].includes(review.actorType)
       || !['read', 'triage', 'write', 'maintain', 'admin'].includes(review.permission)
       || !sha(review.commitSha) || !states.has(review.state)
@@ -55,7 +55,7 @@ export const decideGate: DecideGate = (analysis, risk, context, config) => {
     ({ state, reasons: [reason], requiredApprovals: required, validApprovers });
   try { validateReviewConfig(config); } catch { return result('ERROR', 'INVALID_CONFIG'); }
   if (!context || context.configValid !== true) return result('ERROR', 'INVALID_CONFIG');
-  if (!sha(context.reviewedHeadSha) || !sha(context.currentHeadSha) || !login(context.prAuthor)
+  if (!sha(context.reviewedHeadSha) || !sha(context.currentHeadSha) || !actorLogin(context.prAuthor)
     || !Array.isArray(context.reviews)) return result('ERROR', 'INVALID_GATE_CONTEXT');
   if (context.reviewedHeadSha !== context.currentHeadSha) return result('STALE', 'HEAD_CHANGED');
   if (!risk || !['LOW', 'MEDIUM', 'HIGH', 'UNKNOWN'].includes(risk.level)

@@ -165,6 +165,16 @@ test('forks stop at A input boundary before model or file calls', async () => {
   expect(p.context).not.toHaveBeenCalled(); expect(p.readFile).not.toHaveBeenCalled(); expect(p.review).not.toHaveBeenCalled();
 });
 
+test('a GitHub App can author a PR while only a human can approve it', () => {
+  const ctx = { ...context(), prAuthor: 'dependabot[bot]' };
+  const c = config();
+  const decide = (a: AnalysisResult, reviews: ApprovalReview[]) =>
+    decideGate(a, calculateRisk(fixture().input, a, c), { ...ctx, reviews }, c);
+  expect(decide(analysis(), []).state).toBe('PASS');
+  expect(decide(high(), [review({ login: 'dependabot[bot]', actorType: 'Bot' })]).state).toBe('WAITING');
+  expect(decide(high(), [review()]).validApprovers).toEqual(['reviewer-b']);
+});
+
 test('GitHub bot login syntax is valid history but never counts as human approval', () => {
   expect(gate([review({ login: 'github-actions[bot]', actorType: 'Bot' })]).state).toBe('WAITING');
 });
