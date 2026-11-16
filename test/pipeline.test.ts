@@ -104,3 +104,23 @@ test('an unresponsive model provider cannot consume the publication reserve', as
   expect(result.analysisStatus).toBe('FAILED');
   expect(result.omissions.some(o => o.reason === 'TIMEOUT' && o.required)).toBe(true);
 });
+
+test('time spent collecting the snapshot cannot be spent again on context or model work', async () => {
+  const providers = createMockProviders();
+  const collect = jest.spyOn(providers, 'context');
+  const review = jest.spyOn(providers, 'review');
+  const config = { ...mockConfig, budget: { ...mockConfig.budget, analysisTimeoutMs: 240_000, publishReserveMs: 30_000 } };
+  const startedAt = 100_000;
+  const now = jest.spyOn(Date, 'now').mockReturnValue(startedAt + 210_000);
+  try {
+    const reviewed = await runReviewPipeline(input(), config, mockGateContext, providers, startedAt);
+    expect(collect).not.toHaveBeenCalled();
+    expect(review).not.toHaveBeenCalled();
+    expect(reviewed.analysisStatus).toBe('FAILED');
+    expect(reviewed.metrics).toMatchObject({ durationMs: 210_000, calls: 0 });
+    expect(reviewed.omissions).toEqual(expect.arrayContaining([
+      { file: null, stage: 'context', reason: 'TIMEOUT', required: true },
+      { file: null, stage: 'model', reason: 'TIMEOUT', required: true },
+    ]));
+  } finally { now.mockRestore(); }
+});

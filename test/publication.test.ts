@@ -125,3 +125,57 @@ describe('shared publication guard', () => {
     expect(p.readCurrentHead).not.toHaveBeenCalled();
   });
 });
+
+describe('same-commit approval changes during live publication', () => {
+  const waiting = { ...result('WAITING').gate, reasons: ['APPROVAL_REQUIRED'] };
+
+  test('revocation during report creation prevents success on the unchanged HEAD', async () => {
+    const p = port();
+    let approved = true;
+    p.createComment.mockImplementationOnce(async () => {
+      approved = false;
+      return { id: 42 };
+    });
+    const publish = createPublisher(p, async () => approved ? result().gate : waiting);
+    const receipt = await publish(result(), 'Initially approved');
+    expect(receipt).toMatchObject({ status: 'PUBLISHED', commitStatus: 'pending' });
+    expect(states(p)).not.toContain('success');
+    expect(p.createComment).toHaveBeenLastCalledWith(result().repo, 7, expect.stringContaining('APPROVAL_REQUIRED'));
+  });
+
+  test('revocation during the success write restores pending on the same SHA', async () => {
+    const p = port();
+    let approved = true;
+    p.createCommitStatus.mockImplementation(async (_repo, _sha, status) => {
+      if (status.state === 'success') approved = false;
+    });
+    const publish = createPublisher(p, async () => approved ? result().gate : waiting);
+    const receipt = await publish(result(), 'Initially approved');
+    expect(receipt).toMatchObject({ status: 'PUBLISHED', commitStatus: 'pending' });
+    expect(states(p)).toEqual(['pending', 'success', 'pending']);
+    expect(p.createCommitStatus.mock.calls.every(([, sha]) => sha === HEAD)).toBe(true);
+    expect(p.createComment).toHaveBeenLastCalledWith(result().repo, 7, expect.stringContaining('WAITING'));
+  });
+
+  test('a failed permission recheck after success retracts the published status', async () => {
+    const p = port();
+    const refresh = jest.fn().mockResolvedValueOnce(result().gate).mockRejectedValueOnce(new Error('API failure'));
+    const receipt = await createPublisher(p, refresh)(result(), 'Initially approved');
+    expect(receipt).toMatchObject({ status: 'FAILED', commitStatus: 'failure', commentId: 42 });
+    expect(receipt.error).toContain('refresh');
+    expect(states(p)).toEqual(['pending', 'success', 'failure']);
+    expect(p.createCommitStatus).toHaveBeenLastCalledWith(result().repo, HEAD,
+      expect.objectContaining({ context: 'inspector/risk-gate', state: 'failure' }));
+  });
+
+  test('if GitHub also rejects retraction the receipt preserves the outstanding success', async () => {
+    const p = port();
+    const refresh = jest.fn().mockResolvedValueOnce(result().gate).mockRejectedValueOnce(new Error('API failure'));
+    p.createCommitStatus.mockImplementation(async (_repo, _sha, status) => {
+      if (status.state === 'failure') throw new Error('Unable to write');
+    });
+    const receipt = await createPublisher(p, refresh)(result(), 'Initially approved');
+    expect(receipt).toMatchObject({ status: 'FAILED', commitStatus: 'success', commentId: 42 });
+    expect(receipt.error).toContain('could not retract');
+  });
+});
