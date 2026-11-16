@@ -3,7 +3,7 @@
  * GitHub has no atomic compare-head-and-write operation: rechecks detect races,
  * while immutable comments and SHA-pinned statuses keep old runs off the new head.
  */
-import type { PublishResult, Repo } from './contracts.js';
+import type { GateResult, PublishResult, Repo, ReviewResult } from './contracts.js';
 export interface PublicationPort {
     readCurrentHead(repo: Repo, prNumber: number): Promise<string>;
     createComment(repo: Repo, prNumber: number, body: string): Promise<{
@@ -15,4 +15,4 @@ export interface PublicationPort {
         description: string;
     }): Promise<void>;
 }
-export declare function createPublisher(port: PublicationPort): PublishResult;
+export declare function createPublisher(port: PublicationPort, refreshGate?: (result: ReviewResult) => Promise<GateResult>): PublishResult;

@@ -23,6 +23,7 @@ export interface GitHubPortsOptions {
   fetch?: GitHubFetch;
   runUrl?: string;
   targetBranch?: string;
+  expectedBaseSha?: string;
 }
 
 function object(value: unknown): Record<string, unknown> {
@@ -136,6 +137,7 @@ export function createGitHubPorts(options: GitHubPortsOptions) {
 
   function requireEligible(repo: Repo, details: Awaited<ReturnType<typeof metadata>>) {
     if (!details.open) throw new Error('PR closed before gate evaluation or publication');
+    if (options.expectedBaseSha && details.snapshot.baseSha !== options.expectedBaseSha) throw new Error('PR base changed');
     const { sourceRepo } = details.snapshot;
     if (options.targetBranch && (details.baseRef !== options.targetBranch ||
         sourceRepo.owner.toLowerCase() !== repo.owner.toLowerCase() || sourceRepo.name.toLowerCase() !== repo.name.toLowerCase())) {

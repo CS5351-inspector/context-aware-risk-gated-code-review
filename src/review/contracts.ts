@@ -14,7 +14,7 @@ export type Permission = 'read' | 'triage' | 'write' | 'maintain' | 'admin';
 export type Trigger =
   | 'pull_request.opened' | 'pull_request.reopened' | 'pull_request.synchronize'
   | 'pull_request_review.submitted' | 'pull_request_review.edited'
-  | 'pull_request_review.dismissed' | 'manual';
+  | 'pull_request_review.dismissed' | 'reconcile.pull_request' | 'reconcile.pull_request_review' | 'manual';
 
 export interface Repo { owner: string; name: string }
 export interface ChangedFile {

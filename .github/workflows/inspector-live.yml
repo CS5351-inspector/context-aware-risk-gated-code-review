@@ -1,0 +1,141 @@
+name: Inspector live review
+on:
+  workflow_run:
+    workflows: [Inspector review signal]
+    types: [completed]
+  workflow_dispatch:
+    inputs:
+      pr:
+        description: Open same-repository PR targeting sprint2-demo
+        required: true
+        type: string
+      mode:
+        description: Review mode
+        required: true
+        default: context
+        type: choice
+        options: [context, diff-only]
+permissions: {}
+jobs:
+  target:
+    if: github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    permissions:
+      pull-requests: read
+    outputs:
+      pr: ${{ steps.resolve.outputs.pr }}
+      head: ${{ steps.resolve.outputs.head }}
+      base: ${{ steps.resolve.outputs.base }}
+      mode: ${{ steps.resolve.outputs.mode }}
+    steps:
+      - uses: actions/github-script@v7
+        id: resolve
+        with:
+          script: |
+            const run = context.payload.workflow_run
+            const repo = context.repo
+            let number
+            if (run) {
+              if (run.head_repository?.full_name !== repo.owner + '/' + repo.repo ||
+                  !['pull_request', 'pull_request_review'].includes(run.event)) return
+              const matches = (run.pull_requests || []).filter(p => p.base.ref === 'sprint2-demo')
+              if (matches.length === 1) number = matches[0].number
+              else {
+                const {data} = await github.rest.pulls.list({...repo, base: 'sprint2-demo',
+                  head: repo.owner + ':' + run.head_branch, state: 'open', per_page: 2})
+                if (data.length !== 1) return
+                number = data[0].number
+              }
+            } else number = Number(context.payload.inputs.pr)
+            if (!Number.isSafeInteger(number) || number < 1) throw Error('Invalid PR number')
+            const {data: pr} = await github.rest.pulls.get({...repo, pull_number: number})
+            if (pr.state !== 'open' || pr.base.ref !== 'sprint2-demo' ||
+                pr.head.repo?.id !== pr.base.repo.id || pr.base.repo.full_name !== repo.owner + '/' + repo.repo) return
+            if (run && run.head_sha !== pr.head.sha && run.head_sha !== pr.merge_commit_sha &&
+                !run.pull_requests?.some(p => p.number === number && p.head.sha === pr.head.sha)) return
+            core.setOutput('pr', String(pr.number))
+            core.setOutput('base', pr.base.sha)
+            core.setOutput('head', pr.head.sha)
+            core.setOutput('mode', context.payload.inputs?.mode || 'context')
+  review:
+    needs: target
+    if: needs.target.outputs.pr != ''
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+    concurrency:
+      group: inspector-live-pr-${{ needs.target.outputs.pr }}-${{ needs.target.outputs.mode }}
+      queue: max
+      cancel-in-progress: false
+    permissions:
+      contents: read
+      actions: read
+      pull-requests: write
+      statuses: write
+      models: read
+    env:
+      INSPECTOR_PR: ${{ needs.target.outputs.pr }}
+      INSPECTOR_HEAD: ${{ needs.target.outputs.head }}
+      INSPECTOR_BASE: ${{ needs.target.outputs.base }}
+      INSPECTOR_MODE: ${{ needs.target.outputs.mode }}
+      INSPECTOR_EVENT: ${{ github.event.workflow_run.event || 'manual' }}
+      INSPECTOR_REVISION: ${{ github.workflow_sha }}
+      USE_GITHUB_MODELS: 'true'
+      MODEL: openai/gpt-4o-mini
+      LANGUAGE: English
+      temperature: '0'
+      top_p: '1'
+    steps:
+      - uses: actions/checkout@v5
+        with:
+          ref: ${{ github.workflow_sha }}
+          persist-credentials: false
+      - uses: actions/setup-node@v5
+        with:
+          node-version: 24
+          cache: npm
+      - run: npm ci
+      - name: Build trusted runner
+        run: node_modules/.bin/esbuild src/inspector-action.ts --bundle --platform=node --format=cjs --packages=external --outfile=.inspector-runner.cjs
+      - name: Locate analysis from the trusted workflow
+        if: github.event_name == 'workflow_run'
+        id: stored
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const key = ['analysis-v1', process.env.INSPECTOR_REVISION, process.env.INSPECTOR_PR,
+              process.env.INSPECTOR_BASE, process.env.INSPECTOR_HEAD, process.env.INSPECTOR_MODE].join('-')
+            const {data} = await github.rest.actions.listArtifactsForRepo({...context.repo, name: key, per_page: 30})
+            for (const item of data.artifacts.sort((a,b) => b.id-a.id)) {
+              if (item.expired || item.workflow_run?.head_sha !== process.env.INSPECTOR_REVISION) continue
+              const {data: run} = await github.rest.actions.getWorkflowRun({...context.repo, run_id: item.workflow_run.id})
+              if (run.path !== '.github/workflows/inspector-live.yml' || run.head_branch !== 'main' ||
+                  !['workflow_dispatch','workflow_run'].includes(run.event) || run.conclusion !== 'success') continue
+              core.setOutput('id', String(item.id))
+              core.setOutput('run', String(run.id))
+              break
+            }
+      - uses: actions/download-artifact@v4
+        if: steps.stored.outputs.id != ''
+        with:
+          github-token: ${{ github.token }}
+          run-id: ${{ steps.stored.outputs.run }}
+          artifact-ids: ${{ steps.stored.outputs.id }}
+          merge-multiple: true
+          path: .inspector-cache
+      - name: Reconcile review and publish
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+        run: node .inspector-runner.cjs
+      - uses: actions/upload-artifact@v4
+        if: success() && steps.stored.outputs.id == '' && hashFiles('.inspector-cache/analysis.json') != ''
+        with:
+          name: analysis-v1-${{ github.workflow_sha }}-${{ env.INSPECTOR_PR }}-${{ env.INSPECTOR_BASE }}-${{ env.INSPECTOR_HEAD }}-${{ env.INSPECTOR_MODE }}
+          path: .inspector-cache/analysis.json
+          include-hidden-files: true
+          retention-days: 14
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: inspector-receipt-${{ github.run_id }}-${{ github.run_attempt }}
+          path: inspector-receipt.json
+          if-no-files-found: ignore
