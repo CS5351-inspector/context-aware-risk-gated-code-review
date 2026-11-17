@@ -184,6 +184,24 @@ describe('controlled modes, coverage and resource limits', () => {
     expect(countInputTokens.mock.calls[0][0]).toBe(buildModelPrompt('src/a.ts', patch, []));
     expect(result.omissions[0].reason).toBe('TOKEN_BUDGET'); expect(result.metrics.calls).toBe(0);
   });
+  test.each([
+    { extra: 0, status: 'COMPLETE', outcome: 'RESPONSE', findingCount: 1 },
+    { extra: 1, status: 'FAILED', outcome: 'TOKEN_BUDGET', findingCount: 0 },
+  ])('records provider usage at output boundary plus $extra tokens', async ({ extra, status, outcome, findingCount }) => {
+    const c = client();
+    const limits = budget();
+    const completionTokens = limits.reservedOutputTokens + extra;
+    c.completeReview.mockResolvedValue({ ...completion([raw()]), usage: { prompt_tokens: 20, completion_tokens: completionTokens } });
+
+    const result = await reviewFiles(c, input(), [snippet()], limits, runtime);
+
+    expect(deriveModelStatus(input(), result)).toBe(status);
+    expect(result.findings).toHaveLength(findingCount);
+    expect(c.completeReview).toHaveBeenCalledTimes(1);
+    expect(result.metrics).toMatchObject({ calls: 1, inputTokens: 20, outputTokens: completionTokens,
+      attempts: [{ outcome, outputTokens: completionTokens }] });
+    expect(result.omissions).toEqual(extra ? [{ file: 'src/a.ts', stage: 'model', reason: 'TOKEN_BUDGET', required: true }] : []);
+  });
   test('maxFiles and maxCalls apply to the entire PR', async () => {
     const i = input(); i.changedFiles.push({ ...i.changedFiles[0], path: 'src/b.ts' });
     const a = await reviewFiles(client(), i, [], { ...budget(), maxCalls: 1 }, runtime);

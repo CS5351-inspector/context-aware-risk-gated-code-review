@@ -131,7 +131,7 @@ export interface ModelAttempt {
     inputTokens: number | null;
     outputTokens: number | null;
     responseModel: string | null;
-    outcome: 'RESPONSE' | 'TIMEOUT' | 'RATE_LIMIT' | 'SERVICE_ERROR' | 'INVALID_OUTPUT';
+    outcome: 'RESPONSE' | 'TIMEOUT' | 'RATE_LIMIT' | 'SERVICE_ERROR' | 'INVALID_OUTPUT' | 'TOKEN_BUDGET';
 }
 export interface RunMetrics {
     model: string;

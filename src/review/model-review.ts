@@ -211,6 +211,12 @@ export async function reviewFiles(
         entry.inputTokens = usageCount(envelope?.usage?.prompt_tokens);
         entry.outputTokens = usageCount(envelope?.usage?.completion_tokens);
         entry.responseModel = typeof envelope?.model === 'string' ? envelope.model : null;
+        // 网关回报超额时保留真实用量，停止使用这次响应，也不为同一文件重试。
+        if (entry.outputTokens !== null && entry.outputTokens > outputTokens) {
+          entry.outcome = 'TOKEN_BUDGET';
+          omit(file.path, 'TOKEN_BUDGET');
+          break;
+        }
         const converted = convertFindings(completion, input, file.path, file.patch, context);
         result.findings.push(...converted.findings); result.omissions.push(...converted.omissions);
         result.analyzedFiles.push(file.path);
