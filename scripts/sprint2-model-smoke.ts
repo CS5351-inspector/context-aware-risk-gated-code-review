@@ -4,7 +4,10 @@ import { runReviewPipeline } from '../src/pipeline.js';
 import { collectContext } from '../src/review/context.js';
 import type { AnalysisStatus, Budget, Mode, OmissionReason, ReviewInput } from '../src/review/contracts.js';
 import { decideGate } from '../src/review/gate.js';
-import { CHAT_FRAMING_ALLOWANCE, createLiveReview, LIVE_MODEL_SETTINGS, LIVE_TOKENIZER } from '../src/review/live-model.js';
+import {
+  CHAT_FRAMING_ALLOWANCE, createLiveReview, DEEPSEEK_BASE_URL, DEEPSEEK_MODEL_SETTINGS, DEEPSEEK_TOKENIZER_ID,
+  LIVE_MODEL_SETTINGS, LIVE_TOKENIZER,
+} from '../src/review/live-model.js';
 import { PROMPT_VERSION } from '../src/review/model-review.js';
 import { calculateRisk } from '../src/review/risk.js';
 import { sprintConfig } from '../src/review/sprint2.js';
@@ -96,14 +99,14 @@ function fakeResponse(fault: Scenario['fault'], attempt: number, signal?: AbortS
   }, 200);
 }
 
-async function runScenario(scenario: Scenario, live?: { apiKey: string; baseURL: string }) {
+async function runScenario(scenario: Scenario, baseURL: string, apiKey?: string) {
   const { input, headFiles } = makeSnapshot(scenario.mode, scenario.fileCount ?? 1);
   const config = { ...sprintConfig, budget: { ...sprintConfig.budget, ...scenario.limits } };
   const fetch = globalThis.fetch;
   const httpStatuses: Array<number | null> = [];
   globalThis.fetch = async (request, init) => {
     const index = httpStatuses.push(null) - 1;
-    const response = live ? await fetch(request, init) : await fakeResponse(scenario.fault, index + 1, init?.signal);
+    const response = apiKey ? await fetch(request, init) : await fakeResponse(scenario.fault, index + 1, init?.signal);
     httpStatuses[index] = response.status;
     return response;
   };
@@ -120,7 +123,7 @@ async function runScenario(scenario: Scenario, live?: { apiKey: string; baseURL:
         if (content === undefined) throw Object.assign(new Error('Synthetic file is missing'), { code: 'ENOENT' });
         return content;
       },
-      review: createLiveReview(live?.apiKey ?? 'offline-fixture', live?.baseURL ?? 'https://api.openai.com/v1'),
+      review: createLiveReview(apiKey ?? 'offline-fixture', baseURL),
       reviewHandlesDeadline: true,
     });
     const { metrics, omissions } = result;
@@ -145,26 +148,34 @@ async function runScenario(scenario: Scenario, live?: { apiKey: string; baseURL:
 
 async function main() {
   const args = process.argv.slice(2);
-  assert(args.length === 0 || (args.length === 1 && ['--live', '--config'].includes(args[0])),
-    'Usage: npm run smoke:model-budget -- [--live|--config]');
-  if (args[0] === '--config') {
+  const deepseek = args.includes('--deepseek');
+  const live = args.includes('--live');
+  const config = args.includes('--config');
+  assert(new Set(args).size === args.length && args.every(arg => ['--deepseek', '--live', '--config'].includes(arg))
+    && !(live && config), 'Usage: npm run smoke:model-budget -- [--deepseek] [--live|--config]');
+  if (config) {
     console.log(JSON.stringify({ fixture: fixtureId, ruleVersion: sprintConfig.ruleVersion, promptVersion: PROMPT_VERSION,
-      tokenizer: LIVE_TOKENIZER, chatFramingAllowance: CHAT_FRAMING_ALLOWANCE, request: LIVE_MODEL_SETTINGS,
-      responseFormat: 'json_object', outputLimitField: 'max_completion_tokens', sdkMaxRetries: 0,
+      tokenizer: deepseek ? DEEPSEEK_TOKENIZER_ID : LIVE_TOKENIZER, chatFramingAllowance: CHAT_FRAMING_ALLOWANCE,
+      request: deepseek ? DEEPSEEK_MODEL_SETTINGS : LIVE_MODEL_SETTINGS,
+      ...(deepseek ? { baseURL: DEEPSEEK_BASE_URL } : {}),
+      responseFormat: 'json_object', outputLimitField: deepseek ? 'max_tokens' : 'max_completion_tokens', sdkMaxRetries: 0,
       budget: sprintConfig.budget }, null, 2));
     return;
   }
-  const live = args[0] === '--live';
-  const apiKey = process.env.OPENAI_API_KEY?.trim(), baseURL = process.env.OPENAI_BASE_URL?.trim();
-  if (live && (!apiKey || !baseURL)) throw new Error('Set OPENAI_API_KEY and OPENAI_BASE_URL for the live smoke run.');
+  // 只在显式真实试跑时读取对应服务的钥匙。DeepSeek 官方模式的地址固定。
+  const apiKey = live ? process.env[deepseek ? 'DEEPSEEK_API_KEY' : 'OPENAI_API_KEY']?.trim() : undefined;
+  const baseURL = deepseek ? DEEPSEEK_BASE_URL
+    : (live ? process.env.OPENAI_BASE_URL?.trim() : 'https://api.openai.com/v1');
+  if (!baseURL || (live && !apiKey)) throw new Error(deepseek ? 'Set DEEPSEEK_API_KEY for the live smoke run.'
+    : 'Set OPENAI_API_KEY and OPENAI_BASE_URL for the live smoke run.');
   const scenarios: Scenario[] = live
     ? [{ id: 'live-diff-only', mode: 'diff-only' }, { id: 'live-context', mode: 'context' }]
     : fixtureCases;
   const startedAt = new Date().toISOString();
   const runs: Array<Awaited<ReturnType<typeof runScenario>>> = [];
-  for (const scenario of scenarios) runs.push(await runScenario(scenario, live ? { apiKey: apiKey!, baseURL: baseURL! } : undefined));
+  for (const scenario of scenarios) runs.push(await runScenario(scenario, baseURL, apiKey));
   console.log(JSON.stringify({ fixture: fixtureId, startedAt, node: process.version,
-    transport: live ? 'openai-compatible-api' : 'simulated-sdk-fetch', runs }, null, 2));
+    transport: live ? (deepseek ? 'deepseek-api' : 'openai-compatible-api') : 'simulated-sdk-fetch', runs }, null, 2));
   if (live && runs.some(run => run.analysisStatus !== 'COMPLETE')) process.exitCode = 1;
 }
 

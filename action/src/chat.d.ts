@@ -11,11 +11,18 @@ export declare class InvalidReviewResponseError extends Error {
 export declare const parseReviewResponse: (content: string) => Review | Review[];
 /** 共用 API 信封校验：有效 JSON 也必须正常结束，不能忽略截断或拒答。 */
 export declare const readReviewContent: (response: unknown) => string;
-export interface FixedChatSettings {
+export type FixedChatSettings = {
     baseURL: string;
     model: string;
+} & ({
     reasoning_effort: ReasoningEffort;
-}
+    thinking?: never;
+} | {
+    thinking: Readonly<{
+        type: 'disabled';
+    }>;
+    reasoning_effort?: never;
+});
 export declare class Chat {
     private openai;
     private isAzure;
@@ -27,6 +34,7 @@ export declare class Chat {
     private get model();
     private get normalizedModel();
     private get isReasoningModel();
+    private get outputLimitField();
     private get reasoningEffortOption();
     private generatePrompt;
     /** 两种模式和旧接口共用同一套有效模型参数；运行记录不含 API Key。 */

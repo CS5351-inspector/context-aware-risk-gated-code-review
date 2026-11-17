@@ -2,6 +2,8 @@
 
 李宗蔚 · FubieLee · C 模块 · 2026-11-17
 
+使用 DeepSeek 时直接从 [第 10 节部署与验收](#10-deepseek-部署验证与交付) 开始。
+
 ## 1. 从哪里开始
 
 这次的工作接在已合并的 PR #2、PR #8 和小组集成 PR #11 之后。开发起点是小组主分支提交 `6595d3d`，功能分支为 `feat/sprint2-model-budget`。从下面三个入口看本次交付。[PR #2](https://github.com/CS5351-inspector/context-aware-risk-gated-code-review/pull/2) · [PR #8](https://github.com/CS5351-inspector/context-aware-risk-gated-code-review/pull/8) · [PR #11](https://github.com/CS5351-inspector/context-aware-risk-gated-code-review/pull/11)
@@ -263,3 +265,64 @@ git diff --stat -- action
 **为什么一次 429 后成功，总 usage 还是未知？** 两次都计入调用预算。成功响应能提供第二次用量，429 没给第一次用量，不能把已知的第二次数字当成总量。
 
 **为什么到了 30 秒反馈预留就停止？** 运行期还有 GitHub 查询、生成报告和发布状态。C 在 A 交下来的剩余预算里先留这段时间，再为每次 API 请求取更小的可用时限。必要输入没完成时，结果带上明确遗漏，供后续门禁处理。
+
+## 10. DeepSeek 部署、验证与交付
+
+使用 DeepSeek 时，从本节开始。适配和测试已纳入同一份 [Sprint 2 PR #14](https://github.com/CS5351-inspector/context-aware-risk-gated-code-review/pull/14)。原来的 GPT 路线及其历史实测记录可在第 3～8 节查阅。
+
+### 10.1 这次改了哪些文件
+
+| 文件 | 修改和作用 |
+| --- | --- |
+| `src/review/live-model.ts` | 用 HTTPS 根地址选择模型配置。根地址为 DeepSeek 官方地址时，固定 `deepseek-flash`、关闭思考模式，并换用其分词器。传给 C 的时间与重试参数沿用统一预算。 |
+| `src/chat.ts` | 原有 OpenAI SDK 负责 HTTP。DeepSeek 请求包含 `thinking: { type: 'disabled' }`、`response_format: { type: 'json_object' }` 和 `max_tokens`。`outputLimitField` 让运行记录和真实请求使用相同的输出字段。 |
+| `src/review/deepseek-tokenizer.ts` | 固定 DeepSeek 公布的 `DeepSeek-V4.1-Flash-1017` 分词快照和两个公开文件的 SHA-256。读取时解压、验哈希，再初始化分词器。正文按该词表计算，另预留 64 个封装 token；服务返回的 `usage` 用于实际用量。 |
+| `assets/deepseek/` | 随仓库交付两个官方分词文件的压缩版和 MIT 许可证。GitHub runner 可以直接读取，避免运行时连接分词文件站点。 |
+| `scripts/sprint2-model-smoke.ts` | 新增 `--deepseek`。单独使用时模拟 HTTP，配合 `--live` 时只往 DeepSeek 官方 API 发送两轮合成样例。 |
+| `.github/workflows/inspector-live.yml` | DeepSeek 部署从已有的 Actions 变量和密钥读取配置，并使用仓库中的分词文件。 |
+| `package.json`、`package-lock.json`、`yarn.lock` | 固定分词库版本。npm 流水线和原来走 Yarn 的 Dockerfile 各有对应锁文件。 |
+| `test/live-model.test.ts` | 核对两模式参数一致、每次 SDK 调用没有内部重试，以及 tokenizer 缺失、地址错误和 token 超限的行为。 |
+| `action/` | 更新生成的运行包和类型声明，与 Ubuntu 上重建结果保持一致。 |
+
+当前官方模型名是 `deepseek-flash`。提供商可能更新该别名指向的版本，运行时可从 `responseModel` 观察响应字段。本地分词文件固定在 `08c8657`，实际用量以服务返回为准。[DeepSeek API 入口与模型说明](https://api-docs.deepseek.com/) · [Chat Completions 参数](https://api-docs.deepseek.com/api/create-chat-completion/) · [官方分词器快照](https://huggingface.co/deepseek-ai/DeepSeek-V4.1-Flash-1017/tree/08c8657f02291e11b6f6b63e0e16014f8e748518)
+
+### 10.2 先确认离线结果
+
+在新工作区用 **Windows PowerShell** 逐行执行。
+
+~~~powershell
+Set-Location -LiteralPath 'F:\个人培养方案\个人资料\港城\CS5351-code-review-workshop\sprint2-model-budget'
+npm.cmd ci
+npm.cmd run --silent smoke:model-budget -- --deepseek --config
+npm.cmd run --silent smoke:model-budget -- --deepseek
+~~~
+
+`--config` 打印冻结设置，`--deepseek` 离线试跑应输出九条记录。本次合成样例的两个正常场景都为 `COMPLETE`，各 1 次请求，覆盖 1/1。实际分词加封装余量的发送前估算为 Diff-only **288**、Context **463**。Context 多出的两段包含本地窗口和依赖定义。离线 `usage` 是固定响应的值。[DeepSeek 冻结配置](SPRINT2_MODEL_DEEPSEEK_CONFIG.json) · [离线运行记录](SPRINT2_MODEL_DEEPSEEK_RUNS.json)
+
+### 10.3 调用真实 API 并验证
+
+在同一个 PowerShell 窗口用遮蔽输入运行以下命令。验证样例里的代码全部是预先构造的折扣计算。
+
+~~~powershell
+$env:DEEPSEEK_API_KEY = [System.Net.NetworkCredential]::new('', (Read-Host 'DeepSeek API Key' -AsSecureString)).Password
+npm.cmd run --silent smoke:model-budget -- --deepseek --live | Tee-Object -FilePath '.cache/deepseek-live.json'
+Remove-Item Env:DEEPSEEK_API_KEY
+~~~
+
+| 收据字段 | 该怎样看 |
+| --- | --- |
+| `transport` | `deepseek-api` 代表这份收据来自真实调用。 |
+| `runs[].httpStatuses` | `[200]` 表示收到一次成功 HTTP 响应。遇到瞬时故障，可能有两项。继续核对审查状态。 |
+| `analysisStatus`、`coverage` | 两个模式都期望 `COMPLETE` 且覆盖 1/1。若收到 200 但输出无效，收据会保留 `FAILED` 或 `PARTIAL` 及遗漏原因。 |
+| `metrics.model`、`attempts[].responseModel` | 第一项是请求的 `deepseek-flash`，第二项是服务实际返回的型号字段。 |
+| `metrics.inputTokens`、`metrics.outputTokens` | 服务已返回数字时，才可作为实际用量。估算看每次尝试的 `estimatedInputTokens`，耗时用 `durationMs`。 |
+| `headSha`、`effectiveParameters` | 比较两种模式时，保持同一合成输入和模型参数，只改变给模型的证据。 |
+
+遇到 401 时核对官方 API Key；402 时检查平台余额；429 会走项目的有限重试。错误状态与已有覆盖都保存在收据里。[DeepSeek 错误码](https://api-docs.deepseek.com/quick_start/error_codes/)
+
+### 10.4 部署到小组演示并交付
+
+1. 本机真实试跑得到两份成功收据后，先核对该分支的 [PR #14](https://github.com/CS5351-inspector/context-aware-risk-gated-code-review/pull/14) 和 **Checks → Test and Build**。
+2. 选择获准用于团队演示的 API Key。在小组仓库 **Settings → Secrets and variables → Actions** 新建仓库级 Secret `INSPECTOR_MODEL_API_KEY` 和 Variable `INSPECTOR_MODEL_BASE_URL`。Variable 填 `https://api.deepseek.com`，Secret 填配套的 DeepSeek API Key。[GitHub Actions Secrets 文档](https://docs.github.com/en/actions/how-tos/write-workflows/choose-what-workflows-do/use-secrets)
+3. 由小组按流程将 #14 合入 `main`。**Inspector live review** 运行主分支上的可信版本，选择同仓库中目标为 `sprint2-demo` 的开放演示 PR，并对同一个提交分别运行 Context 和 Diff-only。
+4. 打开各 run 的 **Artifacts** 获取 `inspector-receipt-…`。向组员交付 PR 链接、冻结配置、两条 Actions run 链接、各自收据和同一个审查 SHA。写明 `reusedAnalysis` 与 `newModelCalls`，便于确认这次是否真正产生新请求。

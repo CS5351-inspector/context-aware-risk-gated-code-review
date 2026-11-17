@@ -86,11 +86,13 @@ const numericOption = (name: string, fallback: number, maximum: number): number 
   return value;
 };
 
-export interface FixedChatSettings {
+export type FixedChatSettings = {
   baseURL: string;
   model: string;
-  reasoning_effort: ReasoningEffort;
-}
+} & (
+  | { reasoning_effort: ReasoningEffort; thinking?: never }
+  | { thinking: Readonly<{ type: 'disabled' }>; reasoning_effort?: never }
+);
 
 export class Chat {
   private openai: OpenAI | AzureOpenAI;
@@ -144,6 +146,10 @@ export class Chat {
     return this.reasoningModels.includes(model) || this.reasoningPrefixes.some(prefix => model.startsWith(prefix));
   }
 
+  private get outputLimitField(): 'max_tokens' | 'max_completion_tokens' {
+    return this.isReasoningModel && !this.fixed?.thinking ? 'max_completion_tokens' : 'max_tokens';
+  }
+
   private get reasoningEffortOption(): { reasoning_effort?: ReasoningEffort } {
     const effort = this.fixed?.reasoning_effort ?? process.env.REASONING_EFFORT;
     if (!effort || !this.isReasoningModel) return {};
@@ -186,14 +192,15 @@ export class Chat {
     if (maxTokens !== undefined && (!Number.isSafeInteger(maxTokens) || maxTokens <= 0)) {
       throw new Error('Invalid model parameter: max_tokens');
     }
+    const thinking = this.fixed?.thinking;
     return {
       model: this.model,
-      ...(this.isReasoningModel ? {} : {
+      ...(this.isReasoningModel || thinking ? {} : {
         temperature: numericOption('temperature', 1, 2),
         top_p: numericOption('top_p', 1, 1),
       }),
-      [this.isReasoningModel ? 'max_completion_tokens' : 'max_tokens']: maxTokens,
-      ...this.reasoningEffortOption,
+      [this.outputLimitField]: maxTokens,
+      ...(thinking ? { thinking: { ...thinking } } : this.reasoningEffortOption),
       response_format: { type: 'json_object' },
     };
   }
@@ -209,7 +216,7 @@ export class Chat {
       messages: [{ role: 'user' as const, content: prompt }],
       ...this.effectiveParameters,
       model: this.model,
-      ...(options ? { [this.isReasoningModel ? 'max_completion_tokens' : 'max_tokens']: options.maxOutputTokens } : {}),
+      ...(options ? { [this.outputLimitField]: options.maxOutputTokens } : {}),
     };
     // SDK 类型在这里校验请求；effectiveParameters 也用于可审计的运行记录。
     const body = request as Parameters<typeof this.openai.chat.completions.create>[0];
