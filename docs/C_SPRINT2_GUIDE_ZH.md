@@ -338,12 +338,18 @@ RelayCore 签发凭据，通过其 DeepSeek 分组选择模型。项目使用 Op
 | 文件 | 修改和作用 |
 | --- | --- |
 | `src/review/live-model.ts` | 识别 `api.relaycore.cn`，将站点根地址和 `/v1` 规范成同一个 API 根地址。固定 DeepSeek 分组公开列出的模型 `deepseek-v4.1-flash-1017`，并选择对应的本地分词器。Diff-only 和 Context 共用同一个客户端和预算。 |
+| `src/review/model-review.ts` | 先记录服务返回的 `usage`，再把 `completion_tokens` 与本次预留额度比较。超额响应会留下 `TOKEN_BUDGET` 记录，该次结果不会转成 Finding。 |
+| `src/review/contracts.ts` | 在 `ModelAttempt.outcome` 加入 `TOKEN_BUDGET`，让调用记录能表达服务实际回报的超额。 |
 | `scripts/sprint2-model-smoke.ts` | `--relaycore` 选中该服务。`--config` 展示固定参数。加 `--live` 才从当前进程读取 `RELAYCORE_API_KEY` 并发送两轮合成样例。 |
 | `test/live-model.test.ts` | 复用 DeepSeek 的双模式断言，核对 RelayCore 地址规范化、模型 ID、请求字段、SDK 重试数和 token 超限。还检查重复附加请求路径与非默认端口。 |
+| `test/model-review.test.ts` | 模拟服务返回有效 JSON。输出恰好达到预算时照常验收，超额 1 token 时保留用量并记一次失败尝试。 |
 | `docs/SPRINT2_MODEL_RELAYCORE_CONFIG.json` | 保存 `--relaycore --config` 的输出，交付时可以逐项复查模型、分词版本和预算。 |
-| `action/src/review/live-model.d.ts` | Ubuntu 构建生成的类型声明，记录新增的 RelayCore 地址和模型配置常量。 |
+| `docs/SPRINT2_MODEL_RELAYCORE_RUNS.json` | 保存首轮调用、加输出预算检查后的复跑，以及短样例和完整 Diff-only 请求的接口探测。 |
+| `action/src/review/live-model.d.ts`、`action/src/review/contracts.d.ts` | Ubuntu 构建生成的类型声明，分别记录新增的 RelayCore 配置和模型尝试结果类型。 |
 
-`live-model.ts` 先检查 HTTPS 地址，再选模型与分词器，最后将配置交给 `Chat`。`Chat` 复用第 10.1 节的 DeepSeek 请求参数。`thinking.type = disabled` 请求非思考模式，`response_format` 请求 JSON，`max_tokens` 限制输出。`reviewFiles` 继续管理超时、调用次数、重试和输出校验。RelayCore 目录中的模型 ID 与官方分词快照同为 `DeepSeek-V4.1-Flash-1017`，本地分词用于发送前预算，服务的 `usage` 用于实际用量。[RelayCore 公开目录](https://api.relaycore.cn/api/v1/model-plaza) · [官方分词器快照](https://huggingface.co/deepseek-ai/DeepSeek-V4.1-Flash-1017/tree/08c8657f02291e11b6f6b63e0e16014f8e748518)
+`live-model.ts` 先检查 HTTPS 地址，再选模型与分词器，最后将配置交给 `Chat`。`Chat` 复用第 10.1 节的 DeepSeek 请求参数。`thinking.type = disabled` 请求非思考模式，`response_format` 请求 JSON，`max_tokens` 把输出额度传给服务。RelayCore 目录中的模型 ID 与官方分词快照同为 `DeepSeek-V4.1-Flash-1017`，本地分词用于发送前预算，服务的 `usage` 用于实际用量。[RelayCore 公开目录](https://api.relaycore.cn/api/v1/model-plaza) · [官方分词器快照](https://huggingface.co/deepseek-ai/DeepSeek-V4.1-Flash-1017/tree/08c8657f02291e11b6f6b63e0e16014f8e748518)
+
+`reviewFiles` 在请求前检查「估计输入 token + 预留输出 token」。请求后检查服务报告的 `completion_tokens`，比较值仍用同一次请求的 `reservedOutputTokens`。超额时先把该文件记为必需遗漏，再退出该文件的重试循环，`finally` 仍将耗时和已发生的用量计入收据。只有发送前超预算时，对应文件的调用次数才会是 0。
 
 ### 11.2 在 PowerShell 验证
 
@@ -356,7 +362,7 @@ npm.cmd run --silent smoke:model-budget -- --relaycore
 
 本次九个离线场景均符合预期。两种模式的正常场景各调用一次模拟接口，结果均为 `COMPLETE`，覆盖 1/1。加上消息封装余量的输入估算分别为 288 和 463 个 token。`Context` 多发了邻近代码和相关定义，`transport: simulated-sdk-fetch` 对应本地模拟。
 
-Ubuntu Node 24 上通过 478 项 Jest、43 项评测和类型检查。两次构建生成相同的 Action 产物，生成的冻结配置与提交文件一致。
+Ubuntu Node 24 上通过 480 项 Jest、43 项评测和类型检查。两次构建生成相同的 Action 产物，生成的冻结配置与提交文件一致。
 
 真实测试需要 RelayCore 的 DeepSeek 分组凭据。运行下面的代码，看到 `RelayCore API Key` 提示后粘贴完整 Key 并按 Enter。`Read-Host -AsSecureString` 会遮蔽输入。脚本把凭据临时交给本次 Node 进程，`finally` 在结束时清理环境变量。
 
@@ -370,9 +376,20 @@ try {
 }
 ~~~
 
-先看 `transport` 是否为 `relaycore-api`，再看两条记录的 HTTP 状态、`analysisStatus`、`coverage` 和 `metrics`。本地验收预期两种模式都拿到成功响应、状态 `COMPLETE` 和覆盖 1/1。保留请求 `metrics.model`、响应 `attempts[].responseModel`、实际用量、耗时、遗漏及同一个 `headSha`。HTTP 401 时先核对当前 Key 所属平台和分组。
+先看 `transport` 是否为 `relaycore-api`，再看两条记录的 HTTP 状态、`analysisStatus`、`coverage` 和 `metrics`。HTTP 200 表示服务已响应。审查是否完成要看 `analysisStatus`、覆盖范围和遗漏。保留请求 `metrics.model`、响应 `attempts[].responseModel`、实际用量、耗时、遗漏及同一个 `headSha`。HTTP 401 时先核对当前 Key 所属平台和分组。
+
+2026-11-17 首轮实测中，两种模式都得到 HTTP 200。Diff-only 的响应回报 1,740 个输出 token，超过发送的 `max_tokens: 800`。SDK 请求体核对确认该参数已发送。短 JSON 探测按 64 token 截断，换回完整 Diff-only 输入时，OpenAI 兼容接口和 Anthropic 兼容接口都观察到超额。两轮审查使用同一个合成提交和同一套参数。[真实调用与探测记录](SPRINT2_MODEL_RELAYCORE_RUNS.json)
+
+启用输出预算检查后复跑，得到下面的结果。
+
+| 模式 | HTTP | 调用 | 数据覆盖 | 输入 token | 输出 token | 分析结果 |
+| --- | --- | --- | --- | --- | --- | --- |
+| Diff-only | 200 | 1 | 0/1 | 279 | 4,019 | `FAILED`，遗漏 `TOKEN_BUDGET` |
+| Context | 200 | 1 | 1/1 | 454 | 366 | `COMPLETE`，找到重复除以 100 的问题 |
+
+Context 的 Finding 指向 `src/discount-1.ts` 第 4 行，引用了 `src/units.ts` 中的 `toFraction` 定义。Diff-only 的超额用量仍计入收据，方便 F 复查服务开销。该次调用只发送一次，超额后没有发起重试。
 
 ### 11.3 交付小组
 
-1. 小组仓库的 **Settings → Secrets and variables → Actions** 已将 Variable `INSPECTOR_MODEL_BASE_URL` 设为 `https://api.relaycore.cn/v1`。本地真实调用通过后，把配套 RelayCore Key 存入 Secret `INSPECTOR_MODEL_API_KEY`。[GitHub Actions Secrets 文档](https://docs.github.com/en/actions/how-tos/write-workflows/choose-what-workflows-do/use-secrets)
+1. 在小组仓库的 **Settings → Secrets and variables → Actions** 中，Variable `INSPECTOR_MODEL_BASE_URL` 已设为 `https://api.relaycore.cn/v1`，配套 RelayCore Key 已写入仓库级 Secret `INSPECTOR_MODEL_API_KEY`。可在 **Secrets** 列表核对名称和更新时间。[GitHub Actions Secrets 文档](https://docs.github.com/en/actions/how-tos/write-workflows/choose-what-workflows-do/use-secrets)
 2. 小组合入 [PR #14](https://github.com/CS5351-inspector/context-aware-risk-gated-code-review/pull/14) 后，按第 8 节用同一个 `sprint2-demo` PR 提交分别触发 Diff-only 和 Context。将两次 Actions 收据、冻结配置和 PR 链接交给 F。核对 `newModelCalls` 是否大于零，再把对应请求列入真实对照数据。

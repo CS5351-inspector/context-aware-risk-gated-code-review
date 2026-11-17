@@ -1,0 +1,462 @@
+{
+  "provider": "RelayCore",
+  "apiBaseURL": "https://api.relaycore.cn/v1",
+  "model": "deepseek-v4.1-flash-1017",
+  "fixture": "discount-double-conversion-v1",
+  "modelList": {
+    "httpStatus": 200,
+    "availableModels": 7,
+    "modelListed": true
+  },
+  "firstLiveRun": {
+    "testedCommit": "47f167d69dd6af8fb53cc05e3ac2a76f688ff053",
+    "receipt": {
+      "fixture": "discount-double-conversion-v1",
+      "startedAt": "2026-11-17T07:43:55.586Z",
+      "node": "v24.14.0",
+      "transport": "relaycore-api",
+      "runs": [
+        {
+          "scenario": "live-diff-only",
+          "mode": "diff-only",
+          "baseSha": "1ac60c29c9b365584a444b55e2fa8273aa8cd21b",
+          "headSha": "f936752779283adb09f53d9c7052a133d6ce6756",
+          "budget": {
+            "maxFiles": 5,
+            "maxCalls": 7,
+            "maxRetries": 1,
+            "requestTimeoutMs": 30000,
+            "analysisTimeoutMs": 240000,
+            "publishReserveMs": 30000,
+            "maxInputTokens": 8000,
+            "reservedOutputTokens": 800,
+            "localWindowLines": 4,
+            "maxDefinitionsPerFile": 2,
+            "maxDefinitionLines": 60
+          },
+          "analysisStatus": "COMPLETE",
+          "coverage": {
+            "supportedFiles": [
+              "src/discount-1.ts"
+            ],
+            "analyzedFiles": [
+              "src/discount-1.ts"
+            ],
+            "excludedFiles": []
+          },
+          "omissions": [],
+          "metrics": {
+            "model": "deepseek-v4.1-flash-1017",
+            "effectiveParameters": {
+              "model": "deepseek-v4.1-flash-1017",
+              "max_tokens": 800,
+              "thinking": {
+                "type": "disabled"
+              },
+              "response_format": {
+                "type": "json_object"
+              },
+              "maxRetries": 0
+            },
+            "promptVersion": "inspector-c-v1",
+            "durationMs": 15097,
+            "calls": 1,
+            "inputTokens": 279,
+            "outputTokens": 1740,
+            "attempts": [
+              {
+                "file": "src/discount-1.ts",
+                "attempt": 1,
+                "timeoutMs": 30000,
+                "durationMs": 15086,
+                "estimatedInputTokens": 288,
+                "reservedOutputTokens": 800,
+                "inputTokens": 279,
+                "outputTokens": 1740,
+                "responseModel": "deepseek-v4.1-flash-1017",
+                "outcome": "RESPONSE"
+              }
+            ],
+            "tokenizerId": "@huggingface/tokenizers@0.2.0/DeepSeek-V4.1-Flash-1017@08c8657f02291e11b6f6b63e0e16014f8e748518+chat-allowance-64"
+          },
+          "httpStatuses": [
+            200
+          ],
+          "evidence": [],
+          "findings": [
+            {
+              "id": "src/discount-1.ts:1",
+              "file": "src/discount-1.ts",
+              "side": "RIGHT",
+              "line": 4,
+              "severity": "medium",
+              "message": "Potential double conversion: `toFraction` may already convert a percentage into a fraction. Dividing `percent` by 100 before passing it can make the returned discount rate 100x too small (e.g., 20% -> 0.002 instead of 0.2). Confirm `toFraction`'s contract, or only divide here if `toFraction` expects a decimal.",
+              "evidenceIds": [],
+              "validation": "VERIFIED"
+            }
+          ]
+        },
+        {
+          "scenario": "live-context",
+          "mode": "context",
+          "baseSha": "1ac60c29c9b365584a444b55e2fa8273aa8cd21b",
+          "headSha": "f936752779283adb09f53d9c7052a133d6ce6756",
+          "budget": {
+            "maxFiles": 5,
+            "maxCalls": 7,
+            "maxRetries": 1,
+            "requestTimeoutMs": 30000,
+            "analysisTimeoutMs": 240000,
+            "publishReserveMs": 30000,
+            "maxInputTokens": 8000,
+            "reservedOutputTokens": 800,
+            "localWindowLines": 4,
+            "maxDefinitionsPerFile": 2,
+            "maxDefinitionLines": 60
+          },
+          "analysisStatus": "COMPLETE",
+          "coverage": {
+            "supportedFiles": [
+              "src/discount-1.ts"
+            ],
+            "analyzedFiles": [
+              "src/discount-1.ts"
+            ],
+            "excludedFiles": []
+          },
+          "omissions": [],
+          "metrics": {
+            "model": "deepseek-v4.1-flash-1017",
+            "effectiveParameters": {
+              "model": "deepseek-v4.1-flash-1017",
+              "max_tokens": 800,
+              "thinking": {
+                "type": "disabled"
+              },
+              "response_format": {
+                "type": "json_object"
+              },
+              "maxRetries": 0
+            },
+            "promptVersion": "inspector-c-v1",
+            "durationMs": 3958,
+            "calls": 1,
+            "inputTokens": 429,
+            "outputTokens": 407,
+            "attempts": [
+              {
+                "file": "src/discount-1.ts",
+                "attempt": 1,
+                "timeoutMs": 30000,
+                "durationMs": 3940,
+                "estimatedInputTokens": 463,
+                "reservedOutputTokens": 800,
+                "inputTokens": 429,
+                "outputTokens": 407,
+                "responseModel": "deepseek-v4.1-flash-1017",
+                "outcome": "RESPONSE"
+              }
+            ],
+            "tokenizerId": "@huggingface/tokenizers@0.2.0/DeepSeek-V4.1-Flash-1017@08c8657f02291e11b6f6b63e0e16014f8e748518+chat-allowance-64"
+          },
+          "httpStatuses": [
+            200
+          ],
+          "evidence": [
+            {
+              "id": "C0",
+              "file": "src/discount-1.ts",
+              "ref": "f936752779283adb09f53d9c7052a133d6ce6756",
+              "startLine": 1,
+              "endLine": 5,
+              "reason": "local-window"
+            },
+            {
+              "id": "C1",
+              "file": "src/units.ts",
+              "ref": "f936752779283adb09f53d9c7052a133d6ce6756",
+              "startLine": 1,
+              "endLine": 3,
+              "reason": "direct-definition"
+            }
+          ],
+          "findings": [
+            {
+              "id": "src/discount-1.ts:1",
+              "file": "src/discount-1.ts",
+              "side": "RIGHT",
+              "line": 4,
+              "severity": "high",
+              "message": "toFraction already divides its argument by 100, so passing percent / 100 divides by 100 twice and returns percent / 10000 instead of the intended discount fraction. Call toFraction(percent) instead.",
+              "evidenceIds": [
+                "C1"
+              ],
+              "validation": "VERIFIED"
+            }
+          ]
+        }
+      ]
+    }
+  },
+  "outputBudgetProbes": {
+    "simpleJsonPrompt": "Return only one JSON object. The key \"items\" must contain the integers from 1 to 180 in consecutive order. Include each integer as a separate array element.",
+    "shortOutput": [
+      {
+        "settings": "thinking_disabled",
+        "http": 200,
+        "requestedMaxTokens": 64,
+        "finish": "length",
+        "inputTokens": 64,
+        "completionTokens": 64,
+        "reasoningTokens": 0,
+        "hasReasoningContent": false,
+        "contentLength": 93
+      },
+      {
+        "settings": "reasoning_effort_none",
+        "http": 200,
+        "requestedMaxTokens": 64,
+        "finish": "length",
+        "inputTokens": 64,
+        "completionTokens": 64,
+        "reasoningTokens": 0,
+        "hasReasoningContent": false,
+        "contentLength": 93
+      }
+    ],
+    "diffOnlyParameters": [
+      {
+        "mode": "diff-only",
+        "variant": "thinking-disabled",
+        "http": 200,
+        "maxTokens": 800,
+        "model": "deepseek-v4.1-flash-1017",
+        "finish": "stop",
+        "durationMs": 15261,
+        "inputTokens": 279,
+        "completionTokens": 2129,
+        "reasoningTokens": null,
+        "reasoningChars": 8710,
+        "contentChars": 421
+      },
+      {
+        "mode": "diff-only",
+        "variant": "reasoning-effort-none",
+        "http": 200,
+        "maxTokens": 800,
+        "model": "deepseek-v4.1-flash-1017",
+        "finish": "stop",
+        "durationMs": 14915,
+        "inputTokens": 279,
+        "completionTokens": 2114,
+        "reasoningTokens": null,
+        "reasoningChars": 9119,
+        "contentChars": 14
+      }
+    ],
+    "diffOnlyProtocols": [
+      {
+        "variant": "chat-max-completion-tokens",
+        "http": null,
+        "durationMs": 30065,
+        "error": "TaskCanceledException"
+      },
+      {
+        "variant": "anthropic-messages",
+        "http": 200,
+        "model": "deepseek-v4.1-flash-1017",
+        "inputTokens": 151,
+        "outputTokens": 1798,
+        "stopReason": "end_turn",
+        "validReviews": true,
+        "hasThinking": true,
+        "durationMs": 15158
+      }
+    ]
+  },
+  "liveRunWithOutputGuard": {
+    "testedCommit": "a5e7867b11aaa905b8d560bb44d1087321f77870",
+    "receipt": {
+      "fixture": "discount-double-conversion-v1",
+      "startedAt": "2026-11-17T07:53:24.502Z",
+      "node": "v24.14.0",
+      "transport": "relaycore-api",
+      "runs": [
+        {
+          "scenario": "live-diff-only",
+          "mode": "diff-only",
+          "baseSha": "1ac60c29c9b365584a444b55e2fa8273aa8cd21b",
+          "headSha": "f936752779283adb09f53d9c7052a133d6ce6756",
+          "budget": {
+            "maxFiles": 5,
+            "maxCalls": 7,
+            "maxRetries": 1,
+            "requestTimeoutMs": 30000,
+            "analysisTimeoutMs": 240000,
+            "publishReserveMs": 30000,
+            "maxInputTokens": 8000,
+            "reservedOutputTokens": 800,
+            "localWindowLines": 4,
+            "maxDefinitionsPerFile": 2,
+            "maxDefinitionLines": 60
+          },
+          "analysisStatus": "FAILED",
+          "coverage": {
+            "supportedFiles": [
+              "src/discount-1.ts"
+            ],
+            "analyzedFiles": [],
+            "excludedFiles": []
+          },
+          "omissions": [
+            {
+              "file": "src/discount-1.ts",
+              "stage": "model",
+              "reason": "TOKEN_BUDGET",
+              "required": true
+            }
+          ],
+          "metrics": {
+            "model": "deepseek-v4.1-flash-1017",
+            "effectiveParameters": {
+              "model": "deepseek-v4.1-flash-1017",
+              "max_tokens": 800,
+              "thinking": {
+                "type": "disabled"
+              },
+              "response_format": {
+                "type": "json_object"
+              },
+              "maxRetries": 0
+            },
+            "promptVersion": "inspector-c-v1",
+            "durationMs": 25548,
+            "calls": 1,
+            "inputTokens": 279,
+            "outputTokens": 4019,
+            "attempts": [
+              {
+                "file": "src/discount-1.ts",
+                "attempt": 1,
+                "timeoutMs": 30000,
+                "durationMs": 25538,
+                "estimatedInputTokens": 288,
+                "reservedOutputTokens": 800,
+                "inputTokens": 279,
+                "outputTokens": 4019,
+                "responseModel": "deepseek-v4.1-flash-1017",
+                "outcome": "TOKEN_BUDGET"
+              }
+            ],
+            "tokenizerId": "@huggingface/tokenizers@0.2.0/DeepSeek-V4.1-Flash-1017@08c8657f02291e11b6f6b63e0e16014f8e748518+chat-allowance-64"
+          },
+          "httpStatuses": [
+            200
+          ],
+          "evidence": [],
+          "findings": []
+        },
+        {
+          "scenario": "live-context",
+          "mode": "context",
+          "baseSha": "1ac60c29c9b365584a444b55e2fa8273aa8cd21b",
+          "headSha": "f936752779283adb09f53d9c7052a133d6ce6756",
+          "budget": {
+            "maxFiles": 5,
+            "maxCalls": 7,
+            "maxRetries": 1,
+            "requestTimeoutMs": 30000,
+            "analysisTimeoutMs": 240000,
+            "publishReserveMs": 30000,
+            "maxInputTokens": 8000,
+            "reservedOutputTokens": 800,
+            "localWindowLines": 4,
+            "maxDefinitionsPerFile": 2,
+            "maxDefinitionLines": 60
+          },
+          "analysisStatus": "COMPLETE",
+          "coverage": {
+            "supportedFiles": [
+              "src/discount-1.ts"
+            ],
+            "analyzedFiles": [
+              "src/discount-1.ts"
+            ],
+            "excludedFiles": []
+          },
+          "omissions": [],
+          "metrics": {
+            "model": "deepseek-v4.1-flash-1017",
+            "effectiveParameters": {
+              "model": "deepseek-v4.1-flash-1017",
+              "max_tokens": 800,
+              "thinking": {
+                "type": "disabled"
+              },
+              "response_format": {
+                "type": "json_object"
+              },
+              "maxRetries": 0
+            },
+            "promptVersion": "inspector-c-v1",
+            "durationMs": 9041,
+            "calls": 1,
+            "inputTokens": 454,
+            "outputTokens": 366,
+            "attempts": [
+              {
+                "file": "src/discount-1.ts",
+                "attempt": 1,
+                "timeoutMs": 30000,
+                "durationMs": 9018,
+                "estimatedInputTokens": 463,
+                "reservedOutputTokens": 800,
+                "inputTokens": 454,
+                "outputTokens": 366,
+                "responseModel": "deepseek-v4.1-flash-1017",
+                "outcome": "RESPONSE"
+              }
+            ],
+            "tokenizerId": "@huggingface/tokenizers@0.2.0/DeepSeek-V4.1-Flash-1017@08c8657f02291e11b6f6b63e0e16014f8e748518+chat-allowance-64"
+          },
+          "httpStatuses": [
+            200
+          ],
+          "evidence": [
+            {
+              "id": "C0",
+              "file": "src/discount-1.ts",
+              "ref": "f936752779283adb09f53d9c7052a133d6ce6756",
+              "startLine": 1,
+              "endLine": 5,
+              "reason": "local-window"
+            },
+            {
+              "id": "C1",
+              "file": "src/units.ts",
+              "ref": "f936752779283adb09f53d9c7052a133d6ce6756",
+              "startLine": 1,
+              "endLine": 3,
+              "reason": "direct-definition"
+            }
+          ],
+          "findings": [
+            {
+              "id": "src/discount-1.ts:1",
+              "file": "src/discount-1.ts",
+              "side": "RIGHT",
+              "line": 4,
+              "severity": "high",
+              "message": "toFraction already divides its argument by 100, so passing percent / 100 causes a double division. This returns percent/10000 instead of the intended percent/100, making discount rates 100x too small.",
+              "evidenceIds": [
+                "C0",
+                "C1"
+              ],
+              "validation": "VERIFIED"
+            }
+          ]
+        }
+      ]
+    }
+  }
+}
