@@ -1,8 +1,12 @@
 /// <reference types="node" />
 import type { ReviewFiles } from './contracts.js';
-export declare const LIVE_TOKENIZER = "js-tiktoken@1.0.21/o200k_base/gpt-4o-mini-2024-07-18";
-/** Mirror Chat.completeReview's single user message, including chat framing.
- * Source text resembling special tokens must be tokenized as ordinary text.
- * Provider-reported usage remains the source for actual consumption. */
+export declare const LIVE_MODEL_SETTINGS: Readonly<{
+    readonly model: "gpt-5.4-mini";
+    readonly reasoning_effort: "none";
+}>;
+export declare const LIVE_TOKENIZER = "js-tiktoken@1.0.21/o200k_base+chat-allowance-64";
+export declare const CHAT_FRAMING_ALLOWANCE = 64;
+/** 对发出的完整 user 消息分词，额外留出消息封装余量。
+ * 源码中的特殊标记按普通文本计数，实际用量仍以 provider 的 usage 为准。 */
 export declare function countReviewTokens(prompt: string): number;
-export declare function createLiveReview(apiKey: string, signal?: AbortSignal): ReviewFiles;
+export declare function createLiveReview(apiKey: string, baseURL: string, signal?: AbortSignal): ReviewFiles;

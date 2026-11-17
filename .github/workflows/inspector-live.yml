@@ -71,7 +71,6 @@ jobs:
       actions: read
       pull-requests: write
       statuses: write
-      models: read
     env:
       INSPECTOR_PR: ${{ needs.target.outputs.pr }}
       INSPECTOR_HEAD: ${{ needs.target.outputs.head }}
@@ -79,11 +78,7 @@ jobs:
       INSPECTOR_MODE: ${{ needs.target.outputs.mode }}
       INSPECTOR_EVENT: ${{ github.event.workflow_run.event || 'manual' }}
       INSPECTOR_REVISION: ${{ github.workflow_sha }}
-      USE_GITHUB_MODELS: 'true'
-      MODEL: openai/gpt-4o-mini
-      LANGUAGE: English
-      temperature: '0'
-      top_p: '1'
+      INSPECTOR_MODEL_BASE_URL: ${{ vars.INSPECTOR_MODEL_BASE_URL }}
     steps:
       - uses: actions/checkout@v5
         with:
@@ -125,6 +120,7 @@ jobs:
       - name: Reconcile review and publish
         env:
           GITHUB_TOKEN: ${{ github.token }}
+          INSPECTOR_MODEL_API_KEY: ${{ secrets.INSPECTOR_MODEL_API_KEY }}
         run: node .inspector-runner.cjs
       - uses: actions/upload-artifact@v4
         if: success() && steps.stored.outputs.id == '' && hashFiles('.inspector-cache/analysis.json') != ''

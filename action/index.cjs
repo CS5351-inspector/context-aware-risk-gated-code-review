@@ -147504,11 +147504,14 @@ class Chat {
     openai;
     isAzure;
     isGithubModels;
+    fixed;
     reasoningModels = ['o1', 'o1-2024-12-17', 'o1-mini', 'o1-mini-2024-09-12'];
     reasoningPrefixes = ['o3', 'o4', 'gpt-5'];
-    constructor(apikey) {
-        this.isAzure = Boolean(process.env.AZURE_API_VERSION && process.env.AZURE_DEPLOYMENT);
-        this.isGithubModels = process.env.USE_GITHUB_MODELS === 'true';
+    constructor(apikey, fixed) {
+        // Sprint 2 在创建客户端时固定模型及生成参数。旧入口继续从环境变量读取。
+        this.fixed = fixed && { ...fixed };
+        this.isAzure = !fixed && Boolean(process.env.AZURE_API_VERSION && process.env.AZURE_DEPLOYMENT);
+        this.isGithubModels = !fixed && process.env.USE_GITHUB_MODELS === 'true';
         if (this.isAzure) {
             // Azure OpenAI configuration
             this.openai = new openai_1.AzureOpenAI({
@@ -147522,12 +147525,14 @@ class Chat {
             // Standard OpenAI configuration
             this.openai = new openai_1.OpenAI({
                 apiKey: apikey,
-                baseURL: this.isGithubModels ? 'https://models.github.ai/inference' : process.env.OPENAI_API_ENDPOINT || 'https://api.openai.com/v1',
+                baseURL: this.fixed?.baseURL ?? (this.isGithubModels ? 'https://models.github.ai/inference' : process.env.OPENAI_API_ENDPOINT || 'https://api.openai.com/v1'),
+                // 请求只交给已配置的推理地址，重试由外层预算统一管理。
+                ...(this.fixed ? { maxRetries: 0 } : {}),
             });
         }
     }
     get model() {
-        return process.env.MODEL || (this.isGithubModels ? 'openai/gpt-4o-mini' : 'gpt-4o-mini');
+        return this.fixed?.model ?? (process.env.MODEL || (this.isGithubModels ? 'openai/gpt-4o-mini' : 'gpt-4o-mini'));
     }
     get normalizedModel() {
         return this.model.split('/').pop() || this.model;
@@ -147537,7 +147542,7 @@ class Chat {
         return this.reasoningModels.includes(model) || this.reasoningPrefixes.some(prefix => model.startsWith(prefix));
     }
     get reasoningEffortOption() {
-        const effort = process.env.REASONING_EFFORT;
+        const effort = this.fixed?.reasoning_effort ?? process.env.REASONING_EFFORT;
         if (!effort || !this.isReasoningModel)
             return {};
         if (!isReasoningEffort(effort)) {
@@ -147570,7 +147575,7 @@ class Chat {
     };
     /** 两种模式和旧接口共用同一套有效模型参数；运行记录不含 API Key。 */
     get effectiveParameters() {
-        const maxTokens = process.env.max_tokens === undefined ? undefined : Number(process.env.max_tokens);
+        const maxTokens = this.fixed || process.env.max_tokens === undefined ? undefined : Number(process.env.max_tokens);
         if (maxTokens !== undefined && (!Number.isSafeInteger(maxTokens) || maxTokens <= 0)) {
             throw new Error('Invalid model parameter: max_tokens');
         }
@@ -147599,7 +147604,7 @@ class Chat {
         const body = request;
         return options
             ? this.openai.chat.completions.create(body, {
-                signal: options.signal, timeout: options.timeout, maxRetries: options.maxRetries,
+                signal: options.signal, timeout: options.timeout, maxRetries: this.fixed ? 0 : options.maxRetries,
             })
             : this.openai.chat.completions.create(body);
     };

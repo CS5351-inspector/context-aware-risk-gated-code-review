@@ -1,3 +1,4 @@
+import { createHash } from 'node:crypto';
 import fs from 'node:fs';
 import { runReviewPipeline } from './pipeline.js';
 import { collectSnapshot } from './review/snapshot.js';
@@ -23,6 +24,7 @@ async function main() {
     : env.INSPECTOR_EVENT === 'pull_request' ? 'reconcile.pull_request' : 'manual';
   const runId = `${env.GITHUB_RUN_ID}-${env.GITHUB_RUN_ATTEMPT}`;
   const token = env.GITHUB_TOKEN;
+  const modelEndpoint = env.INSPECTOR_MODEL_BASE_URL?.trim() ?? '';
   if (!token || !owner || !name || !Number.isSafeInteger(number) || number < 1 ||
       ![head, base, env.INSPECTOR_REVISION].every(s => /^[a-f0-9]{40}$/.test(s || '')) ||
       !['context', 'diff-only'].includes(mode)) throw new Error('Invalid trusted workflow input');
@@ -41,7 +43,9 @@ async function main() {
   const record: Record<string, unknown> = { runId, pr: number, base, head, mode,
     trigger, revision: env.INSPECTOR_REVISION, config: sprintConfig, startedAt: new Date(started).toISOString() };
   const cachePath = '.inspector-cache/analysis.json';
-  const key = [owner, name, number, base, head, env.INSPECTOR_REVISION, mode].join('/');
+  // 服务地址变更后，历史分析不能当作新服务生成的结果继续使用。
+  const modelService = createHash('sha256').update(modelEndpoint).digest('hex');
+  const key = [owner, name, number, base, head, env.INSPECTOR_REVISION, mode, modelService].join('/');
   try {
     const target = await read.getTarget(repo, number);
     if (!target.open || target.baseRef !== options.targetBranch || target.headSha !== head || target.baseSha !== base ||
@@ -73,7 +77,8 @@ async function main() {
     } else {
       result = await runReviewPipeline(snapshot.input, sprintConfig, initialContext, {
         provider: 'live', readFile: snapshot.readFileAtRef, context: collectContext,
-        review: createLiveReview(token, analysis.signal), reviewHandlesDeadline: true, risk: calculateRisk, gate: decideGate,
+        review: createLiveReview(env.INSPECTOR_MODEL_API_KEY ?? '', modelEndpoint, analysis.signal),
+        reviewHandlesDeadline: true, risk: calculateRisk, gate: decideGate,
       }, started);
     }
     const currentGate = async (r: ReviewResult) => decideGate(r, r.risk,

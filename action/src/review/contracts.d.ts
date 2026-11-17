@@ -120,6 +120,19 @@ export interface GateResult {
     requiredApprovals: number;
     validApprovers: string[];
 }
+/** 一条记录对应外层调度器发起的一次请求尝试。退避时间留在整轮耗时中。 */
+export interface ModelAttempt {
+    file: string;
+    attempt: number;
+    timeoutMs: number;
+    durationMs: number;
+    estimatedInputTokens: number;
+    reservedOutputTokens: number;
+    inputTokens: number | null;
+    outputTokens: number | null;
+    responseModel: string | null;
+    outcome: 'RESPONSE' | 'TIMEOUT' | 'RATE_LIMIT' | 'SERVICE_ERROR' | 'INVALID_OUTPUT';
+}
 export interface RunMetrics {
     model: string;
     effectiveParameters: Record<string, unknown>;
@@ -129,6 +142,9 @@ export interface RunMetrics {
     /** Unknown provider usage must be null, not invented zero usage. */
     inputTokens: number | null;
     outputTokens: number | null;
+    /** Earlier cached receipts and offline callers may omit these fields. */
+    tokenizerId?: string;
+    attempts?: ModelAttempt[];
 }
 export interface ContextResult {
     snippets: ContextSnippet[];
