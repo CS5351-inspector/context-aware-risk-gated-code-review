@@ -14,7 +14,7 @@ Run the course pilot on same-repository PRs targeting `sprint2-demo`. A read-onl
 
 ## Pilot configuration
 
-The source of truth is `inspector-sprint2-v1`. Per PR the pilot allows 5 supported files, 7 model attempts including retries, up to 1 retry per file and 30 s per request. Application time is 240 s including a 30 s feedback reserve. The per-request context limit is 8,000 tokens including 800 reserved for output. Context uses a 4-line margin, up to 2 definition lookups per file and up to 60 lines per definition. Both modes request `openai/gpt-4o-mini` with temperature 0 and top-p 1. The receipt captures the implementation revision, effective model settings, coverage and provider usage when available. These values describe the pilot configuration. Throughput, cost and quality require measurements. [Configuration](../src/review/sprint2.ts) · [Model counter](../src/review/live-model.ts)
+The source of truth is `inspector-sprint2-v1`. Per PR the pilot allows 5 supported files, 7 model attempts including retries, up to 1 retry per file and 30 s per request. Application time is 240 s including a 30 s feedback reserve. The estimated per-request token window is 8,000 including 800 reserved for output. Context uses a 4-line margin, up to 2 definition lookups per file and up to 60 lines per definition. Both modes request `gpt-5.4-mini` with `reasoning_effort: none` through the configured OpenAI-compatible endpoint. The receipt captures the implementation revision, effective settings, coverage and provider usage when available. [Budget](../src/review/sprint2.ts) · [Frozen model configuration](SPRINT2_MODEL_CONFIG.json)
 
 ## Remaining limits
 

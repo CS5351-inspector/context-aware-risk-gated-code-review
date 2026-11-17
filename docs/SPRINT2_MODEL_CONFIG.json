@@ -1,0 +1,27 @@
+{
+  "fixture": "discount-double-conversion-v1",
+  "ruleVersion": "inspector-sprint2-v1",
+  "promptVersion": "inspector-c-v1",
+  "tokenizer": "js-tiktoken@1.0.21/o200k_base+chat-allowance-64",
+  "chatFramingAllowance": 64,
+  "request": {
+    "model": "gpt-5.4-mini",
+    "reasoning_effort": "none"
+  },
+  "responseFormat": "json_object",
+  "outputLimitField": "max_completion_tokens",
+  "sdkMaxRetries": 0,
+  "budget": {
+    "maxFiles": 5,
+    "maxCalls": 7,
+    "maxRetries": 1,
+    "requestTimeoutMs": 30000,
+    "analysisTimeoutMs": 240000,
+    "publishReserveMs": 30000,
+    "maxInputTokens": 8000,
+    "reservedOutputTokens": 800,
+    "localWindowLines": 4,
+    "maxDefinitionsPerFile": 2,
+    "maxDefinitionLines": 60
+  }
+}
