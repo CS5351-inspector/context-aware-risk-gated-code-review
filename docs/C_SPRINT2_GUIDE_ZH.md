@@ -301,7 +301,7 @@ npm.cmd run --silent smoke:model-budget -- --deepseek
 
 ### 10.3 调用真实 API 并验证
 
-在同一个 PowerShell 窗口用遮蔽输入运行以下命令。验证样例里的代码全部是预先构造的折扣计算。
+在同一个 PowerShell 窗口用遮蔽输入运行以下命令。保留命令里的 `'DeepSeek API Key'` 作为提示文字，看到提示后粘贴完整 Key 并按 Enter。验证样例里的代码全部是预先构造的折扣计算。
 
 ~~~powershell
 $env:DEEPSEEK_API_KEY = [System.Net.NetworkCredential]::new('', (Read-Host 'DeepSeek API Key' -AsSecureString)).Password
@@ -319,6 +319,8 @@ Remove-Item Env:DEEPSEEK_API_KEY
 | `headSha`、`effectiveParameters` | 比较两种模式时，保持同一合成输入和模型参数，只改变给模型的证据。 |
 
 遇到 401 时核对官方 API Key；402 时检查平台余额；429 会走项目的有限重试。错误状态与已有覆盖都保存在收据里。[DeepSeek 错误码](https://api-docs.deepseek.com/quick_start/error_codes/)
+
+2026-11-17 13:29（中国标准时间）的官方端点试跑中，两种模式各发起 1 次调用并收到 HTTP 401。独立的 `/models` 查询也返回 `authentication_error`。这两份记录的覆盖都是 0/1，实际 token 用量为 `null`。真实成功的验收仍待通过认证的凭据。[真实失败记录](SPRINT2_MODEL_DEEPSEEK_RUNS.json)
 
 ### 10.4 部署到小组演示并交付
 

@@ -582,5 +582,137 @@
         "tokenizerId": "@huggingface/tokenizers@0.2.0/DeepSeek-V4.1-Flash-1017@08c8657f02291e11b6f6b63e0e16014f8e748518+chat-allowance-64"
       }
     }
+  ],
+  "liveAttempts": [
+    {
+      "transport": "deepseek-api",
+      "sourceCommit": "a350bfe9280462eae90069fb25782d2089cc4d38",
+      "startedAt": "2026-11-17T05:29:57.379Z",
+      "node": "v24.14.0",
+      "endpoint": "https://api.deepseek.com",
+      "authProbe": {
+        "path": "/models",
+        "httpStatus": 401,
+        "errorType": "authentication_error"
+      },
+      "runs": [
+        {
+          "scenario": "live-diff-only",
+          "mode": "diff-only",
+          "headSha": "f936752779283adb09f53d9c7052a133d6ce6756",
+          "analysisStatus": "FAILED",
+          "httpStatuses": [
+            401
+          ],
+          "coverage": {
+            "supportedFiles": [
+              "src/discount-1.ts"
+            ],
+            "analyzedFiles": [],
+            "excludedFiles": []
+          },
+          "omissions": [
+            {
+              "file": "src/discount-1.ts",
+              "stage": "model",
+              "reason": "SERVICE_ERROR",
+              "required": true
+            }
+          ],
+          "metrics": {
+            "model": "deepseek-flash",
+            "effectiveParameters": {
+              "model": "deepseek-flash",
+              "max_tokens": 800,
+              "thinking": {
+                "type": "disabled"
+              },
+              "response_format": {
+                "type": "json_object"
+              },
+              "maxRetries": 0
+            },
+            "promptVersion": "inspector-c-v1",
+            "durationMs": 1220,
+            "calls": 1,
+            "inputTokens": null,
+            "outputTokens": null,
+            "attempts": [
+              {
+                "file": "src/discount-1.ts",
+                "attempt": 1,
+                "timeoutMs": 30000,
+                "durationMs": 1209,
+                "estimatedInputTokens": 288,
+                "reservedOutputTokens": 800,
+                "inputTokens": null,
+                "outputTokens": null,
+                "responseModel": null,
+                "outcome": "SERVICE_ERROR"
+              }
+            ],
+            "tokenizerId": "@huggingface/tokenizers@0.2.0/DeepSeek-V4.1-Flash-1017@08c8657f02291e11b6f6b63e0e16014f8e748518+chat-allowance-64"
+          }
+        },
+        {
+          "scenario": "live-context",
+          "mode": "context",
+          "headSha": "f936752779283adb09f53d9c7052a133d6ce6756",
+          "analysisStatus": "FAILED",
+          "httpStatuses": [
+            401
+          ],
+          "coverage": {
+            "supportedFiles": [
+              "src/discount-1.ts"
+            ],
+            "analyzedFiles": [],
+            "excludedFiles": []
+          },
+          "omissions": [
+            {
+              "file": "src/discount-1.ts",
+              "stage": "model",
+              "reason": "SERVICE_ERROR",
+              "required": true
+            }
+          ],
+          "metrics": {
+            "model": "deepseek-flash",
+            "effectiveParameters": {
+              "model": "deepseek-flash",
+              "max_tokens": 800,
+              "thinking": {
+                "type": "disabled"
+              },
+              "response_format": {
+                "type": "json_object"
+              },
+              "maxRetries": 0
+            },
+            "promptVersion": "inspector-c-v1",
+            "durationMs": 569,
+            "calls": 1,
+            "inputTokens": null,
+            "outputTokens": null,
+            "attempts": [
+              {
+                "file": "src/discount-1.ts",
+                "attempt": 1,
+                "timeoutMs": 30000,
+                "durationMs": 551,
+                "estimatedInputTokens": 463,
+                "reservedOutputTokens": 800,
+                "inputTokens": null,
+                "outputTokens": null,
+                "responseModel": null,
+                "outcome": "SERVICE_ERROR"
+              }
+            ],
+            "tokenizerId": "@huggingface/tokenizers@0.2.0/DeepSeek-V4.1-Flash-1017@08c8657f02291e11b6f6b63e0e16014f8e748518+chat-allowance-64"
+          }
+        }
+      ]
+    }
   ]
 }
