@@ -6,7 +6,7 @@ import type { AnalysisStatus, Budget, Mode, OmissionReason, ReviewInput } from '
 import { decideGate } from '../src/review/gate.js';
 import {
   CHAT_FRAMING_ALLOWANCE, createLiveReview, DEEPSEEK_BASE_URL, DEEPSEEK_MODEL_SETTINGS, DEEPSEEK_TOKENIZER_ID,
-  LIVE_MODEL_SETTINGS, LIVE_TOKENIZER,
+  LIVE_MODEL_SETTINGS, LIVE_TOKENIZER, RELAYCORE_BASE_URL, RELAYCORE_MODEL_SETTINGS,
 } from '../src/review/live-model.js';
 import { PROMPT_VERSION } from '../src/review/model-review.js';
 import { calculateRisk } from '../src/review/risk.js';
@@ -149,25 +149,31 @@ async function runScenario(scenario: Scenario, baseURL: string, apiKey?: string)
 async function main() {
   const args = process.argv.slice(2);
   const deepseek = args.includes('--deepseek');
+  const relayCore = args.includes('--relaycore');
   const live = args.includes('--live');
   const config = args.includes('--config');
-  assert(new Set(args).size === args.length && args.every(arg => ['--deepseek', '--live', '--config'].includes(arg))
-    && !(live && config), 'Usage: npm run smoke:model-budget -- [--deepseek] [--live|--config]');
+  assert(new Set(args).size === args.length && args.every(arg => ['--deepseek', '--relaycore', '--live', '--config'].includes(arg))
+    && !(deepseek && relayCore) && !(live && config),
+  'Usage: npm run smoke:model-budget -- [--deepseek|--relaycore] [--live|--config]');
+  const usesDeepSeekTokenizer = deepseek || relayCore;
+  const providerBaseURL = relayCore ? RELAYCORE_BASE_URL : deepseek ? DEEPSEEK_BASE_URL : undefined;
+  const liveTransport = relayCore ? 'relaycore-api' : deepseek ? 'deepseek-api' : 'openai-compatible-api';
   if (config) {
     console.log(JSON.stringify({ fixture: fixtureId, ruleVersion: sprintConfig.ruleVersion, promptVersion: PROMPT_VERSION,
-      tokenizer: deepseek ? DEEPSEEK_TOKENIZER_ID : LIVE_TOKENIZER, chatFramingAllowance: CHAT_FRAMING_ALLOWANCE,
-      request: deepseek ? DEEPSEEK_MODEL_SETTINGS : LIVE_MODEL_SETTINGS,
-      ...(deepseek ? { baseURL: DEEPSEEK_BASE_URL } : {}),
-      responseFormat: 'json_object', outputLimitField: deepseek ? 'max_tokens' : 'max_completion_tokens', sdkMaxRetries: 0,
+      tokenizer: usesDeepSeekTokenizer ? DEEPSEEK_TOKENIZER_ID : LIVE_TOKENIZER, chatFramingAllowance: CHAT_FRAMING_ALLOWANCE,
+      request: relayCore ? RELAYCORE_MODEL_SETTINGS : deepseek ? DEEPSEEK_MODEL_SETTINGS : LIVE_MODEL_SETTINGS,
+      ...(providerBaseURL ? { baseURL: providerBaseURL } : {}),
+      responseFormat: 'json_object', outputLimitField: usesDeepSeekTokenizer ? 'max_tokens' : 'max_completion_tokens', sdkMaxRetries: 0,
       budget: sprintConfig.budget }, null, 2));
     return;
   }
-  // 只在显式真实试跑时读取对应服务的钥匙。DeepSeek 官方模式的地址固定。
-  const apiKey = live ? process.env[deepseek ? 'DEEPSEEK_API_KEY' : 'OPENAI_API_KEY']?.trim() : undefined;
-  const baseURL = deepseek ? DEEPSEEK_BASE_URL
-    : (live ? process.env.OPENAI_BASE_URL?.trim() : 'https://api.openai.com/v1');
-  if (!baseURL || (live && !apiKey)) throw new Error(deepseek ? 'Set DEEPSEEK_API_KEY for the live smoke run.'
-    : 'Set OPENAI_API_KEY and OPENAI_BASE_URL for the live smoke run.');
+  // 只在显式真实试跑时读取所选平台的凭据，两个 DeepSeek 平台各用自己的固定地址。
+  const keyVariable = relayCore ? 'RELAYCORE_API_KEY' : deepseek ? 'DEEPSEEK_API_KEY' : 'OPENAI_API_KEY';
+  const apiKey = live ? process.env[keyVariable]?.trim() : undefined;
+  const baseURL = providerBaseURL ?? (live ? process.env.OPENAI_BASE_URL?.trim() : 'https://api.openai.com/v1');
+  if (!baseURL || (live && !apiKey)) {
+    throw new Error(`Set ${keyVariable}${providerBaseURL ? '' : ' and OPENAI_BASE_URL'} for the live smoke run.`);
+  }
   const scenarios: Scenario[] = live
     ? [{ id: 'live-diff-only', mode: 'diff-only' }, { id: 'live-context', mode: 'context' }]
     : fixtureCases;
@@ -175,7 +181,7 @@ async function main() {
   const runs: Array<Awaited<ReturnType<typeof runScenario>>> = [];
   for (const scenario of scenarios) runs.push(await runScenario(scenario, baseURL, apiKey));
   console.log(JSON.stringify({ fixture: fixtureId, startedAt, node: process.version,
-    transport: live ? (deepseek ? 'deepseek-api' : 'openai-compatible-api') : 'simulated-sdk-fetch', runs }, null, 2));
+    transport: live ? liveTransport : 'simulated-sdk-fetch', runs }, null, 2));
   if (live && runs.some(run => run.analysisStatus !== 'COMPLETE')) process.exitCode = 1;
 }
 

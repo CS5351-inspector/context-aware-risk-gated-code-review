@@ -13,6 +13,13 @@ export const DEEPSEEK_MODEL_SETTINGS = Object.freeze({
   model: 'deepseek-flash',
   thinking: Object.freeze({ type: 'disabled' } as const),
 });
+const RELAYCORE_ORIGIN = 'https://api.relaycore.cn';
+export const RELAYCORE_BASE_URL = RELAYCORE_ORIGIN + '/v1';
+// RelayCore 的 DeepSeek 分组提供与仓库分词器快照对应的固定版本。
+export const RELAYCORE_MODEL_SETTINGS = Object.freeze({
+  ...DEEPSEEK_MODEL_SETTINGS,
+  model: 'deepseek-v4.1-flash-1017',
+});
 export const DEEPSEEK_TOKENIZER_ID =
   '@huggingface/tokenizers@0.2.0/DeepSeek-V4.1-Flash-1017@' + DEEPSEEK_TOKENIZER_REVISION + '+chat-allowance-64';
 
@@ -38,18 +45,23 @@ function validateEndpoint(baseURL: string): URL {
 export function createLiveReview(apiKey: string, baseURL: string, signal?: AbortSignal): ReviewFiles {
   if (!apiKey?.trim()) throw new Error('Missing model credential');
   const endpoint = validateEndpoint(baseURL);
-  const deepseek = endpoint.hostname === 'api.deepseek.com';
+  const deepseekOfficial = endpoint.hostname === 'api.deepseek.com';
+  const relayCore = endpoint.hostname === 'api.relaycore.cn';
   const normalizedBase = endpoint.href.replace(/\/+$/, '');
-  if (deepseek && ![DEEPSEEK_BASE_URL, DEEPSEEK_BASE_URL + '/v1'].includes(normalizedBase)) {
+  if (deepseekOfficial && ![DEEPSEEK_BASE_URL, DEEPSEEK_BASE_URL + '/v1'].includes(normalizedBase)) {
     throw new Error('Configure the DeepSeek Chat Completions base URL');
   }
-  const settings = deepseek ? DEEPSEEK_MODEL_SETTINGS : LIVE_MODEL_SETTINGS;
-  const countContentTokens = deepseek ? createDeepSeekContentCounter() : undefined;
+  // 控制台展示站点根地址，OpenAI SDK 需要包含 /v1 的 API 根地址。
+  if (relayCore && ![RELAYCORE_ORIGIN, RELAYCORE_BASE_URL].includes(normalizedBase)) {
+    throw new Error('Configure the RelayCore Chat Completions base URL');
+  }
+  const settings = relayCore ? RELAYCORE_MODEL_SETTINGS : deepseekOfficial ? DEEPSEEK_MODEL_SETTINGS : LIVE_MODEL_SETTINGS;
+  const countContentTokens = deepseekOfficial || relayCore ? createDeepSeekContentCounter() : undefined;
   const countInputTokens = countContentTokens
     ? (prompt: string) => CHAT_FRAMING_ALLOWANCE + countContentTokens(prompt)
     : countReviewTokens;
-  const tokenizerId = deepseek ? DEEPSEEK_TOKENIZER_ID : LIVE_TOKENIZER;
-  const client = new Chat(apiKey.trim(), { ...settings, baseURL: normalizedBase });
+  const tokenizerId = countContentTokens ? DEEPSEEK_TOKENIZER_ID : LIVE_TOKENIZER;
+  const client = new Chat(apiKey.trim(), { ...settings, baseURL: relayCore ? RELAYCORE_BASE_URL : normalizedBase });
   // 两个模式共用同一个模型、分词器和 A 的取消信号。
   return (input, snippets, budget) =>
     reviewFiles(client, input, snippets, budget, { countInputTokens, tokenizerId, signal });

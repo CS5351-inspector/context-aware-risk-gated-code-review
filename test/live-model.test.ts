@@ -1,5 +1,7 @@
 import { OpenAI } from 'openai';
-import { countReviewTokens, createLiveReview, DEEPSEEK_BASE_URL, DEEPSEEK_TOKENIZER_ID, LIVE_TOKENIZER } from '../src/review/live-model';
+import {
+  countReviewTokens, createLiveReview, DEEPSEEK_BASE_URL, DEEPSEEK_TOKENIZER_ID, LIVE_TOKENIZER, RELAYCORE_BASE_URL,
+} from '../src/review/live-model';
 import { createDeepSeekContentCounter } from '../src/review/deepseek-tokenizer';
 import { buildModelPrompt } from '../src/review/model-review';
 import type { ReviewConfig } from '../src/review/contracts';
@@ -62,21 +64,24 @@ test('freezes the endpoint and model parameters across modes and records each at
   expect(createDeepSeekContentCounter).not.toHaveBeenCalled();
 });
 
-test('DeepSeek freezes non-thinking JSON output, its token counter and the SDK retry limit', async () => {
+test.each([
+  { provider: 'DeepSeek', endpoint: DEEPSEEK_BASE_URL + '/v1/', expectedBase: DEEPSEEK_BASE_URL + '/v1', model: 'deepseek-flash' },
+  { provider: 'RelayCore', endpoint: 'https://api.relaycore.cn', expectedBase: RELAYCORE_BASE_URL, model: 'deepseek-v4.1-flash-1017' },
+])('$provider freezes non-thinking JSON output, its token counter and the SDK retry limit', async ({ endpoint, expectedBase, model }) => {
   const fixture = loadFixture(manifest.scenarios.find(entry => entry.id === 'clean-context')!);
   const budget = (fixture.config as ReviewConfig).budget;
   mockComplete.mockResolvedValue({
     choices: [{ finish_reason: 'stop', message: { content: '{"reviews":[]}' } }],
-    model: 'deepseek-flash',
+    model,
     usage: { prompt_tokens: 112, completion_tokens: 5 },
   });
-  const review = createLiveReview('test-only', DEEPSEEK_BASE_URL + '/v1/');
+  const review = createLiveReview('test-only', endpoint);
   const diff = await review({ ...fixture.input, mode: 'diff-only' }, [], budget);
   const context = await review(fixture.input, fixture.expected.context.snippets, budget);
-  expect(OpenAI).toHaveBeenCalledWith(expect.objectContaining({ baseURL: DEEPSEEK_BASE_URL + '/v1', maxRetries: 0 }));
+  expect(OpenAI).toHaveBeenCalledWith(expect.objectContaining({ baseURL: expectedBase, maxRetries: 0 }));
   expect(mockComplete).toHaveBeenCalledTimes(2);
   for (const [body, options] of mockComplete.mock.calls) {
-    expect(body).toMatchObject({ model: 'deepseek-flash', thinking: { type: 'disabled' },
+    expect(body).toMatchObject({ model, thinking: { type: 'disabled' },
       max_tokens: budget.reservedOutputTokens, response_format: { type: 'json_object' } });
     expect(body).not.toHaveProperty('max_completion_tokens');
     expect(body).not.toHaveProperty('reasoning_effort');
@@ -122,7 +127,8 @@ test('the complete tokenized message can exactly fill the input allowance, but o
 
 test.each(['', 'http://example.test/v1', 'https://example.test/v1?key=no', 'https://user@example.test/v1',
   'https://example.test/v1#fragment', 'https://models.github.ai/inference', DEEPSEEK_BASE_URL + '/anthropic',
-  DEEPSEEK_BASE_URL + ':8080'])('refuses an invalid or retired endpoint %s', endpoint => {
+  DEEPSEEK_BASE_URL + ':8080', 'https://api.relaycore.cn:8080/v1', RELAYCORE_BASE_URL + '/chat/completions',
+])('refuses an invalid or retired endpoint %s', endpoint => {
   expect(() => createLiveReview('test-only', endpoint)).toThrow();
   expect(OpenAI).not.toHaveBeenCalled();
 });

@@ -13,6 +13,13 @@ export declare const DEEPSEEK_MODEL_SETTINGS: Readonly<{
         readonly type: "disabled";
     }>;
 }>;
+export declare const RELAYCORE_BASE_URL: string;
+export declare const RELAYCORE_MODEL_SETTINGS: Readonly<{
+    model: "deepseek-v4.1-flash-1017";
+    thinking: Readonly<{
+        readonly type: "disabled";
+    }>;
+}>;
 export declare const DEEPSEEK_TOKENIZER_ID: string;
 /** 对发出的完整 user 消息分词，额外留出消息封装余量。
  * 源码中的特殊标记按普通文本计数，实际用量仍以 provider 的 usage 为准。 */

@@ -266,7 +266,7 @@ git diff --stat -- action
 
 **为什么到了 30 秒反馈预留就停止？** 运行期还有 GitHub 查询、生成报告和发布状态。C 在 A 交下来的剩余预算里先留这段时间，再为每次 API 请求取更小的可用时限。必要输入没完成时，结果带上明确遗漏，供后续门禁处理。
 
-## 10. DeepSeek 部署、验证与交付
+## 10. DeepSeek 官方 API 部署、验证与交付
 
 使用 DeepSeek 时，从本节开始。适配和测试已纳入同一份 [Sprint 2 PR #14](https://github.com/CS5351-inspector/context-aware-risk-gated-code-review/pull/14)。原来的 GPT 路线及其历史实测记录可在第 3～8 节查阅。
 
@@ -320,7 +320,7 @@ Remove-Item Env:DEEPSEEK_API_KEY
 
 遇到 401 时核对官方 API Key；402 时检查平台余额；429 会走项目的有限重试。错误状态与已有覆盖都保存在收据里。[DeepSeek 错误码](https://api-docs.deepseek.com/quick_start/error_codes/)
 
-2026-11-17 13:29（中国标准时间）的官方端点试跑中，两种模式各发起 1 次调用并收到 HTTP 401。独立的 `/models` 查询也返回 `authentication_error`。这两份记录的覆盖都是 0/1，实际 token 用量为 `null`。真实成功的验收仍待通过认证的凭据。[真实失败记录](SPRINT2_MODEL_DEEPSEEK_RUNS.json)
+2026-11-17 13:29（中国标准时间）的官方端点试跑中，两种模式各发起 1 次调用并收到 HTTP 401。独立的 `/models` 查询也返回 `authentication_error`。这两份记录的覆盖都是 0/1，实际 token 用量为 `null`。后来确认这次使用的是 RelayCore 签发的凭据，对应的服务配置见第 11 节。[真实失败记录](SPRINT2_MODEL_DEEPSEEK_RUNS.json)
 
 ### 10.4 部署到小组演示并交付
 
@@ -328,3 +328,51 @@ Remove-Item Env:DEEPSEEK_API_KEY
 2. 选择获准用于团队演示的 API Key。在小组仓库 **Settings → Secrets and variables → Actions** 新建仓库级 Secret `INSPECTOR_MODEL_API_KEY` 和 Variable `INSPECTOR_MODEL_BASE_URL`。Variable 填 `https://api.deepseek.com`，Secret 填配套的 DeepSeek API Key。[GitHub Actions Secrets 文档](https://docs.github.com/en/actions/how-tos/write-workflows/choose-what-workflows-do/use-secrets)
 3. 由小组按流程将 #14 合入 `main`。**Inspector live review** 运行主分支上的可信版本，选择同仓库中目标为 `sprint2-demo` 的开放演示 PR，并对同一个提交分别运行 Context 和 Diff-only。
 4. 打开各 run 的 **Artifacts** 获取 `inspector-receipt-…`。向组员交付 PR 链接、冻结配置、两条 Actions run 链接、各自收据和同一个审查 SHA。写明 `reusedAnalysis` 与 `newModelCalls`，便于确认这次是否真正产生新请求。
+
+## 11. 用 RelayCore 调用 DeepSeek
+
+RelayCore 签发凭据，通过其 DeepSeek 分组选择模型。项目使用 OpenAI SDK，SDK 的 `baseURL` 设为 `https://api.relaycore.cn/v1`，SDK 会将 `/chat/completions` 拼在其后。RelayCore 控制台的 Claude Code 示例使用 `ANTHROPIC_*` 环境变量。项目这条路径使用 OpenAI 兼容接口。[RelayCore 平台](https://api.relaycore.cn/) · [模型广场](https://api.relaycore.cn/model-plaza)
+
+### 11.1 这次修改怎样接入原有代码
+
+| 文件 | 修改和作用 |
+| --- | --- |
+| `src/review/live-model.ts` | 识别 `api.relaycore.cn`，将站点根地址和 `/v1` 规范成同一个 API 根地址。固定 DeepSeek 分组公开列出的模型 `deepseek-v4.1-flash-1017`，并选择对应的本地分词器。Diff-only 和 Context 共用同一个客户端和预算。 |
+| `scripts/sprint2-model-smoke.ts` | `--relaycore` 选中该服务。`--config` 展示固定参数。加 `--live` 才从当前进程读取 `RELAYCORE_API_KEY` 并发送两轮合成样例。 |
+| `test/live-model.test.ts` | 复用 DeepSeek 的双模式断言，核对 RelayCore 地址规范化、模型 ID、请求字段、SDK 重试数和 token 超限。还检查重复附加请求路径与非默认端口。 |
+| `docs/SPRINT2_MODEL_RELAYCORE_CONFIG.json` | 保存 `--relaycore --config` 的输出，交付时可以逐项复查模型、分词版本和预算。 |
+| `action/src/review/live-model.d.ts` | Ubuntu 构建生成的类型声明，记录新增的 RelayCore 地址和模型配置常量。 |
+
+`live-model.ts` 先检查 HTTPS 地址，再选模型与分词器，最后将配置交给 `Chat`。`Chat` 复用第 10.1 节的 DeepSeek 请求参数。`thinking.type = disabled` 请求非思考模式，`response_format` 请求 JSON，`max_tokens` 限制输出。`reviewFiles` 继续管理超时、调用次数、重试和输出校验。RelayCore 目录中的模型 ID 与官方分词快照同为 `DeepSeek-V4.1-Flash-1017`，本地分词用于发送前预算，服务的 `usage` 用于实际用量。[RelayCore 公开目录](https://api.relaycore.cn/api/v1/model-plaza) · [官方分词器快照](https://huggingface.co/deepseek-ai/DeepSeek-V4.1-Flash-1017/tree/08c8657f02291e11b6f6b63e0e16014f8e748518)
+
+### 11.2 在 PowerShell 验证
+
+在本指南第 10.2 节的工作区内逐行运行以下两条命令。第一条打印参数。第二条用模拟响应检查九个场景，包括两种输入模式、服务限流、超时和预算不足。
+
+~~~powershell
+npm.cmd run --silent smoke:model-budget -- --relaycore --config
+npm.cmd run --silent smoke:model-budget -- --relaycore
+~~~
+
+本次九个离线场景均符合预期。两种模式的正常场景各调用一次模拟接口，结果均为 `COMPLETE`，覆盖 1/1。加上消息封装余量的输入估算分别为 288 和 463 个 token。`Context` 多发了邻近代码和相关定义，`transport: simulated-sdk-fetch` 对应本地模拟。
+
+Ubuntu Node 24 上通过 478 项 Jest、43 项评测和类型检查。两次构建生成相同的 Action 产物，生成的冻结配置与提交文件一致。
+
+真实测试需要 RelayCore 的 DeepSeek 分组凭据。运行下面的代码，看到 `RelayCore API Key` 提示后粘贴完整 Key 并按 Enter。`Read-Host -AsSecureString` 会遮蔽输入。脚本把凭据临时交给本次 Node 进程，`finally` 在结束时清理环境变量。
+
+~~~powershell
+$env:RELAYCORE_API_KEY = [System.Net.NetworkCredential]::new('', (Read-Host 'RelayCore API Key' -AsSecureString)).Password
+try {
+    npm.cmd run --silent smoke:model-budget -- --relaycore --live
+    if ($LASTEXITCODE -ne 0) { throw '真实调用未通过，请查看上方收据' }
+} finally {
+    Remove-Item Env:RELAYCORE_API_KEY -ErrorAction SilentlyContinue
+}
+~~~
+
+先看 `transport` 是否为 `relaycore-api`，再看两条记录的 HTTP 状态、`analysisStatus`、`coverage` 和 `metrics`。本地验收预期两种模式都拿到成功响应、状态 `COMPLETE` 和覆盖 1/1。保留请求 `metrics.model`、响应 `attempts[].responseModel`、实际用量、耗时、遗漏及同一个 `headSha`。HTTP 401 时先核对当前 Key 所属平台和分组。
+
+### 11.3 交付小组
+
+1. 小组仓库的 **Settings → Secrets and variables → Actions** 已将 Variable `INSPECTOR_MODEL_BASE_URL` 设为 `https://api.relaycore.cn/v1`。本地真实调用通过后，把配套 RelayCore Key 存入 Secret `INSPECTOR_MODEL_API_KEY`。[GitHub Actions Secrets 文档](https://docs.github.com/en/actions/how-tos/write-workflows/choose-what-workflows-do/use-secrets)
+2. 小组合入 [PR #14](https://github.com/CS5351-inspector/context-aware-risk-gated-code-review/pull/14) 后，按第 8 节用同一个 `sprint2-demo` PR 提交分别触发 Diff-only 和 Context。将两次 Actions 收据、冻结配置和 PR 链接交给 F。核对 `newModelCalls` 是否大于零，再把对应请求列入真实对照数据。
