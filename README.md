@@ -8,12 +8,15 @@ Translation Versions: [ENGLISH](./README.md) | [简体中文](./README.zh-CN.md)
 
 CS5351 Software Engineering · Group 2.
 
+Inspector adds context-aware review and an explainable merge gate to GitHub pull requests. The course pilot supports added or modified JavaScript and TypeScript files.
+
+- [Reproduce the Inspector pilot](docs/SPRINT2_QUICKSTART.md)
 - [开发 Todo](docs/TODO.md)
 - [技术规范](docs/TECH_SPEC.md)
 - [Sprint 1 集成状态与各模块接手入口](docs/SPRINT1_HANDOFF.md)
 - [Sprint 2 live gate and acceptance matrix](docs/SPRINT2_GATE_ACCEPTANCE.md) · [Architecture decisions and pilot budgets](docs/SPRINT2_GATE_ADR.md)
 
-## Bot Usage
+## Upstream Bot Usage
 
 ❗️⚠️ `Due to cost considerations, BOT is only used for testing purposes and is currently deployed on AWS Lambda with ratelimit restrictions. Therefore, unstable situations are completely normal. It is recommended to deploy an app by yourself.`
 

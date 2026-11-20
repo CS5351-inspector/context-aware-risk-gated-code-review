@@ -2,6 +2,8 @@
 
 项目：Context-Aware and Risk-Gated Code Review for GitHub Pull Requests。
 
+当前 Sprint 2 进度和真实验收证据见 [验收矩阵](SPRINT2_GATE_ACCEPTANCE.md)，复现入口见 [快速上手](SPRINT2_QUICKSTART.md)。下方保留初始任务定义和历史勾选。
+
 技术约定见 [TECH_SPEC.md](TECH_SPEC.md)。当前模块成果与剩余接线见 [Sprint 1 接手说明](SPRINT1_HANDOFF.md)。按模块认领任务，完成后填写对应 PR 或测试链接。保留已有的分页、diff 筛选、位置校验和测试，在此基础上扩展。
 
 ## 基线与工程环境
