@@ -91,14 +91,26 @@ jobs:
       - run: npm ci
       - name: Build trusted runner
         run: node_modules/.bin/esbuild src/inspector-action.ts --bundle --platform=node --format=cjs --packages=external --outfile=.inspector-runner.cjs
+      - name: Identify provider-specific analysis artifact
+        id: analysis-artifact
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const {createHash} = require('node:crypto')
+            const endpoint = (process.env.INSPECTOR_MODEL_BASE_URL || '').trim()
+            const service = createHash('sha256').update(endpoint).digest('hex')
+            const name = ['analysis-v1', process.env.INSPECTOR_REVISION, process.env.INSPECTOR_PR,
+              process.env.INSPECTOR_BASE, process.env.INSPECTOR_HEAD, process.env.INSPECTOR_MODE, service].join('-')
+            core.setOutput('name', name)
       - name: Locate analysis from the trusted workflow
         if: github.event_name == 'workflow_run'
         id: stored
         uses: actions/github-script@v7
+        env:
+          INSPECTOR_ANALYSIS_ARTIFACT: ${{ steps.analysis-artifact.outputs.name }}
         with:
           script: |
-            const key = ['analysis-v1', process.env.INSPECTOR_REVISION, process.env.INSPECTOR_PR,
-              process.env.INSPECTOR_BASE, process.env.INSPECTOR_HEAD, process.env.INSPECTOR_MODE].join('-')
+            const key = process.env.INSPECTOR_ANALYSIS_ARTIFACT
             const {data} = await github.rest.actions.listArtifactsForRepo({...context.repo, name: key, per_page: 30})
             for (const item of data.artifacts.sort((a,b) => b.id-a.id)) {
               if (item.expired || item.workflow_run?.head_sha !== process.env.INSPECTOR_REVISION) continue
@@ -125,7 +137,7 @@ jobs:
       - uses: actions/upload-artifact@v4
         if: success() && steps.stored.outputs.id == '' && hashFiles('.inspector-cache/analysis.json') != ''
         with:
-          name: analysis-v1-${{ github.workflow_sha }}-${{ env.INSPECTOR_PR }}-${{ env.INSPECTOR_BASE }}-${{ env.INSPECTOR_HEAD }}-${{ env.INSPECTOR_MODE }}
+          name: ${{ steps.analysis-artifact.outputs.name }}
           path: .inspector-cache/analysis.json
           include-hidden-files: true
           retention-days: 14
