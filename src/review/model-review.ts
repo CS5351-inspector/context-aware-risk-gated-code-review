@@ -170,6 +170,7 @@ export async function reviewFiles(
   const context = input.mode === 'context' ? snippets : [];
   const contextValid = validSnippets(input, context);
   let fileCount = 0;
+  let providerExceededOutputLimit = false;
 
   for (const file of input.changedFiles) {
     // 候选首版只分析新增/修改的 .ts/.js；A 必须把其他文件列入 excludedFiles。
@@ -179,6 +180,7 @@ export async function reviewFiles(
       omit(file.path, 'INVALID_OUTPUT'); continue;
     }
     if (++fileCount > budget.maxFiles) { omit(file.path, 'FILE_BUDGET'); continue; }
+    if (providerExceededOutputLimit) { omit(file.path, 'TOKEN_BUDGET'); continue; }
     // 预算已用尽时跳过 patch 解析和分词，为反馈留出时间。
     if (result.metrics.calls >= budget.maxCalls) { omit(file.path, 'CALL_BUDGET'); continue; }
     if (Date.now() >= deadline) { omit(file.path, 'TIMEOUT'); continue; }
@@ -211,8 +213,9 @@ export async function reviewFiles(
         entry.inputTokens = usageCount(envelope?.usage?.prompt_tokens);
         entry.outputTokens = usageCount(envelope?.usage?.completion_tokens);
         entry.responseModel = typeof envelope?.model === 'string' ? envelope.model : null;
-        // 网关回报超额时保留真实用量，停止使用这次响应，也不为同一文件重试。
+        // Stop this run after the provider exceeds its output cap; retain actual usage.
         if (entry.outputTokens !== null && entry.outputTokens > outputTokens) {
+          providerExceededOutputLimit = true;
           entry.outcome = 'TOKEN_BUDGET';
           omit(file.path, 'TOKEN_BUDGET');
           break;

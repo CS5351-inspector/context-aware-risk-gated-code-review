@@ -202,6 +202,33 @@ describe('controlled modes, coverage and resource limits', () => {
       attempts: [{ outcome, outputTokens: completionTokens }] });
     expect(result.omissions).toEqual(extra ? [{ file: 'src/a.ts', stage: 'model', reason: 'TOKEN_BUDGET', required: true }] : []);
   });
+  test.each([1, 4])('an output-cap breach stops remaining calls with maxCalls=%i and preserves file exclusions', async maxCalls => {
+    const c = client();
+    const limits = { ...budget(), maxFiles: 2, maxCalls };
+    const i = input();
+    i.changedFiles.push({ ...i.changedFiles[0], path: 'src/b.ts' });
+    i.changedFiles.push({ ...i.changedFiles[0], path: 'src/c.ts' });
+    i.changedFiles.push({ ...i.changedFiles[0], path: 'README.md', supported: false });
+    const completionTokens = limits.reservedOutputTokens + 1;
+    c.completeReview.mockResolvedValue({
+      ...completion(), usage: { prompt_tokens: 20, completion_tokens: completionTokens },
+    });
+
+    const result = await reviewFiles(c, i, [], limits, runtime);
+
+    expect(c.completeReview).toHaveBeenCalledTimes(1);
+    expect(result.analyzedFiles).toEqual([]);
+    expect(result.metrics).toMatchObject({
+      calls: 1, inputTokens: 20, outputTokens: completionTokens,
+      attempts: [{ file: 'src/a.ts', outcome: 'TOKEN_BUDGET', outputTokens: completionTokens }],
+    });
+    expect(result.omissions).toEqual([
+      { file: 'src/a.ts', stage: 'model', reason: 'TOKEN_BUDGET', required: true },
+      { file: 'src/b.ts', stage: 'model', reason: 'TOKEN_BUDGET', required: true },
+      { file: 'src/c.ts', stage: 'model', reason: 'FILE_BUDGET', required: true },
+    ]);
+  });
+
   test('maxFiles and maxCalls apply to the entire PR', async () => {
     const i = input(); i.changedFiles.push({ ...i.changedFiles[0], path: 'src/b.ts' });
     const a = await reviewFiles(client(), i, [], { ...budget(), maxCalls: 1 }, runtime);
