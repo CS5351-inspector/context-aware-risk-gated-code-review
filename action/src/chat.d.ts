@@ -1,3 +1,5 @@
+declare const reasoningEfforts: readonly ["none", "minimal", "low", "medium", "high", "xhigh"];
+type ReasoningEffort = typeof reasoningEfforts[number];
 export interface Review {
     lgtm: boolean;
     review_comment: string;
@@ -9,16 +11,30 @@ export declare class InvalidReviewResponseError extends Error {
 export declare const parseReviewResponse: (content: string) => Review | Review[];
 /** 共用 API 信封校验：有效 JSON 也必须正常结束，不能忽略截断或拒答。 */
 export declare const readReviewContent: (response: unknown) => string;
+export type FixedChatSettings = {
+    baseURL: string;
+    model: string;
+} & ({
+    reasoning_effort: ReasoningEffort;
+    thinking?: never;
+} | {
+    thinking: Readonly<{
+        type: 'disabled';
+    }>;
+    reasoning_effort?: never;
+});
 export declare class Chat {
     private openai;
     private isAzure;
     private isGithubModels;
+    private readonly fixed?;
     private reasoningModels;
     private reasoningPrefixes;
-    constructor(apikey: string);
+    constructor(apikey: string, fixed?: FixedChatSettings);
     private get model();
     private get normalizedModel();
     private get isReasoningModel();
+    private get outputLimitField();
     private get reasoningEffortOption();
     private generatePrompt;
     /** 两种模式和旧接口共用同一套有效模型参数；运行记录不含 API Key。 */
@@ -34,3 +50,4 @@ export declare class Chat {
     }) => Promise<unknown>;
     codeReview: (patch: string) => Promise<Review[] | Review>;
 }
+export {};

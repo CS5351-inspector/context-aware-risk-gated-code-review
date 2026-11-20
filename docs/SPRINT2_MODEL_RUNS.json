@@ -1,0 +1,982 @@
+{
+  "fixture": "discount-double-conversion-v1",
+  "inputScope": "synthetic files only",
+  "frozenConfiguration": "SPRINT2_MODEL_CONFIG.json",
+  "offline": {
+    "transport": "simulated-sdk-fetch",
+    "startedAt": "2026-11-17T03:42:23.371Z",
+    "node": "v24.14.0",
+    "runs": [
+      {
+        "scenario": "diff-only-ok",
+        "mode": "diff-only",
+        "baseSha": "1ac60c29c9b365584a444b55e2fa8273aa8cd21b",
+        "headSha": "f936752779283adb09f53d9c7052a133d6ce6756",
+        "budget": {
+          "maxFiles": 5,
+          "maxCalls": 7,
+          "maxRetries": 1,
+          "requestTimeoutMs": 30000,
+          "analysisTimeoutMs": 240000,
+          "publishReserveMs": 30000,
+          "maxInputTokens": 8000,
+          "reservedOutputTokens": 800,
+          "localWindowLines": 4,
+          "maxDefinitionsPerFile": 2,
+          "maxDefinitionLines": 60
+        },
+        "analysisStatus": "COMPLETE",
+        "coverage": {
+          "supportedFiles": [
+            "src/discount-1.ts"
+          ],
+          "analyzedFiles": [
+            "src/discount-1.ts"
+          ],
+          "excludedFiles": []
+        },
+        "omissions": [],
+        "metrics": {
+          "model": "gpt-5.4-mini",
+          "effectiveParameters": {
+            "model": "gpt-5.4-mini",
+            "max_completion_tokens": 800,
+            "reasoning_effort": "none",
+            "response_format": {
+              "type": "json_object"
+            },
+            "maxRetries": 0
+          },
+          "promptVersion": "inspector-c-v1",
+          "durationMs": 1073,
+          "calls": 1,
+          "inputTokens": 240,
+          "outputTokens": 8,
+          "attempts": [
+            {
+              "file": "src/discount-1.ts",
+              "attempt": 1,
+              "timeoutMs": 30000,
+              "durationMs": 46,
+              "estimatedInputTokens": 272,
+              "reservedOutputTokens": 800,
+              "inputTokens": 240,
+              "outputTokens": 8,
+              "responseModel": "simulated-model",
+              "outcome": "RESPONSE"
+            }
+          ],
+          "tokenizerId": "js-tiktoken@1.0.21/o200k_base+chat-allowance-64"
+        },
+        "httpStatuses": [
+          200
+        ],
+        "evidence": [],
+        "findings": []
+      },
+      {
+        "scenario": "context-ok",
+        "mode": "context",
+        "baseSha": "1ac60c29c9b365584a444b55e2fa8273aa8cd21b",
+        "headSha": "f936752779283adb09f53d9c7052a133d6ce6756",
+        "budget": {
+          "maxFiles": 5,
+          "maxCalls": 7,
+          "maxRetries": 1,
+          "requestTimeoutMs": 30000,
+          "analysisTimeoutMs": 240000,
+          "publishReserveMs": 30000,
+          "maxInputTokens": 8000,
+          "reservedOutputTokens": 800,
+          "localWindowLines": 4,
+          "maxDefinitionsPerFile": 2,
+          "maxDefinitionLines": 60
+        },
+        "analysisStatus": "COMPLETE",
+        "coverage": {
+          "supportedFiles": [
+            "src/discount-1.ts"
+          ],
+          "analyzedFiles": [
+            "src/discount-1.ts"
+          ],
+          "excludedFiles": []
+        },
+        "omissions": [],
+        "metrics": {
+          "model": "gpt-5.4-mini",
+          "effectiveParameters": {
+            "model": "gpt-5.4-mini",
+            "max_completion_tokens": 800,
+            "reasoning_effort": "none",
+            "response_format": {
+              "type": "json_object"
+            },
+            "maxRetries": 0
+          },
+          "promptVersion": "inspector-c-v1",
+          "durationMs": 23,
+          "calls": 1,
+          "inputTokens": 240,
+          "outputTokens": 8,
+          "attempts": [
+            {
+              "file": "src/discount-1.ts",
+              "attempt": 1,
+              "timeoutMs": 30000,
+              "durationMs": 1,
+              "estimatedInputTokens": 437,
+              "reservedOutputTokens": 800,
+              "inputTokens": 240,
+              "outputTokens": 8,
+              "responseModel": "simulated-model",
+              "outcome": "RESPONSE"
+            }
+          ],
+          "tokenizerId": "js-tiktoken@1.0.21/o200k_base+chat-allowance-64"
+        },
+        "httpStatuses": [
+          200
+        ],
+        "evidence": [
+          {
+            "id": "C0",
+            "file": "src/discount-1.ts",
+            "ref": "f936752779283adb09f53d9c7052a133d6ce6756",
+            "startLine": 1,
+            "endLine": 5,
+            "reason": "local-window"
+          },
+          {
+            "id": "C1",
+            "file": "src/units.ts",
+            "ref": "f936752779283adb09f53d9c7052a133d6ce6756",
+            "startLine": 1,
+            "endLine": 3,
+            "reason": "direct-definition"
+          }
+        ],
+        "findings": []
+      },
+      {
+        "scenario": "retry-recovers",
+        "mode": "context",
+        "baseSha": "1ac60c29c9b365584a444b55e2fa8273aa8cd21b",
+        "headSha": "f936752779283adb09f53d9c7052a133d6ce6756",
+        "budget": {
+          "maxFiles": 5,
+          "maxCalls": 7,
+          "maxRetries": 1,
+          "requestTimeoutMs": 30000,
+          "analysisTimeoutMs": 240000,
+          "publishReserveMs": 30000,
+          "maxInputTokens": 8000,
+          "reservedOutputTokens": 800,
+          "localWindowLines": 4,
+          "maxDefinitionsPerFile": 2,
+          "maxDefinitionLines": 60
+        },
+        "analysisStatus": "COMPLETE",
+        "coverage": {
+          "supportedFiles": [
+            "src/discount-1.ts"
+          ],
+          "analyzedFiles": [
+            "src/discount-1.ts"
+          ],
+          "excludedFiles": []
+        },
+        "omissions": [],
+        "metrics": {
+          "model": "gpt-5.4-mini",
+          "effectiveParameters": {
+            "model": "gpt-5.4-mini",
+            "max_completion_tokens": 800,
+            "reasoning_effort": "none",
+            "response_format": {
+              "type": "json_object"
+            },
+            "maxRetries": 0
+          },
+          "promptVersion": "inspector-c-v1",
+          "durationMs": 262,
+          "calls": 2,
+          "inputTokens": null,
+          "outputTokens": null,
+          "attempts": [
+            {
+              "file": "src/discount-1.ts",
+              "attempt": 1,
+              "timeoutMs": 30000,
+              "durationMs": 2,
+              "estimatedInputTokens": 437,
+              "reservedOutputTokens": 800,
+              "inputTokens": null,
+              "outputTokens": null,
+              "responseModel": null,
+              "outcome": "RATE_LIMIT"
+            },
+            {
+              "file": "src/discount-1.ts",
+              "attempt": 2,
+              "timeoutMs": 30000,
+              "durationMs": 2,
+              "estimatedInputTokens": 437,
+              "reservedOutputTokens": 800,
+              "inputTokens": 240,
+              "outputTokens": 8,
+              "responseModel": "simulated-model",
+              "outcome": "RESPONSE"
+            }
+          ],
+          "tokenizerId": "js-tiktoken@1.0.21/o200k_base+chat-allowance-64"
+        },
+        "httpStatuses": [
+          429,
+          200
+        ],
+        "evidence": [
+          {
+            "id": "C0",
+            "file": "src/discount-1.ts",
+            "ref": "f936752779283adb09f53d9c7052a133d6ce6756",
+            "startLine": 1,
+            "endLine": 5,
+            "reason": "local-window"
+          },
+          {
+            "id": "C1",
+            "file": "src/units.ts",
+            "ref": "f936752779283adb09f53d9c7052a133d6ce6756",
+            "startLine": 1,
+            "endLine": 3,
+            "reason": "direct-definition"
+          }
+        ],
+        "findings": []
+      },
+      {
+        "scenario": "connection-recovers",
+        "mode": "diff-only",
+        "baseSha": "1ac60c29c9b365584a444b55e2fa8273aa8cd21b",
+        "headSha": "f936752779283adb09f53d9c7052a133d6ce6756",
+        "budget": {
+          "maxFiles": 5,
+          "maxCalls": 7,
+          "maxRetries": 1,
+          "requestTimeoutMs": 30000,
+          "analysisTimeoutMs": 240000,
+          "publishReserveMs": 30000,
+          "maxInputTokens": 8000,
+          "reservedOutputTokens": 800,
+          "localWindowLines": 4,
+          "maxDefinitionsPerFile": 2,
+          "maxDefinitionLines": 60
+        },
+        "analysisStatus": "COMPLETE",
+        "coverage": {
+          "supportedFiles": [
+            "src/discount-1.ts"
+          ],
+          "analyzedFiles": [
+            "src/discount-1.ts"
+          ],
+          "excludedFiles": []
+        },
+        "omissions": [],
+        "metrics": {
+          "model": "gpt-5.4-mini",
+          "effectiveParameters": {
+            "model": "gpt-5.4-mini",
+            "max_completion_tokens": 800,
+            "reasoning_effort": "none",
+            "response_format": {
+              "type": "json_object"
+            },
+            "maxRetries": 0
+          },
+          "promptVersion": "inspector-c-v1",
+          "durationMs": 264,
+          "calls": 2,
+          "inputTokens": null,
+          "outputTokens": null,
+          "attempts": [
+            {
+              "file": "src/discount-1.ts",
+              "attempt": 1,
+              "timeoutMs": 30000,
+              "durationMs": 2,
+              "estimatedInputTokens": 272,
+              "reservedOutputTokens": 800,
+              "inputTokens": null,
+              "outputTokens": null,
+              "responseModel": null,
+              "outcome": "SERVICE_ERROR"
+            },
+            {
+              "file": "src/discount-1.ts",
+              "attempt": 2,
+              "timeoutMs": 30000,
+              "durationMs": 2,
+              "estimatedInputTokens": 272,
+              "reservedOutputTokens": 800,
+              "inputTokens": 240,
+              "outputTokens": 8,
+              "responseModel": "simulated-model",
+              "outcome": "RESPONSE"
+            }
+          ],
+          "tokenizerId": "js-tiktoken@1.0.21/o200k_base+chat-allowance-64"
+        },
+        "httpStatuses": [
+          null,
+          200
+        ],
+        "evidence": [],
+        "findings": []
+      },
+      {
+        "scenario": "invalid-output",
+        "mode": "diff-only",
+        "baseSha": "1ac60c29c9b365584a444b55e2fa8273aa8cd21b",
+        "headSha": "f936752779283adb09f53d9c7052a133d6ce6756",
+        "budget": {
+          "maxFiles": 5,
+          "maxCalls": 7,
+          "maxRetries": 1,
+          "requestTimeoutMs": 30000,
+          "analysisTimeoutMs": 240000,
+          "publishReserveMs": 30000,
+          "maxInputTokens": 8000,
+          "reservedOutputTokens": 800,
+          "localWindowLines": 4,
+          "maxDefinitionsPerFile": 2,
+          "maxDefinitionLines": 60
+        },
+        "analysisStatus": "FAILED",
+        "coverage": {
+          "supportedFiles": [
+            "src/discount-1.ts"
+          ],
+          "analyzedFiles": [],
+          "excludedFiles": []
+        },
+        "omissions": [
+          {
+            "file": "src/discount-1.ts",
+            "stage": "model",
+            "reason": "INVALID_OUTPUT",
+            "required": true
+          }
+        ],
+        "metrics": {
+          "model": "gpt-5.4-mini",
+          "effectiveParameters": {
+            "model": "gpt-5.4-mini",
+            "max_completion_tokens": 800,
+            "reasoning_effort": "none",
+            "response_format": {
+              "type": "json_object"
+            },
+            "maxRetries": 0
+          },
+          "promptVersion": "inspector-c-v1",
+          "durationMs": 2,
+          "calls": 1,
+          "inputTokens": 240,
+          "outputTokens": 8,
+          "attempts": [
+            {
+              "file": "src/discount-1.ts",
+              "attempt": 1,
+              "timeoutMs": 30000,
+              "durationMs": 1,
+              "estimatedInputTokens": 272,
+              "reservedOutputTokens": 800,
+              "inputTokens": 240,
+              "outputTokens": 8,
+              "responseModel": "simulated-model",
+              "outcome": "INVALID_OUTPUT"
+            }
+          ],
+          "tokenizerId": "js-tiktoken@1.0.21/o200k_base+chat-allowance-64"
+        },
+        "httpStatuses": [
+          200
+        ],
+        "evidence": [],
+        "findings": []
+      },
+      {
+        "scenario": "timeout",
+        "mode": "diff-only",
+        "baseSha": "1ac60c29c9b365584a444b55e2fa8273aa8cd21b",
+        "headSha": "f936752779283adb09f53d9c7052a133d6ce6756",
+        "budget": {
+          "maxFiles": 5,
+          "maxCalls": 7,
+          "maxRetries": 0,
+          "requestTimeoutMs": 50,
+          "analysisTimeoutMs": 240000,
+          "publishReserveMs": 30000,
+          "maxInputTokens": 8000,
+          "reservedOutputTokens": 800,
+          "localWindowLines": 4,
+          "maxDefinitionsPerFile": 2,
+          "maxDefinitionLines": 60
+        },
+        "analysisStatus": "FAILED",
+        "coverage": {
+          "supportedFiles": [
+            "src/discount-1.ts"
+          ],
+          "analyzedFiles": [],
+          "excludedFiles": []
+        },
+        "omissions": [
+          {
+            "file": "src/discount-1.ts",
+            "stage": "model",
+            "reason": "TIMEOUT",
+            "required": true
+          }
+        ],
+        "metrics": {
+          "model": "gpt-5.4-mini",
+          "effectiveParameters": {
+            "model": "gpt-5.4-mini",
+            "max_completion_tokens": 800,
+            "reasoning_effort": "none",
+            "response_format": {
+              "type": "json_object"
+            },
+            "maxRetries": 0
+          },
+          "promptVersion": "inspector-c-v1",
+          "durationMs": 57,
+          "calls": 1,
+          "inputTokens": null,
+          "outputTokens": null,
+          "attempts": [
+            {
+              "file": "src/discount-1.ts",
+              "attempt": 1,
+              "timeoutMs": 50,
+              "durationMs": 56,
+              "estimatedInputTokens": 272,
+              "reservedOutputTokens": 800,
+              "inputTokens": null,
+              "outputTokens": null,
+              "responseModel": null,
+              "outcome": "TIMEOUT"
+            }
+          ],
+          "tokenizerId": "js-tiktoken@1.0.21/o200k_base+chat-allowance-64"
+        },
+        "httpStatuses": [
+          null
+        ],
+        "evidence": [],
+        "findings": []
+      },
+      {
+        "scenario": "call-limit",
+        "mode": "diff-only",
+        "baseSha": "1ac60c29c9b365584a444b55e2fa8273aa8cd21b",
+        "headSha": "f936752779283adb09f53d9c7052a133d6ce6756",
+        "budget": {
+          "maxFiles": 5,
+          "maxCalls": 1,
+          "maxRetries": 1,
+          "requestTimeoutMs": 30000,
+          "analysisTimeoutMs": 240000,
+          "publishReserveMs": 30000,
+          "maxInputTokens": 8000,
+          "reservedOutputTokens": 800,
+          "localWindowLines": 4,
+          "maxDefinitionsPerFile": 2,
+          "maxDefinitionLines": 60
+        },
+        "analysisStatus": "FAILED",
+        "coverage": {
+          "supportedFiles": [
+            "src/discount-1.ts"
+          ],
+          "analyzedFiles": [],
+          "excludedFiles": []
+        },
+        "omissions": [
+          {
+            "file": "src/discount-1.ts",
+            "stage": "model",
+            "reason": "CALL_BUDGET",
+            "required": true
+          }
+        ],
+        "metrics": {
+          "model": "gpt-5.4-mini",
+          "effectiveParameters": {
+            "model": "gpt-5.4-mini",
+            "max_completion_tokens": 800,
+            "reasoning_effort": "none",
+            "response_format": {
+              "type": "json_object"
+            },
+            "maxRetries": 0
+          },
+          "promptVersion": "inspector-c-v1",
+          "durationMs": 1,
+          "calls": 1,
+          "inputTokens": null,
+          "outputTokens": null,
+          "attempts": [
+            {
+              "file": "src/discount-1.ts",
+              "attempt": 1,
+              "timeoutMs": 30000,
+              "durationMs": 0,
+              "estimatedInputTokens": 272,
+              "reservedOutputTokens": 800,
+              "inputTokens": null,
+              "outputTokens": null,
+              "responseModel": null,
+              "outcome": "RATE_LIMIT"
+            }
+          ],
+          "tokenizerId": "js-tiktoken@1.0.21/o200k_base+chat-allowance-64"
+        },
+        "httpStatuses": [
+          429
+        ],
+        "evidence": [],
+        "findings": []
+      },
+      {
+        "scenario": "token-limit",
+        "mode": "context",
+        "baseSha": "1ac60c29c9b365584a444b55e2fa8273aa8cd21b",
+        "headSha": "f936752779283adb09f53d9c7052a133d6ce6756",
+        "budget": {
+          "maxFiles": 5,
+          "maxCalls": 7,
+          "maxRetries": 1,
+          "requestTimeoutMs": 30000,
+          "analysisTimeoutMs": 240000,
+          "publishReserveMs": 30000,
+          "maxInputTokens": 801,
+          "reservedOutputTokens": 800,
+          "localWindowLines": 4,
+          "maxDefinitionsPerFile": 2,
+          "maxDefinitionLines": 60
+        },
+        "analysisStatus": "FAILED",
+        "coverage": {
+          "supportedFiles": [
+            "src/discount-1.ts"
+          ],
+          "analyzedFiles": [],
+          "excludedFiles": []
+        },
+        "omissions": [
+          {
+            "file": "src/discount-1.ts",
+            "stage": "model",
+            "reason": "TOKEN_BUDGET",
+            "required": true
+          }
+        ],
+        "metrics": {
+          "model": "gpt-5.4-mini",
+          "effectiveParameters": {
+            "model": "gpt-5.4-mini",
+            "max_completion_tokens": 800,
+            "reasoning_effort": "none",
+            "response_format": {
+              "type": "json_object"
+            },
+            "maxRetries": 0
+          },
+          "promptVersion": "inspector-c-v1",
+          "durationMs": 3,
+          "calls": 0,
+          "inputTokens": 0,
+          "outputTokens": 0,
+          "attempts": [],
+          "tokenizerId": "js-tiktoken@1.0.21/o200k_base+chat-allowance-64"
+        },
+        "httpStatuses": [],
+        "evidence": [
+          {
+            "id": "C0",
+            "file": "src/discount-1.ts",
+            "ref": "f936752779283adb09f53d9c7052a133d6ce6756",
+            "startLine": 1,
+            "endLine": 5,
+            "reason": "local-window"
+          },
+          {
+            "id": "C1",
+            "file": "src/units.ts",
+            "ref": "f936752779283adb09f53d9c7052a133d6ce6756",
+            "startLine": 1,
+            "endLine": 3,
+            "reason": "direct-definition"
+          }
+        ],
+        "findings": []
+      },
+      {
+        "scenario": "file-limit",
+        "mode": "diff-only",
+        "baseSha": "2eb8e83831385ca0ea8fcfeb4afc3da612ae7257",
+        "headSha": "c48a98a0bf59190e73a8198f84892732df319154",
+        "budget": {
+          "maxFiles": 5,
+          "maxCalls": 7,
+          "maxRetries": 1,
+          "requestTimeoutMs": 30000,
+          "analysisTimeoutMs": 240000,
+          "publishReserveMs": 30000,
+          "maxInputTokens": 8000,
+          "reservedOutputTokens": 800,
+          "localWindowLines": 4,
+          "maxDefinitionsPerFile": 2,
+          "maxDefinitionLines": 60
+        },
+        "analysisStatus": "PARTIAL",
+        "coverage": {
+          "supportedFiles": [
+            "src/discount-1.ts",
+            "src/discount-2.ts",
+            "src/discount-3.ts",
+            "src/discount-4.ts",
+            "src/discount-5.ts",
+            "src/discount-6.ts"
+          ],
+          "analyzedFiles": [
+            "src/discount-1.ts",
+            "src/discount-2.ts",
+            "src/discount-3.ts",
+            "src/discount-4.ts",
+            "src/discount-5.ts"
+          ],
+          "excludedFiles": []
+        },
+        "omissions": [
+          {
+            "file": "src/discount-6.ts",
+            "stage": "model",
+            "reason": "FILE_BUDGET",
+            "required": true
+          }
+        ],
+        "metrics": {
+          "model": "gpt-5.4-mini",
+          "effectiveParameters": {
+            "model": "gpt-5.4-mini",
+            "max_completion_tokens": 800,
+            "reasoning_effort": "none",
+            "response_format": {
+              "type": "json_object"
+            },
+            "maxRetries": 0
+          },
+          "promptVersion": "inspector-c-v1",
+          "durationMs": 8,
+          "calls": 5,
+          "inputTokens": 1200,
+          "outputTokens": 40,
+          "attempts": [
+            {
+              "file": "src/discount-1.ts",
+              "attempt": 1,
+              "timeoutMs": 30000,
+              "durationMs": 1,
+              "estimatedInputTokens": 272,
+              "reservedOutputTokens": 800,
+              "inputTokens": 240,
+              "outputTokens": 8,
+              "responseModel": "simulated-model",
+              "outcome": "RESPONSE"
+            },
+            {
+              "file": "src/discount-2.ts",
+              "attempt": 1,
+              "timeoutMs": 30000,
+              "durationMs": 0,
+              "estimatedInputTokens": 272,
+              "reservedOutputTokens": 800,
+              "inputTokens": 240,
+              "outputTokens": 8,
+              "responseModel": "simulated-model",
+              "outcome": "RESPONSE"
+            },
+            {
+              "file": "src/discount-3.ts",
+              "attempt": 1,
+              "timeoutMs": 30000,
+              "durationMs": 1,
+              "estimatedInputTokens": 272,
+              "reservedOutputTokens": 800,
+              "inputTokens": 240,
+              "outputTokens": 8,
+              "responseModel": "simulated-model",
+              "outcome": "RESPONSE"
+            },
+            {
+              "file": "src/discount-4.ts",
+              "attempt": 1,
+              "timeoutMs": 30000,
+              "durationMs": 0,
+              "estimatedInputTokens": 272,
+              "reservedOutputTokens": 800,
+              "inputTokens": 240,
+              "outputTokens": 8,
+              "responseModel": "simulated-model",
+              "outcome": "RESPONSE"
+            },
+            {
+              "file": "src/discount-5.ts",
+              "attempt": 1,
+              "timeoutMs": 30000,
+              "durationMs": 0,
+              "estimatedInputTokens": 272,
+              "reservedOutputTokens": 800,
+              "inputTokens": 240,
+              "outputTokens": 8,
+              "responseModel": "simulated-model",
+              "outcome": "RESPONSE"
+            }
+          ],
+          "tokenizerId": "js-tiktoken@1.0.21/o200k_base+chat-allowance-64"
+        },
+        "httpStatuses": [
+          200,
+          200,
+          200,
+          200,
+          200
+        ],
+        "evidence": [],
+        "findings": []
+      }
+    ]
+  },
+  "live": {
+    "transport": "openai-compatible-api",
+    "startedAt": "2026-11-17T03:39:34.120Z",
+    "node": "v24.14.0",
+    "runs": [
+      {
+        "scenario": "live-diff-only",
+        "mode": "diff-only",
+        "baseSha": "1ac60c29c9b365584a444b55e2fa8273aa8cd21b",
+        "headSha": "f936752779283adb09f53d9c7052a133d6ce6756",
+        "budget": {
+          "maxFiles": 5,
+          "maxCalls": 7,
+          "maxRetries": 1,
+          "requestTimeoutMs": 30000,
+          "analysisTimeoutMs": 240000,
+          "publishReserveMs": 30000,
+          "maxInputTokens": 8000,
+          "reservedOutputTokens": 800,
+          "localWindowLines": 4,
+          "maxDefinitionsPerFile": 2,
+          "maxDefinitionLines": 60
+        },
+        "analysisStatus": "FAILED",
+        "coverage": {
+          "supportedFiles": [
+            "src/discount-1.ts"
+          ],
+          "analyzedFiles": [],
+          "excludedFiles": []
+        },
+        "omissions": [
+          {
+            "file": "src/discount-1.ts",
+            "stage": "model",
+            "reason": "SERVICE_ERROR",
+            "required": true
+          }
+        ],
+        "metrics": {
+          "model": "gpt-5.4-mini",
+          "effectiveParameters": {
+            "model": "gpt-5.4-mini",
+            "max_completion_tokens": 800,
+            "reasoning_effort": "none",
+            "response_format": {
+              "type": "json_object"
+            },
+            "maxRetries": 0
+          },
+          "promptVersion": "inspector-c-v1",
+          "durationMs": 1934,
+          "calls": 1,
+          "inputTokens": null,
+          "outputTokens": null,
+          "attempts": [
+            {
+              "file": "src/discount-1.ts",
+              "attempt": 1,
+              "timeoutMs": 30000,
+              "durationMs": 850,
+              "estimatedInputTokens": 272,
+              "reservedOutputTokens": 800,
+              "inputTokens": null,
+              "outputTokens": null,
+              "responseModel": null,
+              "outcome": "SERVICE_ERROR"
+            }
+          ],
+          "tokenizerId": "js-tiktoken@1.0.21/o200k_base+chat-allowance-64"
+        },
+        "httpStatuses": [
+          403
+        ],
+        "evidence": [],
+        "findings": []
+      },
+      {
+        "scenario": "live-context",
+        "mode": "context",
+        "baseSha": "1ac60c29c9b365584a444b55e2fa8273aa8cd21b",
+        "headSha": "f936752779283adb09f53d9c7052a133d6ce6756",
+        "budget": {
+          "maxFiles": 5,
+          "maxCalls": 7,
+          "maxRetries": 1,
+          "requestTimeoutMs": 30000,
+          "analysisTimeoutMs": 240000,
+          "publishReserveMs": 30000,
+          "maxInputTokens": 8000,
+          "reservedOutputTokens": 800,
+          "localWindowLines": 4,
+          "maxDefinitionsPerFile": 2,
+          "maxDefinitionLines": 60
+        },
+        "analysisStatus": "FAILED",
+        "coverage": {
+          "supportedFiles": [
+            "src/discount-1.ts"
+          ],
+          "analyzedFiles": [],
+          "excludedFiles": []
+        },
+        "omissions": [
+          {
+            "file": "src/discount-1.ts",
+            "stage": "model",
+            "reason": "SERVICE_ERROR",
+            "required": true
+          }
+        ],
+        "metrics": {
+          "model": "gpt-5.4-mini",
+          "effectiveParameters": {
+            "model": "gpt-5.4-mini",
+            "max_completion_tokens": 800,
+            "reasoning_effort": "none",
+            "response_format": {
+              "type": "json_object"
+            },
+            "maxRetries": 0
+          },
+          "promptVersion": "inspector-c-v1",
+          "durationMs": 470,
+          "calls": 1,
+          "inputTokens": null,
+          "outputTokens": null,
+          "attempts": [
+            {
+              "file": "src/discount-1.ts",
+              "attempt": 1,
+              "timeoutMs": 30000,
+              "durationMs": 441,
+              "estimatedInputTokens": 437,
+              "reservedOutputTokens": 800,
+              "inputTokens": null,
+              "outputTokens": null,
+              "responseModel": null,
+              "outcome": "SERVICE_ERROR"
+            }
+          ],
+          "tokenizerId": "js-tiktoken@1.0.21/o200k_base+chat-allowance-64"
+        },
+        "httpStatuses": [
+          403
+        ],
+        "evidence": [
+          {
+            "id": "C0",
+            "file": "src/discount-1.ts",
+            "ref": "f936752779283adb09f53d9c7052a133d6ce6756",
+            "startLine": 1,
+            "endLine": 5,
+            "reason": "local-window"
+          },
+          {
+            "id": "C1",
+            "file": "src/units.ts",
+            "ref": "f936752779283adb09f53d9c7052a133d6ce6756",
+            "startLine": 1,
+            "endLine": 3,
+            "reason": "direct-definition"
+          }
+        ],
+        "findings": []
+      }
+    ],
+    "diagnosis": {
+      "httpStatus": 403,
+      "code": "codex_billing_source_unavailable",
+      "result": "Provider rejected both attempts. Application did not receive a completion."
+    }
+  },
+  "previousProvider": {
+    "transport": "github-models-api",
+    "startedAt": "2026-11-17T03:35:28.022Z",
+    "statusProbe": {
+      "httpStatus": 200,
+      "contentType": "text/plain",
+      "bytes": 4
+    },
+    "runs": [
+      {
+        "mode": "diff-only",
+        "calls": 1,
+        "httpStatuses": [
+          200
+        ],
+        "analysisStatus": "FAILED",
+        "omissions": [
+          {
+            "file": "src/discount-1.ts",
+            "stage": "model",
+            "reason": "INVALID_OUTPUT",
+            "required": true
+          }
+        ]
+      },
+      {
+        "mode": "context",
+        "calls": 1,
+        "httpStatuses": [
+          200
+        ],
+        "analysisStatus": "FAILED",
+        "omissions": [
+          {
+            "file": "src/discount-1.ts",
+            "stage": "model",
+            "reason": "INVALID_OUTPUT",
+            "required": true
+          }
+        ]
+      }
+    ],
+    "retirementNotice": "https://github.blog/changelog/2026-07-30-github-models-is-now-retired/"
+  }
+}

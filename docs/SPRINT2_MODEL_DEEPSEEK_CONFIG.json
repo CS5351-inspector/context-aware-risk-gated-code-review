@@ -1,0 +1,30 @@
+{
+  "fixture": "discount-double-conversion-v1",
+  "ruleVersion": "inspector-sprint2-v1",
+  "promptVersion": "inspector-c-v1",
+  "tokenizer": "@huggingface/tokenizers@0.2.0/DeepSeek-V4.1-Flash-1017@08c8657f02291e11b6f6b63e0e16014f8e748518+chat-allowance-64",
+  "chatFramingAllowance": 64,
+  "request": {
+    "model": "deepseek-flash",
+    "thinking": {
+      "type": "disabled"
+    }
+  },
+  "baseURL": "https://api.deepseek.com",
+  "responseFormat": "json_object",
+  "outputLimitField": "max_tokens",
+  "sdkMaxRetries": 0,
+  "budget": {
+    "maxFiles": 5,
+    "maxCalls": 7,
+    "maxRetries": 1,
+    "requestTimeoutMs": 30000,
+    "analysisTimeoutMs": 240000,
+    "publishReserveMs": 30000,
+    "maxInputTokens": 8000,
+    "reservedOutputTokens": 800,
+    "localWindowLines": 4,
+    "maxDefinitionsPerFile": 2,
+    "maxDefinitionLines": 60
+  }
+}

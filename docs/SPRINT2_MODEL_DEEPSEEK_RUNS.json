@@ -1,0 +1,718 @@
+{
+  "fixture": "discount-double-conversion-v1",
+  "transport": "simulated-sdk-fetch",
+  "startedAt": "2026-11-17T04:45:04.663Z",
+  "node": "v24.14.0",
+  "configuration": "SPRINT2_MODEL_DEEPSEEK_CONFIG.json",
+  "usageSource": "fixture; local tokenizer estimates are real, completion usage is scripted",
+  "runs": [
+    {
+      "scenario": "diff-only-ok",
+      "mode": "diff-only",
+      "headSha": "f936752779283adb09f53d9c7052a133d6ce6756",
+      "analysisStatus": "COMPLETE",
+      "httpStatuses": [
+        200
+      ],
+      "coverage": {
+        "supportedFiles": [
+          "src/discount-1.ts"
+        ],
+        "analyzedFiles": [
+          "src/discount-1.ts"
+        ],
+        "excludedFiles": []
+      },
+      "omissions": [],
+      "metrics": {
+        "model": "deepseek-flash",
+        "effectiveParameters": {
+          "model": "deepseek-flash",
+          "max_tokens": 800,
+          "thinking": {
+            "type": "disabled"
+          },
+          "response_format": {
+            "type": "json_object"
+          },
+          "maxRetries": 0
+        },
+        "promptVersion": "inspector-c-v1",
+        "durationMs": 48,
+        "calls": 1,
+        "inputTokens": 240,
+        "outputTokens": 8,
+        "attempts": [
+          {
+            "file": "src/discount-1.ts",
+            "attempt": 1,
+            "timeoutMs": 30000,
+            "durationMs": 36,
+            "estimatedInputTokens": 288,
+            "reservedOutputTokens": 800,
+            "inputTokens": 240,
+            "outputTokens": 8,
+            "responseModel": "simulated-model",
+            "outcome": "RESPONSE"
+          }
+        ],
+        "tokenizerId": "@huggingface/tokenizers@0.2.0/DeepSeek-V4.1-Flash-1017@08c8657f02291e11b6f6b63e0e16014f8e748518+chat-allowance-64"
+      }
+    },
+    {
+      "scenario": "context-ok",
+      "mode": "context",
+      "headSha": "f936752779283adb09f53d9c7052a133d6ce6756",
+      "analysisStatus": "COMPLETE",
+      "httpStatuses": [
+        200
+      ],
+      "coverage": {
+        "supportedFiles": [
+          "src/discount-1.ts"
+        ],
+        "analyzedFiles": [
+          "src/discount-1.ts"
+        ],
+        "excludedFiles": []
+      },
+      "omissions": [],
+      "metrics": {
+        "model": "deepseek-flash",
+        "effectiveParameters": {
+          "model": "deepseek-flash",
+          "max_tokens": 800,
+          "thinking": {
+            "type": "disabled"
+          },
+          "response_format": {
+            "type": "json_object"
+          },
+          "maxRetries": 0
+        },
+        "promptVersion": "inspector-c-v1",
+        "durationMs": 22,
+        "calls": 1,
+        "inputTokens": 240,
+        "outputTokens": 8,
+        "attempts": [
+          {
+            "file": "src/discount-1.ts",
+            "attempt": 1,
+            "timeoutMs": 30000,
+            "durationMs": 1,
+            "estimatedInputTokens": 463,
+            "reservedOutputTokens": 800,
+            "inputTokens": 240,
+            "outputTokens": 8,
+            "responseModel": "simulated-model",
+            "outcome": "RESPONSE"
+          }
+        ],
+        "tokenizerId": "@huggingface/tokenizers@0.2.0/DeepSeek-V4.1-Flash-1017@08c8657f02291e11b6f6b63e0e16014f8e748518+chat-allowance-64"
+      }
+    },
+    {
+      "scenario": "retry-recovers",
+      "mode": "context",
+      "headSha": "f936752779283adb09f53d9c7052a133d6ce6756",
+      "analysisStatus": "COMPLETE",
+      "httpStatuses": [
+        429,
+        200
+      ],
+      "coverage": {
+        "supportedFiles": [
+          "src/discount-1.ts"
+        ],
+        "analyzedFiles": [
+          "src/discount-1.ts"
+        ],
+        "excludedFiles": []
+      },
+      "omissions": [],
+      "metrics": {
+        "model": "deepseek-flash",
+        "effectiveParameters": {
+          "model": "deepseek-flash",
+          "max_tokens": 800,
+          "thinking": {
+            "type": "disabled"
+          },
+          "response_format": {
+            "type": "json_object"
+          },
+          "maxRetries": 0
+        },
+        "promptVersion": "inspector-c-v1",
+        "durationMs": 270,
+        "calls": 2,
+        "inputTokens": null,
+        "outputTokens": null,
+        "attempts": [
+          {
+            "file": "src/discount-1.ts",
+            "attempt": 1,
+            "timeoutMs": 30000,
+            "durationMs": 2,
+            "estimatedInputTokens": 463,
+            "reservedOutputTokens": 800,
+            "inputTokens": null,
+            "outputTokens": null,
+            "responseModel": null,
+            "outcome": "RATE_LIMIT"
+          },
+          {
+            "file": "src/discount-1.ts",
+            "attempt": 2,
+            "timeoutMs": 30000,
+            "durationMs": 3,
+            "estimatedInputTokens": 463,
+            "reservedOutputTokens": 800,
+            "inputTokens": 240,
+            "outputTokens": 8,
+            "responseModel": "simulated-model",
+            "outcome": "RESPONSE"
+          }
+        ],
+        "tokenizerId": "@huggingface/tokenizers@0.2.0/DeepSeek-V4.1-Flash-1017@08c8657f02291e11b6f6b63e0e16014f8e748518+chat-allowance-64"
+      }
+    },
+    {
+      "scenario": "connection-recovers",
+      "mode": "diff-only",
+      "headSha": "f936752779283adb09f53d9c7052a133d6ce6756",
+      "analysisStatus": "COMPLETE",
+      "httpStatuses": [
+        null,
+        200
+      ],
+      "coverage": {
+        "supportedFiles": [
+          "src/discount-1.ts"
+        ],
+        "analyzedFiles": [
+          "src/discount-1.ts"
+        ],
+        "excludedFiles": []
+      },
+      "omissions": [],
+      "metrics": {
+        "model": "deepseek-flash",
+        "effectiveParameters": {
+          "model": "deepseek-flash",
+          "max_tokens": 800,
+          "thinking": {
+            "type": "disabled"
+          },
+          "response_format": {
+            "type": "json_object"
+          },
+          "maxRetries": 0
+        },
+        "promptVersion": "inspector-c-v1",
+        "durationMs": 271,
+        "calls": 2,
+        "inputTokens": null,
+        "outputTokens": null,
+        "attempts": [
+          {
+            "file": "src/discount-1.ts",
+            "attempt": 1,
+            "timeoutMs": 30000,
+            "durationMs": 2,
+            "estimatedInputTokens": 288,
+            "reservedOutputTokens": 800,
+            "inputTokens": null,
+            "outputTokens": null,
+            "responseModel": null,
+            "outcome": "SERVICE_ERROR"
+          },
+          {
+            "file": "src/discount-1.ts",
+            "attempt": 2,
+            "timeoutMs": 30000,
+            "durationMs": 1,
+            "estimatedInputTokens": 288,
+            "reservedOutputTokens": 800,
+            "inputTokens": 240,
+            "outputTokens": 8,
+            "responseModel": "simulated-model",
+            "outcome": "RESPONSE"
+          }
+        ],
+        "tokenizerId": "@huggingface/tokenizers@0.2.0/DeepSeek-V4.1-Flash-1017@08c8657f02291e11b6f6b63e0e16014f8e748518+chat-allowance-64"
+      }
+    },
+    {
+      "scenario": "invalid-output",
+      "mode": "diff-only",
+      "headSha": "f936752779283adb09f53d9c7052a133d6ce6756",
+      "analysisStatus": "FAILED",
+      "httpStatuses": [
+        200
+      ],
+      "coverage": {
+        "supportedFiles": [
+          "src/discount-1.ts"
+        ],
+        "analyzedFiles": [],
+        "excludedFiles": []
+      },
+      "omissions": [
+        {
+          "file": "src/discount-1.ts",
+          "stage": "model",
+          "reason": "INVALID_OUTPUT",
+          "required": true
+        }
+      ],
+      "metrics": {
+        "model": "deepseek-flash",
+        "effectiveParameters": {
+          "model": "deepseek-flash",
+          "max_tokens": 800,
+          "thinking": {
+            "type": "disabled"
+          },
+          "response_format": {
+            "type": "json_object"
+          },
+          "maxRetries": 0
+        },
+        "promptVersion": "inspector-c-v1",
+        "durationMs": 2,
+        "calls": 1,
+        "inputTokens": 240,
+        "outputTokens": 8,
+        "attempts": [
+          {
+            "file": "src/discount-1.ts",
+            "attempt": 1,
+            "timeoutMs": 30000,
+            "durationMs": 1,
+            "estimatedInputTokens": 288,
+            "reservedOutputTokens": 800,
+            "inputTokens": 240,
+            "outputTokens": 8,
+            "responseModel": "simulated-model",
+            "outcome": "INVALID_OUTPUT"
+          }
+        ],
+        "tokenizerId": "@huggingface/tokenizers@0.2.0/DeepSeek-V4.1-Flash-1017@08c8657f02291e11b6f6b63e0e16014f8e748518+chat-allowance-64"
+      }
+    },
+    {
+      "scenario": "timeout",
+      "mode": "diff-only",
+      "headSha": "f936752779283adb09f53d9c7052a133d6ce6756",
+      "analysisStatus": "FAILED",
+      "httpStatuses": [
+        null
+      ],
+      "coverage": {
+        "supportedFiles": [
+          "src/discount-1.ts"
+        ],
+        "analyzedFiles": [],
+        "excludedFiles": []
+      },
+      "omissions": [
+        {
+          "file": "src/discount-1.ts",
+          "stage": "model",
+          "reason": "TIMEOUT",
+          "required": true
+        }
+      ],
+      "metrics": {
+        "model": "deepseek-flash",
+        "effectiveParameters": {
+          "model": "deepseek-flash",
+          "max_tokens": 800,
+          "thinking": {
+            "type": "disabled"
+          },
+          "response_format": {
+            "type": "json_object"
+          },
+          "maxRetries": 0
+        },
+        "promptVersion": "inspector-c-v1",
+        "durationMs": 57,
+        "calls": 1,
+        "inputTokens": null,
+        "outputTokens": null,
+        "attempts": [
+          {
+            "file": "src/discount-1.ts",
+            "attempt": 1,
+            "timeoutMs": 50,
+            "durationMs": 56,
+            "estimatedInputTokens": 288,
+            "reservedOutputTokens": 800,
+            "inputTokens": null,
+            "outputTokens": null,
+            "responseModel": null,
+            "outcome": "TIMEOUT"
+          }
+        ],
+        "tokenizerId": "@huggingface/tokenizers@0.2.0/DeepSeek-V4.1-Flash-1017@08c8657f02291e11b6f6b63e0e16014f8e748518+chat-allowance-64"
+      }
+    },
+    {
+      "scenario": "call-limit",
+      "mode": "diff-only",
+      "headSha": "f936752779283adb09f53d9c7052a133d6ce6756",
+      "analysisStatus": "FAILED",
+      "httpStatuses": [
+        429
+      ],
+      "coverage": {
+        "supportedFiles": [
+          "src/discount-1.ts"
+        ],
+        "analyzedFiles": [],
+        "excludedFiles": []
+      },
+      "omissions": [
+        {
+          "file": "src/discount-1.ts",
+          "stage": "model",
+          "reason": "CALL_BUDGET",
+          "required": true
+        }
+      ],
+      "metrics": {
+        "model": "deepseek-flash",
+        "effectiveParameters": {
+          "model": "deepseek-flash",
+          "max_tokens": 800,
+          "thinking": {
+            "type": "disabled"
+          },
+          "response_format": {
+            "type": "json_object"
+          },
+          "maxRetries": 0
+        },
+        "promptVersion": "inspector-c-v1",
+        "durationMs": 2,
+        "calls": 1,
+        "inputTokens": null,
+        "outputTokens": null,
+        "attempts": [
+          {
+            "file": "src/discount-1.ts",
+            "attempt": 1,
+            "timeoutMs": 30000,
+            "durationMs": 1,
+            "estimatedInputTokens": 288,
+            "reservedOutputTokens": 800,
+            "inputTokens": null,
+            "outputTokens": null,
+            "responseModel": null,
+            "outcome": "RATE_LIMIT"
+          }
+        ],
+        "tokenizerId": "@huggingface/tokenizers@0.2.0/DeepSeek-V4.1-Flash-1017@08c8657f02291e11b6f6b63e0e16014f8e748518+chat-allowance-64"
+      }
+    },
+    {
+      "scenario": "token-limit",
+      "mode": "context",
+      "headSha": "f936752779283adb09f53d9c7052a133d6ce6756",
+      "analysisStatus": "FAILED",
+      "httpStatuses": [],
+      "coverage": {
+        "supportedFiles": [
+          "src/discount-1.ts"
+        ],
+        "analyzedFiles": [],
+        "excludedFiles": []
+      },
+      "omissions": [
+        {
+          "file": "src/discount-1.ts",
+          "stage": "model",
+          "reason": "TOKEN_BUDGET",
+          "required": true
+        }
+      ],
+      "metrics": {
+        "model": "deepseek-flash",
+        "effectiveParameters": {
+          "model": "deepseek-flash",
+          "max_tokens": 800,
+          "thinking": {
+            "type": "disabled"
+          },
+          "response_format": {
+            "type": "json_object"
+          },
+          "maxRetries": 0
+        },
+        "promptVersion": "inspector-c-v1",
+        "durationMs": 4,
+        "calls": 0,
+        "inputTokens": 0,
+        "outputTokens": 0,
+        "attempts": [],
+        "tokenizerId": "@huggingface/tokenizers@0.2.0/DeepSeek-V4.1-Flash-1017@08c8657f02291e11b6f6b63e0e16014f8e748518+chat-allowance-64"
+      }
+    },
+    {
+      "scenario": "file-limit",
+      "mode": "diff-only",
+      "headSha": "c48a98a0bf59190e73a8198f84892732df319154",
+      "analysisStatus": "PARTIAL",
+      "httpStatuses": [
+        200,
+        200,
+        200,
+        200,
+        200
+      ],
+      "coverage": {
+        "supportedFiles": [
+          "src/discount-1.ts",
+          "src/discount-2.ts",
+          "src/discount-3.ts",
+          "src/discount-4.ts",
+          "src/discount-5.ts",
+          "src/discount-6.ts"
+        ],
+        "analyzedFiles": [
+          "src/discount-1.ts",
+          "src/discount-2.ts",
+          "src/discount-3.ts",
+          "src/discount-4.ts",
+          "src/discount-5.ts"
+        ],
+        "excludedFiles": []
+      },
+      "omissions": [
+        {
+          "file": "src/discount-6.ts",
+          "stage": "model",
+          "reason": "FILE_BUDGET",
+          "required": true
+        }
+      ],
+      "metrics": {
+        "model": "deepseek-flash",
+        "effectiveParameters": {
+          "model": "deepseek-flash",
+          "max_tokens": 800,
+          "thinking": {
+            "type": "disabled"
+          },
+          "response_format": {
+            "type": "json_object"
+          },
+          "maxRetries": 0
+        },
+        "promptVersion": "inspector-c-v1",
+        "durationMs": 13,
+        "calls": 5,
+        "inputTokens": 1200,
+        "outputTokens": 40,
+        "attempts": [
+          {
+            "file": "src/discount-1.ts",
+            "attempt": 1,
+            "timeoutMs": 30000,
+            "durationMs": 1,
+            "estimatedInputTokens": 288,
+            "reservedOutputTokens": 800,
+            "inputTokens": 240,
+            "outputTokens": 8,
+            "responseModel": "simulated-model",
+            "outcome": "RESPONSE"
+          },
+          {
+            "file": "src/discount-2.ts",
+            "attempt": 1,
+            "timeoutMs": 30000,
+            "durationMs": 1,
+            "estimatedInputTokens": 288,
+            "reservedOutputTokens": 800,
+            "inputTokens": 240,
+            "outputTokens": 8,
+            "responseModel": "simulated-model",
+            "outcome": "RESPONSE"
+          },
+          {
+            "file": "src/discount-3.ts",
+            "attempt": 1,
+            "timeoutMs": 30000,
+            "durationMs": 2,
+            "estimatedInputTokens": 288,
+            "reservedOutputTokens": 800,
+            "inputTokens": 240,
+            "outputTokens": 8,
+            "responseModel": "simulated-model",
+            "outcome": "RESPONSE"
+          },
+          {
+            "file": "src/discount-4.ts",
+            "attempt": 1,
+            "timeoutMs": 30000,
+            "durationMs": 2,
+            "estimatedInputTokens": 288,
+            "reservedOutputTokens": 800,
+            "inputTokens": 240,
+            "outputTokens": 8,
+            "responseModel": "simulated-model",
+            "outcome": "RESPONSE"
+          },
+          {
+            "file": "src/discount-5.ts",
+            "attempt": 1,
+            "timeoutMs": 30000,
+            "durationMs": 1,
+            "estimatedInputTokens": 288,
+            "reservedOutputTokens": 800,
+            "inputTokens": 240,
+            "outputTokens": 8,
+            "responseModel": "simulated-model",
+            "outcome": "RESPONSE"
+          }
+        ],
+        "tokenizerId": "@huggingface/tokenizers@0.2.0/DeepSeek-V4.1-Flash-1017@08c8657f02291e11b6f6b63e0e16014f8e748518+chat-allowance-64"
+      }
+    }
+  ],
+  "liveAttempts": [
+    {
+      "transport": "deepseek-api",
+      "sourceCommit": "a350bfe9280462eae90069fb25782d2089cc4d38",
+      "startedAt": "2026-11-17T05:29:57.379Z",
+      "node": "v24.14.0",
+      "endpoint": "https://api.deepseek.com",
+      "authProbe": {
+        "path": "/models",
+        "httpStatus": 401,
+        "errorType": "authentication_error"
+      },
+      "runs": [
+        {
+          "scenario": "live-diff-only",
+          "mode": "diff-only",
+          "headSha": "f936752779283adb09f53d9c7052a133d6ce6756",
+          "analysisStatus": "FAILED",
+          "httpStatuses": [
+            401
+          ],
+          "coverage": {
+            "supportedFiles": [
+              "src/discount-1.ts"
+            ],
+            "analyzedFiles": [],
+            "excludedFiles": []
+          },
+          "omissions": [
+            {
+              "file": "src/discount-1.ts",
+              "stage": "model",
+              "reason": "SERVICE_ERROR",
+              "required": true
+            }
+          ],
+          "metrics": {
+            "model": "deepseek-flash",
+            "effectiveParameters": {
+              "model": "deepseek-flash",
+              "max_tokens": 800,
+              "thinking": {
+                "type": "disabled"
+              },
+              "response_format": {
+                "type": "json_object"
+              },
+              "maxRetries": 0
+            },
+            "promptVersion": "inspector-c-v1",
+            "durationMs": 1220,
+            "calls": 1,
+            "inputTokens": null,
+            "outputTokens": null,
+            "attempts": [
+              {
+                "file": "src/discount-1.ts",
+                "attempt": 1,
+                "timeoutMs": 30000,
+                "durationMs": 1209,
+                "estimatedInputTokens": 288,
+                "reservedOutputTokens": 800,
+                "inputTokens": null,
+                "outputTokens": null,
+                "responseModel": null,
+                "outcome": "SERVICE_ERROR"
+              }
+            ],
+            "tokenizerId": "@huggingface/tokenizers@0.2.0/DeepSeek-V4.1-Flash-1017@08c8657f02291e11b6f6b63e0e16014f8e748518+chat-allowance-64"
+          }
+        },
+        {
+          "scenario": "live-context",
+          "mode": "context",
+          "headSha": "f936752779283adb09f53d9c7052a133d6ce6756",
+          "analysisStatus": "FAILED",
+          "httpStatuses": [
+            401
+          ],
+          "coverage": {
+            "supportedFiles": [
+              "src/discount-1.ts"
+            ],
+            "analyzedFiles": [],
+            "excludedFiles": []
+          },
+          "omissions": [
+            {
+              "file": "src/discount-1.ts",
+              "stage": "model",
+              "reason": "SERVICE_ERROR",
+              "required": true
+            }
+          ],
+          "metrics": {
+            "model": "deepseek-flash",
+            "effectiveParameters": {
+              "model": "deepseek-flash",
+              "max_tokens": 800,
+              "thinking": {
+                "type": "disabled"
+              },
+              "response_format": {
+                "type": "json_object"
+              },
+              "maxRetries": 0
+            },
+            "promptVersion": "inspector-c-v1",
+            "durationMs": 569,
+            "calls": 1,
+            "inputTokens": null,
+            "outputTokens": null,
+            "attempts": [
+              {
+                "file": "src/discount-1.ts",
+                "attempt": 1,
+                "timeoutMs": 30000,
+                "durationMs": 551,
+                "estimatedInputTokens": 463,
+                "reservedOutputTokens": 800,
+                "inputTokens": null,
+                "outputTokens": null,
+                "responseModel": null,
+                "outcome": "SERVICE_ERROR"
+              }
+            ],
+            "tokenizerId": "@huggingface/tokenizers@0.2.0/DeepSeek-V4.1-Flash-1017@08c8657f02291e11b6f6b63e0e16014f8e748518+chat-allowance-64"
+          }
+        }
+      ]
+    }
+  ]
+}

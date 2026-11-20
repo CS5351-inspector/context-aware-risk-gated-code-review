@@ -1,4 +1,5 @@
 /** C 的离线边界测试：模拟服务行为，不调用真实模型，不用自造答案证明准确率。 */
+import { APIConnectionError, APIConnectionTimeoutError } from 'openai';
 import { Chat } from '../src/chat';
 import { convertFindings, patchLines } from '../src/review/findings';
 import { buildModelPrompt, deriveModelStatus, reviewFiles } from '../src/review/model-review';
@@ -7,7 +8,8 @@ import type { ContextSnippet, ModelBudget, ModelInput } from '../src/review/mode
 
 jest.mock('openai', () => {
   const mockCreate = jest.fn();
-  return { OpenAI: jest.fn().mockImplementation(() => ({ chat: { completions: { create: mockCreate } } })), mockCreate };
+  return { ...jest.requireActual('openai'),
+    OpenAI: jest.fn().mockImplementation(() => ({ chat: { completions: { create: mockCreate } } })), mockCreate };
 });
 const { mockCreate } = require('openai');
 const patch = '@@ -1,2 +1,2 @@\n const x = 1;\n-old();\n+newCall();';
@@ -182,6 +184,51 @@ describe('controlled modes, coverage and resource limits', () => {
     expect(countInputTokens.mock.calls[0][0]).toBe(buildModelPrompt('src/a.ts', patch, []));
     expect(result.omissions[0].reason).toBe('TOKEN_BUDGET'); expect(result.metrics.calls).toBe(0);
   });
+  test.each([
+    { extra: 0, status: 'COMPLETE', outcome: 'RESPONSE', findingCount: 1 },
+    { extra: 1, status: 'FAILED', outcome: 'TOKEN_BUDGET', findingCount: 0 },
+  ])('records provider usage at output boundary plus $extra tokens', async ({ extra, status, outcome, findingCount }) => {
+    const c = client();
+    const limits = budget();
+    const completionTokens = limits.reservedOutputTokens + extra;
+    c.completeReview.mockResolvedValue({ ...completion([raw()]), usage: { prompt_tokens: 20, completion_tokens: completionTokens } });
+
+    const result = await reviewFiles(c, input(), [snippet()], limits, runtime);
+
+    expect(deriveModelStatus(input(), result)).toBe(status);
+    expect(result.findings).toHaveLength(findingCount);
+    expect(c.completeReview).toHaveBeenCalledTimes(1);
+    expect(result.metrics).toMatchObject({ calls: 1, inputTokens: 20, outputTokens: completionTokens,
+      attempts: [{ outcome, outputTokens: completionTokens }] });
+    expect(result.omissions).toEqual(extra ? [{ file: 'src/a.ts', stage: 'model', reason: 'TOKEN_BUDGET', required: true }] : []);
+  });
+  test.each([1, 4])('an output-cap breach stops remaining calls with maxCalls=%i and preserves file exclusions', async maxCalls => {
+    const c = client();
+    const limits = { ...budget(), maxFiles: 2, maxCalls };
+    const i = input();
+    i.changedFiles.push({ ...i.changedFiles[0], path: 'src/b.ts' });
+    i.changedFiles.push({ ...i.changedFiles[0], path: 'src/c.ts' });
+    i.changedFiles.push({ ...i.changedFiles[0], path: 'README.md', supported: false });
+    const completionTokens = limits.reservedOutputTokens + 1;
+    c.completeReview.mockResolvedValue({
+      ...completion(), usage: { prompt_tokens: 20, completion_tokens: completionTokens },
+    });
+
+    const result = await reviewFiles(c, i, [], limits, runtime);
+
+    expect(c.completeReview).toHaveBeenCalledTimes(1);
+    expect(result.analyzedFiles).toEqual([]);
+    expect(result.metrics).toMatchObject({
+      calls: 1, inputTokens: 20, outputTokens: completionTokens,
+      attempts: [{ file: 'src/a.ts', outcome: 'TOKEN_BUDGET', outputTokens: completionTokens }],
+    });
+    expect(result.omissions).toEqual([
+      { file: 'src/a.ts', stage: 'model', reason: 'TOKEN_BUDGET', required: true },
+      { file: 'src/b.ts', stage: 'model', reason: 'TOKEN_BUDGET', required: true },
+      { file: 'src/c.ts', stage: 'model', reason: 'FILE_BUDGET', required: true },
+    ]);
+  });
+
   test('maxFiles and maxCalls apply to the entire PR', async () => {
     const i = input(); i.changedFiles.push({ ...i.changedFiles[0], path: 'src/b.ts' });
     const a = await reviewFiles(client(), i, [], { ...budget(), maxCalls: 1 }, runtime);
@@ -223,6 +270,55 @@ describe('timeouts and bounded retries', () => {
     const c = client(); c.completeReview.mockRejectedValue({ status: 429 });
     const promise = reviewFiles(c, input(), [], budget(), runtime); await tick(250);
     const result = await promise; expect(result.metrics.calls).toBe(2); expect(result.omissions[0].reason).toBe('RATE_LIMIT');
+  });
+  test.each([
+    [new APIConnectionError({}), 'SERVICE_ERROR'],
+    [new APIConnectionTimeoutError({}), 'TIMEOUT'],
+  ])('classifies and retries an SDK error with the default Error.name (%s)', async (error, outcome) => {
+    const c = client();
+    c.completeReview.mockRejectedValueOnce(error);
+    const pending = reviewFiles(c, input(), [], budget(), runtime);
+    await tick(250);
+    const result = await pending;
+    expect(result.metrics.attempts).toMatchObject([{ outcome }, { outcome: 'RESPONSE' }]);
+    expect(result.metrics.calls).toBe(2);
+  });
+  test('a retry shares the call cap with later files and exhausted files skip tokenization', async () => {
+    const i = input();
+    i.changedFiles.push({ ...i.changedFiles[0], path: 'src/b.ts' });
+    const c = client();
+    c.completeReview.mockRejectedValueOnce({ status: 429 });
+    const countInputTokens = jest.fn(() => 100);
+    const pending = reviewFiles(c, i, [], { ...budget(), maxCalls: 2 }, { countInputTokens });
+    await tick(250);
+    const result = await pending;
+    expect(countInputTokens).toHaveBeenCalledTimes(1);
+    expect(c.completeReview).toHaveBeenCalledTimes(2);
+    expect(result.metrics).toMatchObject({ calls: 2, inputTokens: null, outputTokens: null,
+      attempts: [{ attempt: 1, outcome: 'RATE_LIMIT', inputTokens: null },
+        { attempt: 2, outcome: 'RESPONSE', inputTokens: 20, outputTokens: 5 }] });
+    expect(result.omissions).toEqual([{ file: 'src/b.ts', stage: 'model', reason: 'CALL_BUDGET', required: true }]);
+    expect(deriveModelStatus(i, result)).toBe('PARTIAL');
+  });
+  test('an invalid completion retains its provider usage and does not retry', async () => {
+    const c = client();
+    c.completeReview.mockResolvedValue({ ...completion(), choices: [] });
+    const result = await reviewFiles(c, input(), [], budget(), runtime);
+    expect(c.completeReview).toHaveBeenCalledTimes(1);
+    expect(result.metrics).toMatchObject({ calls: 1, inputTokens: 20, outputTokens: 5,
+      attempts: [{ attempt: 1, outcome: 'INVALID_OUTPUT', inputTokens: 20, outputTokens: 5 }] });
+    expect(result.omissions[0].reason).toBe('INVALID_OUTPUT');
+  });
+  test('clamps one request to the remaining analysis window before feedback', async () => {
+    const c = client();
+    c.completeReview.mockImplementation(() => new Promise(() => {}));
+    const pending = reviewFiles(c, input(), [], budget(), { ...runtime, remainingMs: 300 });
+    expect(c.completeReview.mock.calls[0][1].timeout).toBe(200);
+    await tick(200);
+    const result = await pending;
+    expect(result.metrics.attempts).toMatchObject([{ timeoutMs: 200, durationMs: 200, outcome: 'TIMEOUT' }]);
+    expect(result.omissions[0].reason).toBe('TIMEOUT');
+    expect(jest.getTimerCount()).toBe(0);
   });
   test.each([401, 403, 400])('does not retry permanent HTTP %s', async status => {
     const c = client(); c.completeReview.mockRejectedValue({ status });

@@ -11,9 +11,10 @@ export interface ModelClient {
         maxOutputTokens: number;
     }): Promise<unknown>;
 }
-/** A 负责精确 token 计算与已消耗时间；不提供计数器时拒绝调用，不能把字节当 token。 */
+/** 调用方注入模型匹配的计数器和剩余时间，provider usage 另行记账。 */
 export interface ReviewRuntime {
     countInputTokens(prompt: string): number;
+    tokenizerId?: string;
     remainingMs?: number;
     signal?: AbortSignal;
 }

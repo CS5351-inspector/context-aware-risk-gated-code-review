@@ -1,7 +1,9 @@
 /** C 模块入口：一个 PR 的双模式审查、总预算、有限重试和运行记录。
  * 不写 GitHub，不决定风险/门禁；A 将此入口接入统一流水线。
  */
+import { APIConnectionError, APIConnectionTimeoutError } from 'openai';
 import { InvalidReviewResponseError } from '../chat.js';
+import type { ModelAttempt } from './contracts.js';
 import { convertFindings, patchLines } from './findings.js';
 import type { ContextSnippet, ModelAnalysis, ModelBudget, ModelInput, Omission } from './model-types.js';
 
@@ -15,9 +17,10 @@ export interface ModelClient {
   }): Promise<unknown>;
 }
 
-/** A 负责精确 token 计算与已消耗时间；不提供计数器时拒绝调用，不能把字节当 token。 */
+/** 调用方注入模型匹配的计数器和剩余时间，provider usage 另行记账。 */
 export interface ReviewRuntime {
   countInputTokens(prompt: string): number;
+  tokenizerId?: string;
   remainingMs?: number;
   signal?: AbortSignal;
 }
@@ -52,10 +55,11 @@ function validateBudget(budget: ModelBudget): void {
 }
 
 /** 仅瞬态故障允许重试；401/403/无效 JSON/拒答不靠重试掩盖。 */
-function failure(error: unknown): { reason: Omission['reason']; retry: boolean; delayMs: number } {
+function failure(error: unknown): { reason: Exclude<ModelAttempt['outcome'], 'RESPONSE'>; retry: boolean; delayMs: number } {
   if (error instanceof InvalidReviewResponseError) return { reason: 'INVALID_OUTPUT', retry: false, delayMs: 0 };
   const e = error as { name?: string; status?: number; headers?: { get?: (name: string) => string | null } } | null;
-  if (e?.name === 'ReviewTimeoutError' || e?.name === 'APIConnectionTimeoutError') {
+  // SDK 的错误类可能保留 Error.name = "Error"，优先按类识别。
+  if (error instanceof APIConnectionTimeoutError || e?.name === 'ReviewTimeoutError' || e?.name === 'APIConnectionTimeoutError') {
     return { reason: 'TIMEOUT', retry: true, delayMs: 0 };
   }
   const reason = e?.status === 429 ? 'RATE_LIMIT' : 'SERVICE_ERROR';
@@ -66,7 +70,7 @@ function failure(error: unknown): { reason: Omission['reason']; retry: boolean; 
   const delayMs = Number.isFinite(seconds) ? Math.max(0, seconds * 1000)
     : Number.isFinite(date) ? Math.max(0, date - Date.now()) : 0;
   return { reason, retry: e?.status === 429 || (typeof e?.status === 'number' && e.status >= 500)
-    || e?.name === 'APIConnectionError', delayMs };
+    || error instanceof APIConnectionError || e?.name === 'APIConnectionError', delayMs };
 }
 
 /** 超时同时中止 HTTP 并结束本地等待；finally 清除定时器，不遗留长等待。 */
@@ -93,6 +97,7 @@ async function request(client: ModelClient, prompt: string, timeout: number, out
 }
 
 function waitToRetry(ms: number, signal?: AbortSignal): Promise<void> {
+  if (signal?.aborted) return Promise.resolve();
   return new Promise(resolve => {
     const finish = () => {
       clearTimeout(timer);
@@ -102,6 +107,15 @@ function waitToRetry(ms: number, signal?: AbortSignal): Promise<void> {
     const timer = setTimeout(finish, ms);
     signal?.addEventListener('abort', finish, { once: true });
   });
+}
+
+function usageCount(value: unknown): number | null {
+  return typeof value === 'number' && Number.isSafeInteger(value) && value >= 0 ? value : null;
+}
+
+// 有任意一次用量未知时，整轮的该项用量也只能记为未知。
+function addUsage(total: number | null, value: number | null): number | null {
+  return total === null || value === null ? null : usageCount(total + value);
 }
 
 /** B 的片段必须有唯一 ID、有效版本和一致行数；无效片段不发送给模型。
@@ -143,16 +157,20 @@ export async function reviewFiles(
   const parameters: Record<string, unknown> = { ...client.effectiveParameters, maxRetries: 0 };
   // Match the adapter's actual request field: o-series reject the legacy max_tokens.
   const outputLimit = 'max_completion_tokens' in parameters ? 'max_completion_tokens' : 'max_tokens';
-  parameters[outputLimit] = budget.reservedOutputTokens;
+  const outputTokens = budget.reservedOutputTokens;
+  parameters[outputLimit] = outputTokens;
+  const attempts: ModelAttempt[] = [];
   const result: ModelAnalysis = { findings: [], omissions: [], analyzedFiles: [], metrics: {
     model: String(parameters.model ?? 'unknown'), effectiveParameters: parameters,
     promptVersion: PROMPT_VERSION, durationMs: 0, calls: 0, inputTokens: 0, outputTokens: 0,
+    attempts, ...(runtime.tokenizerId ? { tokenizerId: runtime.tokenizerId } : {}),
   } };
   const omit = (file: string, reason: Omission['reason']) =>
     result.omissions.push({ file, stage: 'model', reason, required: true });
   const context = input.mode === 'context' ? snippets : [];
   const contextValid = validSnippets(input, context);
   let fileCount = 0;
+  let providerExceededOutputLimit = false;
 
   for (const file of input.changedFiles) {
     // 候选首版只分析新增/修改的 .ts/.js；A 必须把其他文件列入 excludedFiles。
@@ -162,6 +180,10 @@ export async function reviewFiles(
       omit(file.path, 'INVALID_OUTPUT'); continue;
     }
     if (++fileCount > budget.maxFiles) { omit(file.path, 'FILE_BUDGET'); continue; }
+    if (providerExceededOutputLimit) { omit(file.path, 'TOKEN_BUDGET'); continue; }
+    // 预算已用尽时跳过 patch 解析和分词，为反馈留出时间。
+    if (result.metrics.calls >= budget.maxCalls) { omit(file.path, 'CALL_BUDGET'); continue; }
+    if (Date.now() >= deadline) { omit(file.path, 'TIMEOUT'); continue; }
     if (!file.patch?.trim()) { omit(file.path, 'MISSING_PATCH'); continue; }
     if (!contextValid) { omit(file.path, 'INVALID_EVIDENCE'); continue; }
     try { patchLines(file.patch, file); } catch { omit(file.path, 'MISSING_PATCH'); continue; }
@@ -169,38 +191,54 @@ export async function reviewFiles(
     const tokens = runtime.countInputTokens(prompt);
     if (!Number.isSafeInteger(tokens) || tokens < 0) throw new Error('Invalid input token count');
     // 计数器应含 messages 包装开销；总窗口中预留输出，不能只限制 diff 的字符数。
-    if (tokens + budget.reservedOutputTokens > budget.maxInputTokens) { omit(file.path, 'TOKEN_BUDGET'); continue; }
+    if (tokens > budget.maxInputTokens - outputTokens) { omit(file.path, 'TOKEN_BUDGET'); continue; }
 
     for (let attempt = 0; ; attempt++) {
       if (result.metrics.calls >= budget.maxCalls) { omit(file.path, 'CALL_BUDGET'); break; }
       const remaining = deadline - Date.now();
       if (runtime.signal?.aborted || remaining <= 0) { omit(file.path, 'TIMEOUT'); break; }
+      const timeoutMs = Math.min(budget.requestTimeoutMs, remaining);
+      const attemptStarted = Date.now();
+      const entry: ModelAttempt = { file: file.path, attempt: attempt + 1, timeoutMs, durationMs: 0,
+        estimatedInputTokens: tokens, reservedOutputTokens: outputTokens,
+        inputTokens: null, outputTokens: null, responseModel: null, outcome: 'RESPONSE' };
+      // 首次请求和每次重试在发出前都占用同一份调用预算。
       result.metrics.calls++;
+      let failed: ReturnType<typeof failure> | undefined;
       try {
         // 所有文件及重试共享同一个 deadline；慢请求不能挤占 GitHub 发布预留。
-        const completion = await request(client, prompt, Math.min(budget.requestTimeoutMs, remaining), budget.reservedOutputTokens, runtime.signal);
-        const usage = (completion as { usage?: { prompt_tokens?: number; completion_tokens?: number } })?.usage;
-        const addUsage = (key: 'inputTokens' | 'outputTokens', value: unknown) => {
-          result.metrics[key] = result.metrics[key] !== null && typeof value === 'number'
-            && Number.isSafeInteger(value) && value >= 0 ? result.metrics[key]! + value : null;
-        };
-        addUsage('inputTokens', usage?.prompt_tokens); addUsage('outputTokens', usage?.completion_tokens);
+        const completion = await request(client, prompt, timeoutMs, outputTokens, runtime.signal);
+        const envelope = completion as { model?: unknown; usage?: { prompt_tokens?: unknown; completion_tokens?: unknown } } | null;
+        // 即使下面的响应校验失败，已经由 provider 返回的 usage 仍有效。
+        entry.inputTokens = usageCount(envelope?.usage?.prompt_tokens);
+        entry.outputTokens = usageCount(envelope?.usage?.completion_tokens);
+        entry.responseModel = typeof envelope?.model === 'string' ? envelope.model : null;
+        // Stop this run after the provider exceeds its output cap; retain actual usage.
+        if (entry.outputTokens !== null && entry.outputTokens > outputTokens) {
+          providerExceededOutputLimit = true;
+          entry.outcome = 'TOKEN_BUDGET';
+          omit(file.path, 'TOKEN_BUDGET');
+          break;
+        }
         const converted = convertFindings(completion, input, file.path, file.patch, context);
         result.findings.push(...converted.findings); result.omissions.push(...converted.omissions);
-        result.analyzedFiles.push(file.path); break;
+        result.analyzedFiles.push(file.path);
       } catch (error) {
-        // 请求失败可能已计费却没有 usage；此后总 usage 必须保持未知。
-        if (!(error instanceof InvalidReviewResponseError)) {
-          result.metrics.inputTokens = null; result.metrics.outputTokens = null;
-        }
-        if (runtime.signal?.aborted) { omit(file.path, 'TIMEOUT'); break; }
-        const failed = failure(error);
-        if (!failed.retry || attempt >= budget.maxRetries) { omit(file.path, failed.reason); break; }
-        const waitMs = Math.max(failed.delayMs, Math.min(250 * 2 ** attempt, 4000));
-        if (result.metrics.calls >= budget.maxCalls) { omit(file.path, 'CALL_BUDGET'); break; }
-        if (waitMs >= deadline - Date.now()) { omit(file.path, failed.reason); break; }
-        await waitToRetry(waitMs, runtime.signal);
+        failed = runtime.signal?.aborted ? { reason: 'TIMEOUT', retry: false, delayMs: 0 } : failure(error);
+        entry.outcome = failed.reason;
+      } finally {
+        entry.durationMs = Date.now() - attemptStarted;
+        attempts.push(entry);
+        result.metrics.inputTokens = addUsage(result.metrics.inputTokens, entry.inputTokens);
+        result.metrics.outputTokens = addUsage(result.metrics.outputTokens, entry.outputTokens);
       }
+      if (!failed) break;
+      if (!failed.retry || attempt >= budget.maxRetries) { omit(file.path, failed.reason); break; }
+      // 重试前同时检查调用数和剩余时间。保留刚才的错误以解释停止原因。
+      const waitMs = Math.max(failed.delayMs, Math.min(250 * 2 ** attempt, 4000));
+      if (result.metrics.calls >= budget.maxCalls) { omit(file.path, 'CALL_BUDGET'); break; }
+      if (waitMs >= deadline - Date.now()) { omit(file.path, failed.reason); break; }
+      await waitToRetry(waitMs, runtime.signal);
     }
   }
   result.metrics.durationMs = Date.now() - started;
