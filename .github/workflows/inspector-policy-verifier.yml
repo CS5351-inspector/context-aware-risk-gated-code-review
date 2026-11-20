@@ -1,0 +1,65 @@
+name: Inspector policy-only acceptance
+on:
+  push:
+    branches: [demo/inspector-nov21-policy-verifier]
+permissions: {}
+jobs:
+  verify:
+    if: github.repository == 'CS5351-inspector/context-aware-risk-gated-code-review' && github.actor == 'toubeichuan'
+    runs-on: ubuntu-latest
+    timeout-minutes: 6
+    permissions:
+      contents: read
+      pull-requests: write
+      statuses: write
+    steps:
+      - name: Verify the exact policy-only fixture
+        id: target
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const request = {...context.repo, pull_number: 16}
+            const {data: pr} = await github.rest.pulls.get(request)
+            const {data: files} = await github.rest.pulls.listFiles({...request, per_page: 2})
+            if (pr.state !== 'open' || pr.head.ref !== 'demo/sprint2-high-approval' ||
+                pr.base.ref !== 'sprint2-demo' || pr.head.repo?.id !== pr.base.repo.id ||
+                pr.changed_files !== 1 || files.length !== 1 ||
+                files[0].filename !== 'demo/policy/approval-exercise.md') {
+              throw Error('The fixture must be the verified policy-only same-repository PR.')
+            }
+            const {data: current} = await github.rest.pulls.get(request)
+            if (current.head.sha !== pr.head.sha || current.base.sha !== pr.base.sha) {
+              throw Error('The PR moved during the policy-only fixture check.')
+            }
+            core.setOutput('base', pr.base.sha)
+            core.setOutput('head', pr.head.sha)
+      - uses: actions/checkout@v5
+        with:
+          ref: ${{ github.sha }}
+          persist-credentials: false
+      - uses: actions/setup-node@v5
+        with:
+          node-version: 24
+      - run: npm ci
+      - name: Build the trusted project runner
+        run: node_modules/.bin/esbuild src/inspector-action.ts --bundle --platform=node --format=cjs --packages=external --outfile=.inspector-runner.cjs
+      - name: Reconcile the policy-only fixture
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+          INSPECTOR_PR: '16'
+          INSPECTOR_BASE: ${{ steps.target.outputs.base }}
+          INSPECTOR_HEAD: ${{ steps.target.outputs.head }}
+          INSPECTOR_REVISION: ${{ github.sha }}
+          INSPECTOR_MODE: context
+          INSPECTOR_EVENT: manual
+          INSPECTOR_MODEL_BASE_URL: https://no-inference.invalid
+          INSPECTOR_MODEL_API_KEY: unused-placeholder
+        run: |
+          node .inspector-runner.cjs
+          node -e "const r=require('./inspector-receipt.json'); if (r.newModelCalls !== 0 || r.analysis !== 'NOT_APPLICABLE' || r.risk.level !== 'HIGH' || r.publication?.status !== 'PUBLISHED') throw Error('Unexpected gate receipt')"
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: inspector-policy-verifier-${{ github.run_id }}-${{ github.run_attempt }}
+          path: inspector-receipt.json
+          if-no-files-found: ignore
