@@ -1,0 +1,58 @@
+name: Inspector paired pilot (November 20)
+on:
+  push:
+    branches: [demo/inspector-nov20-paired]
+permissions: {}
+jobs:
+  paired:
+    if: github.event.created && github.run_attempt == '1' && github.actor == 'toubeichuan' && github.repository == 'CS5351-inspector/context-aware-risk-gated-code-review'
+    runs-on: ubuntu-latest
+    timeout-minutes: 8
+    permissions:
+      contents: read
+      pull-requests: write
+      statuses: write
+    env:
+      INSPECTOR_PR: '12'
+      INSPECTOR_BASE: dededc694e6bdce100ee12914504d12b8966c151
+      INSPECTOR_HEAD: 927a00a756fbe5690ab4334dac63258280efc25f
+      INSPECTOR_REVISION: ${{ github.sha }}
+      INSPECTOR_EVENT: manual
+      INSPECTOR_MODEL_BASE_URL: https://api.relaycore.cn/v1
+    steps:
+      - uses: actions/checkout@v5
+        with:
+          ref: ${{ github.sha }}
+          persist-credentials: false
+      - uses: actions/setup-node@v5
+        with:
+          node-version: 24
+      - run: npm ci
+      - name: Build the reviewed runner
+        run: node_modules/.bin/esbuild src/inspector-action.ts --bundle --platform=node --format=cjs --packages=external --outfile=.inspector-runner.cjs
+      - name: Run Context once
+        id: context
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+          INSPECTOR_MODEL_API_KEY: ${{ secrets.INSPECTOR_MODEL_API_KEY }}
+          INSPECTOR_MODE: context
+        run: |
+          trap 'if test -f inspector-receipt.json; then mv inspector-receipt.json receipt-context.json; fi' EXIT
+          node .inspector-runner.cjs
+      - name: Run Diff-only once
+        if: ${{ !cancelled() && steps.context.outcome != 'skipped' }}
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+          INSPECTOR_MODEL_API_KEY: ${{ secrets.INSPECTOR_MODEL_API_KEY }}
+          INSPECTOR_MODE: diff-only
+        run: |
+          rm -f .inspector-cache/analysis.json
+          node .inspector-runner.cjs
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: inspector-paired-12-927a00a
+          path: |
+            receipt-context.json
+            inspector-receipt.json
+          if-no-files-found: error

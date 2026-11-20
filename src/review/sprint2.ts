@@ -6,7 +6,7 @@ export const sprintConfig: ReviewConfig = {
   sensitivePaths: ['.github/**', 'src/review/gate.ts', 'src/review/risk.ts', 'demo/policy/**'],
   maxReportCharacters: 12000,
   budget: {
-    maxFiles: 5, maxCalls: 7, maxRetries: 1, requestTimeoutMs: 30000,
+    maxFiles: 5, maxCalls: 1, maxRetries: 0, requestTimeoutMs: 30000,
     analysisTimeoutMs: 240000, publishReserveMs: 30000,
     maxInputTokens: 8000, reservedOutputTokens: 800,
     localWindowLines: 4, maxDefinitionsPerFile: 2, maxDefinitionLines: 60,
