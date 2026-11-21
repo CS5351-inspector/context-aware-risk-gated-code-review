@@ -25,7 +25,7 @@ The smoke command uses simulated responses for nine scenarios, including model f
 
 ## Set up a live acceptance run
 
-The shared repository's live workflow is paused. The integration owner coordinates any new external inference, including the code sent to the configured provider. Use an open, same-repository PR targeting `sprint2-demo` for the next approved live session. Keep its head distinct from other open pilot PRs. The enhanced workflow and GitHub signal are defined in [Inspector live review](../.github/workflows/inspector-live.yml) and [Inspector review signal](../.github/workflows/inspector-signal.yml).
+Check the [live workflow's current state](https://github.com/CS5351-inspector/context-aware-risk-gated-code-review/actions/workflows/inspector-live.yml) before preparing a live run. Eligible PR changes can send their diff and selected context to the configured provider. Use an open, same-repository PR targeting `sprint2-demo` for the next approved live session. Keep its head distinct from other open pilot PRs. The enhanced workflow and GitHub signal are defined in [Inspector live review](../.github/workflows/inspector-live.yml) and [Inspector review signal](../.github/workflows/inspector-signal.yml).
 
 | GitHub setting | Value or check |
 | --- | --- |
@@ -34,7 +34,7 @@ The shared repository's live workflow is paused. The integration owner coordinat
 | Required status for `sprint2-demo` | `inspector/risk-gate` from GitHub Actions. Confirm strict checks, administrator enforcement and any bypass rules before recording mergeability. |
 | Reviewer | A human with ordinary Write access, using an account separate from the PR author. |
 
-After the owner resumes the live workflow for the agreed test session, open the same-repository demo PR or dispatch **Inspector live review** on `main` with its number and mode `context`. The original demo branch already contains `demo/sprint2/duration.js` on the base. For a fresh LOW fixture, branch from `origin/sprint2-demo` and add a one-file caller such as this version of the example.
+When the live workflow is active, open the same-repository demo PR or dispatch **Inspector live review** on `main` with its number and mode `context`. The original demo branch already contains `demo/sprint2/duration.js` on the base. For a fresh LOW fixture, branch from `origin/sprint2-demo` and add a one-file caller such as this version of the example.
 
 ```js
 import { minutesToSeconds } from './duration.js';
