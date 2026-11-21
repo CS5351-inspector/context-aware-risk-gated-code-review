@@ -126,3 +126,76 @@ test.each([
   }));
   expect(read.mock.calls).toEqual([['review.js', data.headSha], [target, data.headSha]]);
 });
+
+test('an extensionless import in a .ts file prefers the sibling .ts file', async () => {
+  const read = pinnedReader({
+    'entry.ts': "import { value } from './foo';",
+    'foo.ts': 'export const value = 12;',
+    'foo.js': 'export const value = 14;',
+  });
+  const result = await collectContext(inputForFiles(['entry.ts']), read, baseBudget);
+  expect(result.snippets.filter(s => s.reason === 'direct-definition')).toEqual([
+    expect.objectContaining({ file: 'foo.ts', code: 'export const value = 12;' }),
+  ]);
+  expect(read.mock.calls.map(([path]) => path)).toEqual(['entry.ts', 'foo.ts']);
+  expect(result.omissions).toEqual([]);
+});
+
+test('an extensionless import falls back to .js when the .ts candidate is missing', async () => {
+  const read = pinnedReader({
+    'entry.ts': "import { value } from './foo';",
+    'foo.js': 'export const value = 14;',
+  });
+  const result = await collectContext(inputForFiles(['entry.ts']), read, baseBudget);
+  expect(result.snippets.filter(s => s.reason === 'direct-definition')).toEqual([
+    expect.objectContaining({ file: 'foo.js', code: 'export const value = 14;' }),
+  ]);
+  expect(read.mock.calls.map(([path]) => path)).toEqual(['entry.ts', 'foo.ts', 'foo.js']);
+  expect(result.omissions).toEqual([]);
+});
+
+test('an extensionless import in a .js file resolves only the .js candidate', async () => {
+  const read = pinnedReader({
+    'entry.js': "import { value } from './foo';",
+    'foo.js': 'export const value = 12;',
+    'foo.ts': 'export const value = 14;',
+  });
+  const result = await collectContext(inputForFiles(['entry.js']), read, baseBudget);
+  expect(result.snippets.filter(s => s.reason === 'direct-definition')).toEqual([
+    expect.objectContaining({ file: 'foo.js', code: 'export const value = 12;' }),
+  ]);
+  expect(read.mock.calls.map(([path]) => path)).toEqual(['entry.js', 'foo.js']);
+});
+
+test('a definition exactly at maxDefinitionLines is kept without a budget omission', async () => {
+  const read = pinnedReader({
+    'entry.js': "const { f } = require('./dep.js');",
+    'dep.js': 'exports.f = function () {\n  return 1;\n}',
+  });
+  const result = await collectContext(inputForFiles(['entry.js']), read, { ...baseBudget, maxDefinitionLines: 3 });
+  expect(result.snippets.filter(s => s.reason === 'direct-definition')).toEqual([
+    expect.objectContaining({ file: 'dep.js', code: 'exports.f = function () {\n  return 1;\n}' }),
+  ]);
+  expect(result.omissions).toEqual([]);
+});
+
+test('a definition one line over maxDefinitionLines is trimmed as optional', async () => {
+  const read = pinnedReader({
+    'entry.js': "const { f } = require('./dep.js');",
+    'dep.js': 'exports.f = function () {\n  return 1;\n}',
+  });
+  const result = await collectContext(inputForFiles(['entry.js']), read, { ...baseBudget, maxDefinitionLines: 2 });
+  expect(result.snippets.filter(s => s.reason === 'direct-definition')).toEqual([]);
+  expect(result.omissions).toContainEqual({ file: 'dep.js', stage: 'context', reason: 'CONTEXT_BUDGET', required: false });
+});
+
+test('more than eight disjoint hunks stop at the per-file window cap', async () => {
+  const starts = [1, 4, 7, 10, 13, 16, 19, 22, 25];
+  const patch = starts.map(s => `@@ -${s},1 +${s},1 @@\n-old\n+new`).join('\n');
+  const source = Array.from({ length: 30 }, (_v, i) => 'const x' + i + ' = 1;').join('\n');
+  const result = await collectContext(inputForFiles(['many.js'], patch), pinnedReader({ 'many.js': source }),
+    { ...baseBudget, localWindowLines: 1 });
+  expect(result.snippets).toHaveLength(8);
+  expect(result.snippets.every(s => s.reason === 'local-window')).toBe(true);
+  expect(result.omissions).toContainEqual({ file: 'many.js', stage: 'context', reason: 'CONTEXT_BUDGET', required: false });
+});
