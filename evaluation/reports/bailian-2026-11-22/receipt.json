@@ -1,8 +1,11 @@
 {
-  "evidence_scope": "Real paired component experiments; AI grading pending human review",
+  "evidence_scope": "Human-reviewed paired development component experiment; two unresolved judgments retained; exploratory, not formal heldout evidence",
+  "prior_receipt_sha256": "5d72b83ff2e7051ceab6ebb543b0a4c09e5b232c71f39ade13ace4ee28a2a8f0",
   "files_sha256": {
-    "README.md": "10821d9f27463503bcfbc1b2fd0e4bd16d9b003cfa95af64109914de179f2d05",
+    "FINAL_METRIC_AUDIT.md": "ba66acce5a1d33f2b7d62bddb2d5c3f4481a89c485b9e1c48bd0c6d279725248",
+    "README.md": "5ca92ed7a7cb993abb2c9afa623ed51635a4794e9d078fc1015f0dc6ee092336",
     "development/labels-pending.json": "82d4f42b7e54ea17653c5d91baca8665323f25bffdd0eebe88dbebcf8037778f",
+    "development/labels-reviewed.json": "d06707af161418f0d4fe71b360aa0a6d62673519550d0d93e076900a5ed2d7eb",
     "development/plan.json": "32c72c2b78a3ce4c19ff153098b53a12b5b7a39e86cb07ca6e89e43d64afd0f3",
     "development/raw/0001.json": "35179d1fc6dabfdfdcd17ceaac91c437e961c483dafafd62b40158e392f8bd43",
     "development/raw/0002.json": "131d0c88c8db800f87e8adaacf089ab6843c4ebd7b5a18e3fb66cf5859ed0768",
@@ -47,7 +50,9 @@
     "development/runs.json": "4df02fbf3325a8fb4495cb9affade9a9ee4577c33c8cedb52e324d19710a1cd0",
     "development/summary-pending/REPORT.md": "507810e7926fa5bc63312e62f990111f38bf077f6b72a1c6088ba64e3a77b5ee",
     "development/summary-pending/summary.json": "b6e95ea5e2a0dda60fb1c02fa054d3ad6192e8ca1bb4e1aef0ab208d780ea5d4",
-    "measurements.json": "e6065533cdee6232c8842962d9fb363daf480b9783b054bd6ed44a00906c2d95",
+    "development/summary-reviewed/REPORT.md": "4624c25f1cef73cfe06ed617860c224fcd300a24ea9a1705f5d8caf34a9dd9d6",
+    "development/summary-reviewed/summary.json": "2a231289053c9c4d6cfbc13adb9cf29d001105e488385a480e5eb92dd75a8292",
+    "measurements.json": "06850242e7fd0d5d861b8ba8caf3cad799148bcf6949f210df6de726df8e4330",
     "pilot/labels-pending.json": "842a2da24b1594a177b1b5ad448561d7410e74518b8c62ea756778003cbff758",
     "pilot/plan.json": "61e30dd37aa5049160dd9786cae3eb7d3fbdb279462f39c5749dd8aaf796b33c",
     "pilot/raw/0001.json": "252960b32e963c66cbba3b146dd66c70b679246a4183778752eae93b0075ae8a",
@@ -65,9 +70,11 @@
     "pilot/runs.json": "1eb46826ceb5ca3cac9504c07dcc5bcb9067a266a4634a030420e69e76b87b87",
     "pilot/summary-pending/REPORT.md": "468f2f8fcfe5b98d0539d2867ddce520a2d0c96cc6942a5903199ddd37ae4a7c",
     "pilot/summary-pending/summary.json": "fed0f7921a76986bd1fb92eceb409ef73b30ffad96478417571062cd0c42a8ac",
-    "recompute.cjs": "5e810cc310ac942345908f68bed0da4017e2e916f95f5431e6e91d4b40ad6a70",
+    "receipt-before-output-review.json": "5d72b83ff2e7051ceab6ebb543b0a4c09e5b232c71f39ade13ace4ee28a2a8f0",
+    "recompute.cjs": "d9170517ada68a35e5566baf1c520159d816cdf35de00ca8196b2e8a08ecd6b2",
     "review/AI_SUGGESTIONS.md": "69241fdfb10e7b3dac01f6fe466b5bef209a86b47d26f1ca61425d293d3f394f",
     "review/ai-suggestions.json": "eda359fd85d15b0d3c315c592aaad1c5f7ba6ddfaae304075c108fbe7b1b004c",
+    "review/confirmed-packets.json": "b1eadc7cef91c7a9a8206b4fee45b59777a2c173218dcc7d55d059ca14bde137",
     "review/packets.json": "5d56df21d75a3e444ee9df189db7e39cbd3c0ab16f60b7f56bf5baa96ae96a4a",
     "test-results.tap": "0eb788ddd091cfcee9ac416b0aee6b0a44050646fd7118176938a9c8eade1085"
   }

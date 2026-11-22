@@ -1,10 +1,11 @@
 'use strict';
-// Recompute engineering measurements only; pending semantic judgments stay pending.
+// Recompute engineering measurements; semantic metrics use the reviewed-label scorer.
 const fs=require('node:fs'),path=require('node:path');
 const {verifyRuns}=require('../../lib/runner.cjs');
 const root=path.resolve(__dirname,'../..');
 const quantile=(xs,p)=>{const a=[...xs].sort((x,y)=>x-y);return a.length?a[Math.ceil(a.length*p)-1]:null;};
-const output={currency:'CNY',cost_basis:'published peak uncached list-rate estimate; not account invoice',quality_review_status:'pending',experiments:{}};
+const labels=JSON.parse(fs.readFileSync(path.join(__dirname,'development/labels-reviewed.json'),'utf8'));
+const output={currency:'CNY',cost_basis:'published peak uncached list-rate estimate; not account invoice',quality_review_status:labels.review_status,experiments:{}};
 for(const phase of ['pilot','development']){
  const dir=path.join(__dirname,phase),{plan,runs,complete}=verifyRuns(root,dir);
  const records=runs.records,read=x=>JSON.parse(fs.readFileSync(path.join(dir,x.raw_file),'utf8'));

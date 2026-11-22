@@ -1,7 +1,7 @@
 {
   "currency": "CNY",
   "cost_basis": "published peak uncached list-rate estimate; not account invoice",
-  "quality_review_status": "pending",
+  "quality_review_status": "reviewed",
   "experiments": {
     "pilot": {
       "plan_id": "b291ef3179490919d28097fe117c13f17f9fcc46cee2cba17cf95d456d270a95",
