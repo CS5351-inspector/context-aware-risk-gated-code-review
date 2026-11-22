@@ -1,0 +1,1443 @@
+{
+  "review_status": "pending",
+  "packets": [
+    {
+      "review_id": "R0001",
+      "requirement": "Download permission is granted only when the policy service returns GRANTED; DENIED and SUSPENDED must return false.",
+      "diff": "--- a/review.js\n+++ b/review.js\n@@ -1,2 +1,5 @@\n const { lookup, GRANTED } = require('./policy.js');\n-exports.canDownload = (account) => lookup(account) === GRANTED;\n+exports.canDownload = (account) => {\n+  const decision = lookup(account);\n+  return decision === GRANTED;\n+};\n",
+      "head_files": {
+        "review.js": "const { lookup, GRANTED } = require('./policy.js');\nexports.canDownload = (account) => {\n  const decision = lookup(account);\n  return decision === GRANTED;\n};\n",
+        "policy.js": "// External policy protocol: numeric values are not booleans.\nconst GRANTED = 0;\nconst DENIED = 1;\nconst SUSPENDED = 2;\nexports.GRANTED = GRANTED;\nexports.lookup = (account) => ({ granted: GRANTED, denied: DENIED, suspended: SUSPENDED })[account.status];\n"
+      },
+      "gold_issues": [],
+      "findings": [],
+      "annotations": []
+    },
+    {
+      "review_id": "R0002",
+      "requirement": "For integer indices, readId returns the item id when 0 <= index < items.length and null otherwise. It must not throw for an out-of-range index.",
+      "diff": "--- a/review.js\n+++ b/review.js\n@@ -1,4 +1,4 @@\n exports.readId = (items, index) => {\n-  if (index >= 0 && index < items.length) return items[index].id;\n-  return null;\n+  if (index < 0 || index >= items.length) return null;\n+  return items[index].id;\n };\n",
+      "head_files": {
+        "review.js": "exports.readId = (items, index) => {\n  if (index < 0 || index >= items.length) return null;\n  return items[index].id;\n};\n"
+      },
+      "gold_issues": [],
+      "findings": [],
+      "annotations": []
+    },
+    {
+      "review_id": "R0003",
+      "requirement": "Return a new array of finite numeric priorities in ascending numeric order. Preserve duplicates and leave the input unchanged.",
+      "diff": "--- a/review.js\n+++ b/review.js\n@@ -1 +1 @@\n-exports.priority = values => values.slice().sort((a, b) => a - b);\n+exports.priority = values => values.slice().sort();\n",
+      "head_files": {
+        "review.js": "exports.priority = values => values.slice().sort();\n"
+      },
+      "gold_issues": [
+        {
+          "gold_issue_id": "numeric-priority-001",
+          "root_cause": "Default sort compares numeric priorities as strings, placing 10 before 2.",
+          "severity": "medium",
+          "severity_rationale": "Changes scheduling order for multi-digit priorities.",
+          "acceptable_locations": [
+            {
+              "file": "review.js",
+              "start_line": 1,
+              "end_line": 1
+            }
+          ],
+          "required_context_files": [],
+          "proof_check_indices": [
+            0
+          ]
+        }
+      ],
+      "findings": [
+        {
+          "id": "review.js:1",
+          "file": "review.js",
+          "side": "RIGHT",
+          "line": 1,
+          "severity": "high",
+          "message": "Default Array.prototype.sort() sorts elements by their string representation, not numerically. This breaks the requirement for ascending numeric order (e.g. [10, 2] becomes [10, 2] instead of [2, 10]). Restore the numeric comparator (a, b) => a - b while keeping the slice() copy that preserves the input."
+        }
+      ],
+      "annotations": [
+        {
+          "finding_id": "review.js:1",
+          "atom_id": "1",
+          "root_id": "review.js:1",
+          "verdict": "unresolved",
+          "gold_issue_id": null,
+          "evidence": "",
+          "location_acceptable": null,
+          "severity_acceptable": null
+        }
+      ]
+    },
+    {
+      "review_id": "R0004",
+      "requirement": "Return the own enumerable property names whose values are not null; zero, false and empty string are retained, in Object.keys order.",
+      "diff": "--- a/review.js\n+++ b/review.js\n@@ -1,5 +1 @@\n-exports.names = obj => {\n-  const result = [];\n-  for (const key of Object.keys(obj)) if (obj[key] !== null) result.push(key);\n-  return result;\n-};\n+exports.names = obj => Object.keys(obj).filter(key => obj[key] !== null);\n",
+      "head_files": {
+        "review.js": "exports.names = obj => Object.keys(obj).filter(key => obj[key] !== null);\n"
+      },
+      "gold_issues": [],
+      "findings": [],
+      "annotations": []
+    },
+    {
+      "review_id": "R0005",
+      "requirement": "For integer indices, readId returns the item id when 0 <= index < items.length and null otherwise. It must not throw for an out-of-range index.",
+      "diff": "--- a/review.js\n+++ b/review.js\n@@ -1,4 +1,4 @@\n exports.readId = (items, index) => {\n-  if (index >= 0 && index < items.length) return items[index].id;\n-  return null;\n+  if (index < 0 || index >= items.length) return null;\n+  return items[index].id;\n };\n",
+      "head_files": {
+        "review.js": "exports.readId = (items, index) => {\n  if (index < 0 || index >= items.length) return null;\n  return items[index].id;\n};\n"
+      },
+      "gold_issues": [],
+      "findings": [
+        {
+          "id": "review.js:1",
+          "file": "review.js",
+          "side": "RIGHT",
+          "line": 2,
+          "severity": "medium",
+          "message": "Guard clause now only checks the bounds of `index`. If `index` is `undefined`/`NaN`, both comparisons are false, so the early return is skipped and `items[undefined]` / `items[NaN]` yields `undefined`, then `.id` throws a TypeError. The requirement says readId must not throw for an out-of-range index; non-integer inputs (e.g. undefined, NaN) fall outside the guard and cause a crash. Also the tests for integer bounds still pass, so the bug is silent for invalid input. Use `if (!(index >= 0 && index < items.length)) return null;` or explicitly validate `Number.isInteger(index)`."
+        }
+      ],
+      "annotations": [
+        {
+          "finding_id": "review.js:1",
+          "atom_id": "1",
+          "root_id": "review.js:1",
+          "verdict": "unresolved",
+          "gold_issue_id": null,
+          "evidence": "",
+          "location_acceptable": null,
+          "severity_acceptable": null
+        }
+      ]
+    },
+    {
+      "review_id": "R0006",
+      "requirement": "For integer indices, readId returns the item id when 0 <= index < items.length and null otherwise. It must not throw for an out-of-range index.",
+      "diff": "--- a/review.js\n+++ b/review.js\n@@ -1,4 +1,4 @@\n exports.readId = (items, index) => {\n-  if (index >= 0 && index < items.length) return items[index].id;\n+  if (index >= 0 && index <= items.length) return items[index].id;\n   return null;\n };\n",
+      "head_files": {
+        "review.js": "exports.readId = (items, index) => {\n  if (index >= 0 && index <= items.length) return items[index].id;\n  return null;\n};\n"
+      },
+      "gold_issues": [
+        {
+          "gold_issue_id": "index-boundary-001",
+          "root_cause": "The inclusive upper bound admits index === length and dereferences undefined, throwing instead of returning null.",
+          "severity": "medium",
+          "severity_rationale": "Incorrect behavior on valid documented input; no broader production impact claimed.",
+          "acceptable_locations": [
+            {
+              "file": "review.js",
+              "start_line": 2,
+              "end_line": 2
+            }
+          ],
+          "required_context_files": [],
+          "proof_check_indices": [
+            0,
+            1
+          ]
+        }
+      ],
+      "findings": [
+        {
+          "id": "review.js:1",
+          "file": "review.js",
+          "side": "RIGHT",
+          "line": 2,
+          "severity": "high",
+          "message": "Changed bounds check from `index < items.length` to `index <= items.length`, allowing index === items.length. This accesses items[items.length], which is undefined, and then reading `.id` throws a TypeError instead of returning null, violating the requirement that readId must not throw for an out-of-range index. Revert to `<`."
+        }
+      ],
+      "annotations": [
+        {
+          "finding_id": "review.js:1",
+          "atom_id": "1",
+          "root_id": "review.js:1",
+          "verdict": "unresolved",
+          "gold_issue_id": null,
+          "evidence": "",
+          "location_acceptable": null,
+          "severity_acceptable": null
+        }
+      ]
+    },
+    {
+      "review_id": "R0007",
+      "requirement": "For integer indices, readId returns the item id when 0 <= index < items.length and null otherwise. It must not throw for an out-of-range index.",
+      "diff": "--- a/review.js\n+++ b/review.js\n@@ -1,4 +1,4 @@\n exports.readId = (items, index) => {\n-  if (index >= 0 && index < items.length) return items[index].id;\n+  if (index >= 0 && index <= items.length) return items[index].id;\n   return null;\n };\n",
+      "head_files": {
+        "review.js": "exports.readId = (items, index) => {\n  if (index >= 0 && index <= items.length) return items[index].id;\n  return null;\n};\n"
+      },
+      "gold_issues": [
+        {
+          "gold_issue_id": "index-boundary-001",
+          "root_cause": "The inclusive upper bound admits index === length and dereferences undefined, throwing instead of returning null.",
+          "severity": "medium",
+          "severity_rationale": "Incorrect behavior on valid documented input; no broader production impact claimed.",
+          "acceptable_locations": [
+            {
+              "file": "review.js",
+              "start_line": 2,
+              "end_line": 2
+            }
+          ],
+          "required_context_files": [],
+          "proof_check_indices": [
+            0,
+            1
+          ]
+        }
+      ],
+      "findings": [
+        {
+          "id": "review.js:1",
+          "file": "review.js",
+          "side": "RIGHT",
+          "line": 2,
+          "severity": "high",
+          "message": "Off-by-one bounds check: changing `< items.length` to `<= items.length` allows an out-of-range index equal to items.length, causing `items[index]` to be undefined and then `.id` to throw. This violates the requirement that readId must not throw for out-of-range indices. Restore the strict `<` comparison."
+        }
+      ],
+      "annotations": [
+        {
+          "finding_id": "review.js:1",
+          "atom_id": "1",
+          "root_id": "review.js:1",
+          "verdict": "unresolved",
+          "gold_issue_id": null,
+          "evidence": "",
+          "location_acceptable": null,
+          "severity_acceptable": null
+        }
+      ]
+    },
+    {
+      "review_id": "R0008",
+      "requirement": "Download permission is granted only when the policy service returns GRANTED; DENIED and SUSPENDED must return false.",
+      "diff": "--- a/review.js\n+++ b/review.js\n@@ -1,2 +1,2 @@\n const { lookup, GRANTED } = require('./policy.js');\n-exports.canDownload = (account) => lookup(account) === GRANTED;\n+exports.canDownload = (account) => Boolean(lookup(account));\n",
+      "head_files": {
+        "review.js": "const { lookup, GRANTED } = require('./policy.js');\nexports.canDownload = (account) => Boolean(lookup(account));\n",
+        "policy.js": "// External policy protocol: numeric values are not booleans.\nconst GRANTED = 0;\nconst DENIED = 1;\nconst SUSPENDED = 2;\nexports.GRANTED = GRANTED;\nexports.lookup = (account) => ({ granted: GRANTED, denied: DENIED, suspended: SUSPENDED })[account.status];\n"
+      },
+      "gold_issues": [
+        {
+          "gold_issue_id": "grant-enum-001",
+          "root_cause": "Permission enum values are coerced to booleans, denying granted users and allowing denied or suspended users.",
+          "severity": "high",
+          "severity_rationale": "Allows unauthorized access.",
+          "acceptable_locations": [
+            {
+              "file": "review.js",
+              "start_line": 2,
+              "end_line": 2
+            }
+          ],
+          "required_context_files": [
+            "policy.js"
+          ],
+          "proof_check_indices": [
+            0,
+            1,
+            2
+          ]
+        }
+      ],
+      "findings": [
+        {
+          "id": "review.js:1",
+          "file": "review.js",
+          "side": "RIGHT",
+          "line": 2,
+          "severity": "high",
+          "message": "Permission check changed from strict equality with GRANTED to truthiness of lookup(account). If the policy service returns DENIED or SUSPENDED as truthy strings/enums, canDownload now returns true, violating the requirement that only GRANTED permits download. Restore the strict comparison to GRANTED."
+        }
+      ],
+      "annotations": [
+        {
+          "finding_id": "review.js:1",
+          "atom_id": "1",
+          "root_id": "review.js:1",
+          "verdict": "unresolved",
+          "gold_issue_id": null,
+          "evidence": "",
+          "location_acceptable": null,
+          "severity_acceptable": null
+        }
+      ]
+    },
+    {
+      "review_id": "R0009",
+      "requirement": "Return the own enumerable property names whose values are not null; zero, false and empty string are retained, in Object.keys order.",
+      "diff": "--- a/review.js\n+++ b/review.js\n@@ -1,5 +1 @@\n-exports.names = obj => {\n-  const result = [];\n-  for (const key of Object.keys(obj)) if (obj[key] !== null) result.push(key);\n-  return result;\n-};\n+exports.names = obj => Object.keys(obj).filter(key => obj[key] !== null);\n",
+      "head_files": {
+        "review.js": "exports.names = obj => Object.keys(obj).filter(key => obj[key] !== null);\n"
+      },
+      "gold_issues": [],
+      "findings": [],
+      "annotations": []
+    },
+    {
+      "review_id": "R0010",
+      "requirement": "A non-negative integer limit is valid, including zero (disable processing). Only null or undefined selects the default 20.",
+      "diff": "--- a/review.js\n+++ b/review.js\n@@ -1,2 +1,2 @@\n // Zero disables processing; null/undefined use the default.\n-exports.batchLimit = (limit) => limit ?? 20;\n+exports.batchLimit = (limit) => limit || 20;\n",
+      "head_files": {
+        "review.js": "// Zero disables processing; null/undefined use the default.\nexports.batchLimit = (limit) => limit || 20;\n"
+      },
+      "gold_issues": [
+        {
+          "gold_issue_id": "zero-limit-001",
+          "root_cause": "Logical OR replaces a valid zero limit with 20, processing work when the caller explicitly disabled it.",
+          "severity": "medium",
+          "severity_rationale": "Incorrect behavior on valid documented input; no broader production impact claimed.",
+          "acceptable_locations": [
+            {
+              "file": "review.js",
+              "start_line": 2,
+              "end_line": 2
+            }
+          ],
+          "required_context_files": [],
+          "proof_check_indices": [
+            0
+          ]
+        }
+      ],
+      "findings": [
+        {
+          "id": "review.js:1",
+          "file": "review.js",
+          "side": "RIGHT",
+          "line": 2,
+          "severity": "high",
+          "message": "Replacing '??' with '||' changes behavior: a valid limit of 0 now falls through to the default 20, but the contract says zero is valid and disables processing. Only null/undefined should select the default. This silently overrides an explicit disable request."
+        }
+      ],
+      "annotations": [
+        {
+          "finding_id": "review.js:1",
+          "atom_id": "1",
+          "root_id": "review.js:1",
+          "verdict": "unresolved",
+          "gold_issue_id": null,
+          "evidence": "",
+          "location_acceptable": null,
+          "severity_acceptable": null
+        }
+      ]
+    },
+    {
+      "review_id": "R0011",
+      "requirement": "scheduleRetry(delayMs) must schedule the retry after the requested non-negative duration in milliseconds.",
+      "diff": "--- a/review.js\n+++ b/review.js\n@@ -1,2 +1,2 @@\n const { after } = require('./scheduler.js');\n-exports.scheduleRetry = (delayMs) => after(delayMs / 1000);\n+exports.scheduleRetry = (delayMs) => after(delayMs);\n",
+      "head_files": {
+        "review.js": "const { after } = require('./scheduler.js');\nexports.scheduleRetry = (delayMs) => after(delayMs);\n",
+        "scheduler.js": "// Scheduler API contract: delay is expressed in SECONDS.\nexports.after = (delaySeconds) => ({ scheduledAfterSeconds: delaySeconds });\n"
+      },
+      "gold_issues": [
+        {
+          "gold_issue_id": "scheduler-units-001",
+          "root_cause": "Milliseconds are passed to a seconds-based scheduler without conversion, delaying nonzero retries by a factor of 1000.",
+          "severity": "medium",
+          "severity_rationale": "Incorrect behavior on valid documented input; no broader production impact claimed.",
+          "acceptable_locations": [
+            {
+              "file": "review.js",
+              "start_line": 2,
+              "end_line": 2
+            }
+          ],
+          "required_context_files": [
+            "scheduler.js"
+          ],
+          "proof_check_indices": [
+            0,
+            1
+          ]
+        }
+      ],
+      "findings": [
+        {
+          "id": "review.js:1",
+          "file": "review.js",
+          "side": "RIGHT",
+          "line": 2,
+          "severity": "high",
+          "message": "The change passes delayMs directly to after(), but scheduler.after expects delaySeconds (see C1: exports.after = (delaySeconds) => ...). The old code correctly converted ms to seconds via delayMs/1000; removing that conversion now schedules retries 1000x too late and breaks the millisecond-duration requirement."
+        }
+      ],
+      "annotations": [
+        {
+          "finding_id": "review.js:1",
+          "atom_id": "1",
+          "root_id": "review.js:1",
+          "verdict": "unresolved",
+          "gold_issue_id": null,
+          "evidence": "",
+          "location_acceptable": null,
+          "severity_acceptable": null
+        }
+      ]
+    },
+    {
+      "review_id": "R0012",
+      "requirement": "Profiles are isolated per tenant. A lookup returns the profile for the requested tenant/user pair, or null when absent.",
+      "diff": "--- a/review.js\n+++ b/review.js\n@@ -1,2 +1,4 @@\n const { lookup } = require('./cache');\n-exports.readProfile = (cache, tenant, user) => lookup(cache, tenant, user);\n+exports.readProfile = (cache, tenant, user) => {\n+  return lookup(cache, tenant, user);\n+};\n",
+      "head_files": {
+        "review.js": "const { lookup } = require('./cache');\nexports.readProfile = (cache, tenant, user) => {\n  return lookup(cache, tenant, user);\n};\n",
+        "cache.js": "const key = (tenant, user) => JSON.stringify([tenant, user]);\nexports.lookup = (cache, tenant, user) => cache[key(tenant, user)] ?? null;\n"
+      },
+      "gold_issues": [],
+      "findings": [],
+      "annotations": []
+    },
+    {
+      "review_id": "R0013",
+      "requirement": "Return reversed elements without mutating the input array, preserving duplicate values.",
+      "diff": "--- a/review.js\n+++ b/review.js\n@@ -1 +1 @@\n-exports.reverse = values => values.slice().reverse();\n+exports.reverse = values => [...values].reverse();\n",
+      "head_files": {
+        "review.js": "exports.reverse = values => [...values].reverse();\n"
+      },
+      "gold_issues": [],
+      "findings": [],
+      "annotations": []
+    },
+    {
+      "review_id": "R0014",
+      "requirement": "Download permission is granted only when the policy service returns GRANTED; DENIED and SUSPENDED must return false.",
+      "diff": "--- a/review.js\n+++ b/review.js\n@@ -1,2 +1,2 @@\n const { lookup, GRANTED } = require('./policy.js');\n-exports.canDownload = (account) => lookup(account) === GRANTED;\n+exports.canDownload = (account) => Boolean(lookup(account));\n",
+      "head_files": {
+        "review.js": "const { lookup, GRANTED } = require('./policy.js');\nexports.canDownload = (account) => Boolean(lookup(account));\n",
+        "policy.js": "// External policy protocol: numeric values are not booleans.\nconst GRANTED = 0;\nconst DENIED = 1;\nconst SUSPENDED = 2;\nexports.GRANTED = GRANTED;\nexports.lookup = (account) => ({ granted: GRANTED, denied: DENIED, suspended: SUSPENDED })[account.status];\n"
+      },
+      "gold_issues": [
+        {
+          "gold_issue_id": "grant-enum-001",
+          "root_cause": "Permission enum values are coerced to booleans, denying granted users and allowing denied or suspended users.",
+          "severity": "high",
+          "severity_rationale": "Allows unauthorized access.",
+          "acceptable_locations": [
+            {
+              "file": "review.js",
+              "start_line": 2,
+              "end_line": 2
+            }
+          ],
+          "required_context_files": [
+            "policy.js"
+          ],
+          "proof_check_indices": [
+            0,
+            1,
+            2
+          ]
+        }
+      ],
+      "findings": [
+        {
+          "id": "review.js:1",
+          "file": "review.js",
+          "side": "RIGHT",
+          "line": 2,
+          "severity": "high",
+          "message": "The change replaces an exact comparison against GRANTED (0) with a truthiness check. Since GRANTED equals 0, Boolean(lookup(account)) evaluates to false for granted users, breaking download permission. Additionally, DENIED and SUSPENDED map to non-zero enum values, so they would now evaluate truthy and incorrectly grant access. Restore the strict `=== GRANTED` comparison."
+        }
+      ],
+      "annotations": [
+        {
+          "finding_id": "review.js:1",
+          "atom_id": "1",
+          "root_id": "review.js:1",
+          "verdict": "unresolved",
+          "gold_issue_id": null,
+          "evidence": "",
+          "location_acceptable": null,
+          "severity_acceptable": null
+        }
+      ]
+    },
+    {
+      "review_id": "R0015",
+      "requirement": "Return a new array of finite numeric priorities in ascending numeric order. Preserve duplicates and leave the input unchanged.",
+      "diff": "--- a/review.js\n+++ b/review.js\n@@ -1 +1 @@\n-exports.priority = values => values.slice().sort((a, b) => a - b);\n+exports.priority = values => values.slice().sort();\n",
+      "head_files": {
+        "review.js": "exports.priority = values => values.slice().sort();\n"
+      },
+      "gold_issues": [
+        {
+          "gold_issue_id": "numeric-priority-001",
+          "root_cause": "Default sort compares numeric priorities as strings, placing 10 before 2.",
+          "severity": "medium",
+          "severity_rationale": "Changes scheduling order for multi-digit priorities.",
+          "acceptable_locations": [
+            {
+              "file": "review.js",
+              "start_line": 1,
+              "end_line": 1
+            }
+          ],
+          "required_context_files": [],
+          "proof_check_indices": [
+            0
+          ]
+        }
+      ],
+      "findings": [
+        {
+          "id": "review.js:1",
+          "file": "review.js",
+          "side": "RIGHT",
+          "line": 1,
+          "severity": "high",
+          "message": "Default Array.prototype.sort() converts elements to strings and sorts lexicographically, so numeric inputs are not ordered numerically (e.g. [10, 2] becomes [10, 2] or [1, 10, 2] style issues). This violates the requirement to return ascending numeric order. Restore a numeric comparator such as (a, b) => a - b. The slice() still preserves the input and duplicates."
+        }
+      ],
+      "annotations": [
+        {
+          "finding_id": "review.js:1",
+          "atom_id": "1",
+          "root_id": "review.js:1",
+          "verdict": "unresolved",
+          "gold_issue_id": null,
+          "evidence": "",
+          "location_acceptable": null,
+          "severity_acceptable": null
+        }
+      ]
+    },
+    {
+      "review_id": "R0016",
+      "requirement": "Return any cached value, including false, zero, empty string and null; use fallback only for missing own keys.",
+      "diff": "--- a/review.js\n+++ b/review.js\n@@ -1 +1 @@\n-exports.get = (cache, key, fallback) => Object.prototype.hasOwnProperty.call(cache, key) ? cache[key] : fallback;\n+exports.get = (cache, key, fallback) => Object.hasOwn(cache, key) ? cache[key] : fallback;\n",
+      "head_files": {
+        "review.js": "exports.get = (cache, key, fallback) => Object.hasOwn(cache, key) ? cache[key] : fallback;\n"
+      },
+      "gold_issues": [],
+      "findings": [
+        {
+          "id": "review.js:1",
+          "file": "review.js",
+          "side": "RIGHT",
+          "line": 1,
+          "severity": "medium",
+          "message": "Object.hasOwn is fine for the own-key check on modern Node, but its availability is a compatibility risk: `Object.hasOwn` was only added in ES2022 (Node 16.9+). If this code runs on older runtimes (e.g., Node 14/16.0–16.8 or other environments), `Object.hasOwn` is undefined and calling it throws a TypeError, breaking cache lookups entirely — a regression from the previous `hasOwnProperty.call` form. Ensure the supported runtime baseline includes `Object.hasOwn`, or guard/shim it."
+        }
+      ],
+      "annotations": [
+        {
+          "finding_id": "review.js:1",
+          "atom_id": "1",
+          "root_id": "review.js:1",
+          "verdict": "unresolved",
+          "gold_issue_id": null,
+          "evidence": "",
+          "location_acceptable": null,
+          "severity_acceptable": null
+        }
+      ]
+    },
+    {
+      "review_id": "R0017",
+      "requirement": "Return a new array of finite numeric priorities in ascending numeric order. Preserve duplicates and leave the input unchanged.",
+      "diff": "--- a/review.js\n+++ b/review.js\n@@ -1 +1 @@\n-exports.priority = values => values.slice().sort((a, b) => a - b);\n+exports.priority = values => [...values].sort((left, right) => left - right);\n",
+      "head_files": {
+        "review.js": "exports.priority = values => [...values].sort((left, right) => left - right);\n"
+      },
+      "gold_issues": [],
+      "findings": [
+        {
+          "id": "review.js:1",
+          "file": "review.js",
+          "side": "RIGHT",
+          "line": 1,
+          "severity": "medium",
+          "message": "The comparator subtracts operands directly, which sorts numeric strings (or mixed numeric/string values) lexicographically by coercion rather than numerically in edge cases, and non-finite values like NaN produce an inconsistent comparator. Since the requirement calls for finite numeric priorities, the function should filter/validate finiteness and parse/coerce to numbers before sorting, otherwise duplicates and input preservation are handled but ordering can be wrong for string inputs like ['10','9'] (sorts correctly here, but ['10','2'] sorts as 10,2 → fine; however pure lexicographic coercion issues arise with values such as '1e2'). More importantly, NaN entries break sort ordering and violate the finite requirement."
+        }
+      ],
+      "annotations": [
+        {
+          "finding_id": "review.js:1",
+          "atom_id": "1",
+          "root_id": "review.js:1",
+          "verdict": "unresolved",
+          "gold_issue_id": null,
+          "evidence": "",
+          "location_acceptable": null,
+          "severity_acceptable": null
+        }
+      ]
+    },
+    {
+      "review_id": "R0018",
+      "requirement": "page(items, start, count) returns at most count consecutive items from start, never an extra item; start/count are nonnegative integers.",
+      "diff": "--- a/review.js\n+++ b/review.js\n@@ -1,2 +1,5 @@\n const { takeRange } = require('./range');\n-exports.page = (items, start, count) => count === 0 ? [] : takeRange(items, start, start + count - 1);\n+exports.page = (items, start, count) => {\n+  if (!count) return [];\n+  return takeRange(items, start, start + count - 1);\n+};\n",
+      "head_files": {
+        "review.js": "const { takeRange } = require('./range');\nexports.page = (items, start, count) => {\n  if (!count) return [];\n  return takeRange(items, start, start + count - 1);\n};\n",
+        "range.js": "exports.takeRange = (items, first, lastInclusive) => items.slice(first, lastInclusive + 1);\n"
+      },
+      "gold_issues": [],
+      "findings": [
+        {
+          "id": "review.js:1",
+          "file": "review.js",
+          "side": "RIGHT",
+          "line": 3,
+          "severity": "medium",
+          "message": "The change from `count === 0` to `if (!count)` is a behavioral regression: it now also short-circuits for other falsy counts such as NaN or undefined, and more importantly it alters the contract stated in the requirement. More critically, the diff still doesn't introduce a bug beyond the original semantics, but the public behavioral requirement says page must return at most count items and never an extra item. The existing takeRange call uses start + count - 1 as lastInclusive, which is correct for inclusive slice, but if count is 0 handled, and for nonnegative integers it is fine. However, `if (!count)` changes behavior for NaN: previously NaN !== 0 so it would call takeRange and produce odd results; now returns []. That is arguably a robustness improvement, not a bug. The real risk: the stated contract requires start/count to be nonnegative integers; passing count as negative would slip through `if (!count)` for 0 only, and negative counts produce takeRange with lastInclusive < start, yielding empty from slice — acceptable. The main concern is that `!count` treats undefined and NaN as zero silently rather than failing, which can mask bugs. I'll flag as low/medium. Actually, given the requirement explicitly restricts inputs to nonnegative integers, `!count` is equivalent to count===0 for valid inputs. No functional bug for valid inputs. But there is a subtle risk: if count is a non-integer like 0.5, `!0.5` is false, and takeRange would include an extra item? start+0.5-1 = start-0.5, slice(start, start-0.5+1=start+0.5) -> slice uses integer coercion, could yield 1 item which equals ceil(count)? For count=0.5 returns 1 item, exceeding. But requirement says count nonnegative integer, so out of contract. I'll report as low severity code-quality concern. Alternatively return lgtm true? The instruction says reviews with lgtm=false. I think the falsy check is a legitimate review comment (medium) because it silently accepts invalid types and can mask errors, changing semantics for NaN/undefined from throwing/producing weird results to silently empty. That's a real behavioral change beyond stated intent. I'll report it."
+        }
+      ],
+      "annotations": [
+        {
+          "finding_id": "review.js:1",
+          "atom_id": "1",
+          "root_id": "review.js:1",
+          "verdict": "unresolved",
+          "gold_issue_id": null,
+          "evidence": "",
+          "location_acceptable": null,
+          "severity_acceptable": null
+        }
+      ]
+    },
+    {
+      "review_id": "R0019",
+      "requirement": "Profiles are isolated per tenant. A lookup returns the profile for the requested tenant/user pair, or null when absent.",
+      "diff": "--- a/review.js\n+++ b/review.js\n@@ -1,2 +1,4 @@\n const { lookup } = require('./cache');\n-exports.readProfile = (cache, tenant, user) => lookup(cache, tenant, user);\n+exports.readProfile = (cache, tenant, user) => {\n+  return lookup(cache, tenant, user);\n+};\n",
+      "head_files": {
+        "review.js": "const { lookup } = require('./cache');\nexports.readProfile = (cache, tenant, user) => {\n  return lookup(cache, tenant, user);\n};\n",
+        "cache.js": "const key = (tenant, user) => JSON.stringify([tenant, user]);\nexports.lookup = (cache, tenant, user) => cache[key(tenant, user)] ?? null;\n"
+      },
+      "gold_issues": [],
+      "findings": [
+        {
+          "id": "review.js:1",
+          "file": "review.js",
+          "side": "RIGHT",
+          "line": 2,
+          "severity": "low",
+          "message": "This refactor is behaviorally identical to the original single-expression arrow function: `lookup(cache, tenant, user)` is still called with the same arguments and its return value is still returned. No bug is introduced by the patch. The stated requirement (tenant/user isolation) is enforced by the callee `lookup`, not by this wrapper, so this diff neither strengthens nor weakens it. Recommend an LGTM, or at most note that tenant isolation should be verified inside `./cache` — but that is outside this patch and not evidenced here."
+        }
+      ],
+      "annotations": [
+        {
+          "finding_id": "review.js:1",
+          "atom_id": "1",
+          "root_id": "review.js:1",
+          "verdict": "unresolved",
+          "gold_issue_id": null,
+          "evidence": "",
+          "location_acceptable": null,
+          "severity_acceptable": null
+        }
+      ]
+    },
+    {
+      "review_id": "R0020",
+      "requirement": "Return any cached value, including false, zero, empty string and null; use fallback only for missing own keys.",
+      "diff": "--- a/review.js\n+++ b/review.js\n@@ -1 +1 @@\n-exports.get = (cache, key, fallback) => Object.prototype.hasOwnProperty.call(cache, key) ? cache[key] : fallback;\n+exports.get = (cache, key, fallback) => cache[key] || fallback;\n",
+      "head_files": {
+        "review.js": "exports.get = (cache, key, fallback) => cache[key] || fallback;\n"
+      },
+      "gold_issues": [
+        {
+          "gold_issue_id": "cached-false-001",
+          "root_cause": "Truthiness is used as cache membership, replacing valid false/0/null/empty-string entries with the fallback.",
+          "severity": "medium",
+          "severity_rationale": "Returns incorrect cached decisions and values.",
+          "acceptable_locations": [
+            {
+              "file": "review.js",
+              "start_line": 1,
+              "end_line": 1
+            }
+          ],
+          "required_context_files": [],
+          "proof_check_indices": [
+            0,
+            1,
+            2,
+            3
+          ]
+        }
+      ],
+      "findings": [
+        {
+          "id": "review.js:1",
+          "file": "review.js",
+          "side": "RIGHT",
+          "line": 1,
+          "severity": "high",
+          "message": "Replacing the hasOwnProperty prototype-safe own-key check with `cache[key] || fallback` is incorrect on two counts: (1) falsy cached values (false, 0, \"\", null) are silently discarded and replaced with fallback, violating the stated requirement; (2) it removes the own-property guard, so inherited/prototype properties and prototype-pollution keys can be returned as if cached. Also, `cache[key]` will throw if `cache` is null/undefined, whereas the original would too actually—but the main regressions are the falsy-value and own-key issues."
+        }
+      ],
+      "annotations": [
+        {
+          "finding_id": "review.js:1",
+          "atom_id": "1",
+          "root_id": "review.js:1",
+          "verdict": "unresolved",
+          "gold_issue_id": null,
+          "evidence": "",
+          "location_acceptable": null,
+          "severity_acceptable": null
+        }
+      ]
+    },
+    {
+      "review_id": "R0021",
+      "requirement": "A non-negative integer limit is valid, including zero (disable processing). Only null or undefined selects the default 20.",
+      "diff": "--- a/review.js\n+++ b/review.js\n@@ -1,2 +1,2 @@\n // Zero disables processing; null/undefined use the default.\n-exports.batchLimit = (limit) => limit ?? 20;\n+exports.batchLimit = (limit) => limit || 20;\n",
+      "head_files": {
+        "review.js": "// Zero disables processing; null/undefined use the default.\nexports.batchLimit = (limit) => limit || 20;\n"
+      },
+      "gold_issues": [
+        {
+          "gold_issue_id": "zero-limit-001",
+          "root_cause": "Logical OR replaces a valid zero limit with 20, processing work when the caller explicitly disabled it.",
+          "severity": "medium",
+          "severity_rationale": "Incorrect behavior on valid documented input; no broader production impact claimed.",
+          "acceptable_locations": [
+            {
+              "file": "review.js",
+              "start_line": 2,
+              "end_line": 2
+            }
+          ],
+          "required_context_files": [],
+          "proof_check_indices": [
+            0
+          ]
+        }
+      ],
+      "findings": [
+        {
+          "id": "review.js:1",
+          "file": "review.js",
+          "side": "RIGHT",
+          "line": 2,
+          "severity": "high",
+          "message": "Replacing ?? with || changes behavior: an explicit limit of 0 (documented as valid and meaning 'disable processing') is falsy, so it now falls through to the default 20 instead of being honored. This breaks the stated requirement that zero disables processing. Use ?? (or an explicit null/undefined check) to preserve zero while defaulting only for null/undefined."
+        }
+      ],
+      "annotations": [
+        {
+          "finding_id": "review.js:1",
+          "atom_id": "1",
+          "root_id": "review.js:1",
+          "verdict": "unresolved",
+          "gold_issue_id": null,
+          "evidence": "",
+          "location_acceptable": null,
+          "severity_acceptable": null
+        }
+      ]
+    },
+    {
+      "review_id": "R0022",
+      "requirement": "Return any cached value, including false, zero, empty string and null; use fallback only for missing own keys.",
+      "diff": "--- a/review.js\n+++ b/review.js\n@@ -1 +1 @@\n-exports.get = (cache, key, fallback) => Object.prototype.hasOwnProperty.call(cache, key) ? cache[key] : fallback;\n+exports.get = (cache, key, fallback) => cache[key] || fallback;\n",
+      "head_files": {
+        "review.js": "exports.get = (cache, key, fallback) => cache[key] || fallback;\n"
+      },
+      "gold_issues": [
+        {
+          "gold_issue_id": "cached-false-001",
+          "root_cause": "Truthiness is used as cache membership, replacing valid false/0/null/empty-string entries with the fallback.",
+          "severity": "medium",
+          "severity_rationale": "Returns incorrect cached decisions and values.",
+          "acceptable_locations": [
+            {
+              "file": "review.js",
+              "start_line": 1,
+              "end_line": 1
+            }
+          ],
+          "required_context_files": [],
+          "proof_check_indices": [
+            0,
+            1,
+            2,
+            3
+          ]
+        }
+      ],
+      "findings": [
+        {
+          "id": "review.js:1",
+          "file": "review.js",
+          "side": "RIGHT",
+          "line": 1,
+          "severity": "high",
+          "message": "Replacing the own-property check with `cache[key] || fallback` changes semantics in two risky ways: (1) falsy cached values (false, 0, '', null) are incorrectly replaced by the fallback, violating the stated behavior; (2) `||` reads inherited/prototype properties (e.g., key 'toString' or '__proto__'), so a key not own-present in the cache can return a prototype value instead of the fallback. Use `Object.prototype.hasOwnProperty.call(cache, key)` (or Object.hasOwn) to gate the read and return the stored value verbatim."
+        }
+      ],
+      "annotations": [
+        {
+          "finding_id": "review.js:1",
+          "atom_id": "1",
+          "root_id": "review.js:1",
+          "verdict": "unresolved",
+          "gold_issue_id": null,
+          "evidence": "",
+          "location_acceptable": null,
+          "severity_acceptable": null
+        }
+      ]
+    },
+    {
+      "review_id": "R0023",
+      "requirement": "For an array of user objects with boolean active, return active users' ids in input order, preserving numeric id 0.",
+      "diff": "--- a/review.js\n+++ b/review.js\n@@ -1,7 +1 @@\n-exports.activeIds = (users) => {\n-  const ids = [];\n-  for (const user of users) {\n-    if (user.active) ids.push(user.id);\n-  }\n-  return ids;\n-};\n+exports.activeIds = (users) => users.filter((user) => user.active).map((user) => user.id);\n",
+      "head_files": {
+        "review.js": "exports.activeIds = (users) => users.filter((user) => user.active).map((user) => user.id);\n"
+      },
+      "gold_issues": [],
+      "findings": [
+        {
+          "id": "review.js:1",
+          "file": "review.js",
+          "side": "RIGHT",
+          "line": 1,
+          "severity": "medium",
+          "message": "The refactor changes behavior relative to the documented public requirement. The original implementation used a truthiness check (`if (user.active)`) too, so the concern is whether activeIds now correctly preserves active users including numeric id 0. The filter/map approach preserves id 0 when mapping, but `filter((user) => user.active)` still relies on truthiness for the active flag. The requirement specifies boolean active, so this is acceptable for true/false. However, one real regression risk: the new arrow function omits explicit braces/return but that is fine. The main issue is that the original code pushed `user.id` based on truthy `user.active`; the new code is functionally equivalent for boolean active. No clear bug. But the requirement says preserve numeric id 0 — the new map does preserve 0. So no functional change. Still, flag potential risk: no input validation or handling of users without active property; not required. Given the patch is a semantically equivalent simplification, but the reviewer must find risks: the only meaningful risk is that `filter` on a sparse array or non-array could behave differently, but original for..of also requires iterable. For..of on sparse arrays yields undefined and would throw on `user.active`; filter skips holes. That is a behavioral difference for sparse arrays: original throws, new silently skips holes. Also for non-array iterables (e.g., Set), original for..of works, new `.filter` does not exist. That is a compatibility regression."
+        }
+      ],
+      "annotations": [
+        {
+          "finding_id": "review.js:1",
+          "atom_id": "1",
+          "root_id": "review.js:1",
+          "verdict": "unresolved",
+          "gold_issue_id": null,
+          "evidence": "",
+          "location_acceptable": null,
+          "severity_acceptable": null
+        }
+      ]
+    },
+    {
+      "review_id": "R0024",
+      "requirement": "For an ordered array of lines with finite non-negative integer quantity and unitPriceCents, sum quantity * unitPriceCents in order; the empty invoice is zero.",
+      "diff": "--- a/review.js\n+++ b/review.js\n@@ -1,5 +1 @@\n-exports.totalCents = (lines) => {\n-  let total = 0;\n-  for (const line of lines) total += line.quantity * line.unitPriceCents;\n-  return total;\n-};\n+exports.totalCents = (lines) => lines.reduce((total, line) => total + line.quantity * line.unitPriceCents, 0);\n",
+      "head_files": {
+        "review.js": "exports.totalCents = (lines) => lines.reduce((total, line) => total + line.quantity * line.unitPriceCents, 0);\n"
+      },
+      "gold_issues": [],
+      "findings": [
+        {
+          "id": "review.js:1",
+          "file": "review.js",
+          "side": "RIGHT",
+          "line": 1,
+          "severity": "low",
+          "message": "The rewrite preserves the accumulation logic, but it drops the explicit behavior on bad input. The old loop implicitly skipped null/undefined line entries (throwing only on non-iterable input); the new reduce callback dereferences `line.quantity`, so any null/undefined element now throws a TypeError. This is a behavioral change for malformed/untrusted input and should be guarded (e.g., filter or explicit validation) if callers may pass sparse or null entries."
+        }
+      ],
+      "annotations": [
+        {
+          "finding_id": "review.js:1",
+          "atom_id": "1",
+          "root_id": "review.js:1",
+          "verdict": "unresolved",
+          "gold_issue_id": null,
+          "evidence": "",
+          "location_acceptable": null,
+          "severity_acceptable": null
+        }
+      ]
+    },
+    {
+      "review_id": "R0025",
+      "requirement": "scheduleRetry(delayMs) must schedule the retry after the requested non-negative duration in milliseconds.",
+      "diff": "--- a/review.js\n+++ b/review.js\n@@ -1,2 +1,5 @@\n const { after } = require('./scheduler.js');\n-exports.scheduleRetry = (delayMs) => after(delayMs / 1000);\n+exports.scheduleRetry = (delayMs) => {\n+  const seconds = delayMs / 1000;\n+  return after(seconds);\n+};\n",
+      "head_files": {
+        "review.js": "const { after } = require('./scheduler.js');\nexports.scheduleRetry = (delayMs) => {\n  const seconds = delayMs / 1000;\n  return after(seconds);\n};\n",
+        "scheduler.js": "// Scheduler API contract: delay is expressed in SECONDS.\nexports.after = (delaySeconds) => ({ scheduledAfterSeconds: delaySeconds });\n"
+      },
+      "gold_issues": [],
+      "findings": [
+        {
+          "id": "review.js:1",
+          "file": "review.js",
+          "side": "RIGHT",
+          "line": 3,
+          "severity": "medium",
+          "message": "scheduleRetry converts milliseconds to seconds (delayMs / 1000) and passes the result to after(), but the stated requirement is that the retry is scheduled after the requested duration in milliseconds. Depending on what after() expects, this conversion either drops/alters the requested delay or introduces unit mismatch. Per C1, after(delaySeconds) consumes seconds, so a delayMs value is being divided by 1000 and then likely interpreted as seconds, yielding a delay 1000x smaller than requested. Also, a raw division without validation allows negative or NaN delays, which violates the 'non-negative duration' part of the requirement."
+        }
+      ],
+      "annotations": [
+        {
+          "finding_id": "review.js:1",
+          "atom_id": "1",
+          "root_id": "review.js:1",
+          "verdict": "unresolved",
+          "gold_issue_id": null,
+          "evidence": "",
+          "location_acceptable": null,
+          "severity_acceptable": null
+        }
+      ]
+    },
+    {
+      "review_id": "R0026",
+      "requirement": "page(items, start, count) returns at most count consecutive items from start, never an extra item; start/count are nonnegative integers.",
+      "diff": "--- a/review.js\n+++ b/review.js\n@@ -1,2 +1,5 @@\n const { takeRange } = require('./range');\n-exports.page = (items, start, count) => count === 0 ? [] : takeRange(items, start, start + count - 1);\n+exports.page = (items, start, count) => {\n+  if (!count) return [];\n+  return takeRange(items, start, start + count - 1);\n+};\n",
+      "head_files": {
+        "review.js": "const { takeRange } = require('./range');\nexports.page = (items, start, count) => {\n  if (!count) return [];\n  return takeRange(items, start, start + count - 1);\n};\n",
+        "range.js": "exports.takeRange = (items, first, lastInclusive) => items.slice(first, lastInclusive + 1);\n"
+      },
+      "gold_issues": [],
+      "findings": [
+        {
+          "id": "review.js:1",
+          "file": "review.js",
+          "side": "RIGHT",
+          "line": 2,
+          "severity": "low",
+          "message": "The old guard used `count === 0`, but the new code uses `if (!count) return []`, which also treats `undefined`, `NaN`, `null`, and any other falsy value (including negative numbers, since `!-1` is false... actually negative is truthy) as \"return empty\". More importantly, `!count` changes behavior for any falsy non-zero count. Under the requirement that count is a nonnegative integer, `undefined` returning `[]` may be acceptable, but the bigger risk is that this refactor subtly broadens the empty-return condition and hides caller bugs. However, the requirement says count is a nonnegative integer, so this is largely equivalent for valid input. A more concrete concern: using `!count` masks invalid input (e.g., NaN) instead of failing, but that's low severity. The behavior for valid inputs remains correct. Still, flagging the semantic change from `=== 0` to falsy check."
+        }
+      ],
+      "annotations": [
+        {
+          "finding_id": "review.js:1",
+          "atom_id": "1",
+          "root_id": "review.js:1",
+          "verdict": "unresolved",
+          "gold_issue_id": null,
+          "evidence": "",
+          "location_acceptable": null,
+          "severity_acceptable": null
+        }
+      ]
+    },
+    {
+      "review_id": "R0027",
+      "requirement": "page(items, start, count) returns at most count consecutive items from start, never an extra item; start/count are nonnegative integers.",
+      "diff": "--- a/review.js\n+++ b/review.js\n@@ -1,2 +1,2 @@\n const { takeRange } = require('./range');\n-exports.page = (items, start, count) => count === 0 ? [] : takeRange(items, start, start + count - 1);\n+exports.page = (items, start, count) => count === 0 ? [] : takeRange(items, start, start + count);\n",
+      "head_files": {
+        "review.js": "const { takeRange } = require('./range');\nexports.page = (items, start, count) => count === 0 ? [] : takeRange(items, start, start + count);\n",
+        "range.js": "exports.takeRange = (items, first, lastInclusive) => items.slice(first, lastInclusive + 1);\n"
+      },
+      "gold_issues": [
+        {
+          "gold_issue_id": "range-end-contract-001",
+          "root_cause": "The end passed to takeRange is start + count although the helper uses an inclusive end; pages gain one extra item.",
+          "severity": "medium",
+          "severity_rationale": "Violates page cardinality and duplicates boundary items between pages.",
+          "acceptable_locations": [
+            {
+              "file": "review.js",
+              "start_line": 2,
+              "end_line": 2
+            }
+          ],
+          "required_context_files": [
+            "range.js"
+          ],
+          "proof_check_indices": [
+            0,
+            1
+          ]
+        }
+      ],
+      "findings": [
+        {
+          "id": "review.js:1",
+          "file": "review.js",
+          "side": "RIGHT",
+          "line": 2,
+          "severity": "high",
+          "message": "The end index passed to takeRange is now start + count, but takeRange treats its last argument as inclusive and does slice(first, lastInclusive + 1). Since page intends to return at most `count` items, the correct inclusive end is start + count - 1. The changed code yields one extra item (e.g. page(items, 0, 2) returns 3 items), violating the requirement that page never returns an extra item."
+        }
+      ],
+      "annotations": [
+        {
+          "finding_id": "review.js:1",
+          "atom_id": "1",
+          "root_id": "review.js:1",
+          "verdict": "unresolved",
+          "gold_issue_id": null,
+          "evidence": "",
+          "location_acceptable": null,
+          "severity_acceptable": null
+        }
+      ]
+    },
+    {
+      "review_id": "R0028",
+      "requirement": "Return reversed elements without mutating the input array, preserving duplicate values.",
+      "diff": "--- a/review.js\n+++ b/review.js\n@@ -1 +1 @@\n-exports.reverse = values => values.slice().reverse();\n+exports.reverse = values => [...values].reverse();\n",
+      "head_files": {
+        "review.js": "exports.reverse = values => [...values].reverse();\n"
+      },
+      "gold_issues": [],
+      "findings": [],
+      "annotations": []
+    },
+    {
+      "review_id": "R0029",
+      "requirement": "Return a new array of finite numeric priorities in ascending numeric order. Preserve duplicates and leave the input unchanged.",
+      "diff": "--- a/review.js\n+++ b/review.js\n@@ -1 +1 @@\n-exports.priority = values => values.slice().sort((a, b) => a - b);\n+exports.priority = values => [...values].sort((left, right) => left - right);\n",
+      "head_files": {
+        "review.js": "exports.priority = values => [...values].sort((left, right) => left - right);\n"
+      },
+      "gold_issues": [],
+      "findings": [
+        {
+          "id": "review.js:1",
+          "file": "review.js",
+          "side": "RIGHT",
+          "line": 1,
+          "severity": "low",
+          "message": "The sort lacks handling for non-finite values (NaN, Infinity). The requirement specifies finite numeric priorities; NaN comparisons return NaN causing unstable/incorrect ordering, and Infinity/NaN may be passed through. Consider filtering or validating to finite numbers before sorting."
+        }
+      ],
+      "annotations": [
+        {
+          "finding_id": "review.js:1",
+          "atom_id": "1",
+          "root_id": "review.js:1",
+          "verdict": "unresolved",
+          "gold_issue_id": null,
+          "evidence": "",
+          "location_acceptable": null,
+          "severity_acceptable": null
+        }
+      ]
+    },
+    {
+      "review_id": "R0030",
+      "requirement": "scheduleRetry(delayMs) must schedule the retry after the requested non-negative duration in milliseconds.",
+      "diff": "--- a/review.js\n+++ b/review.js\n@@ -1,2 +1,5 @@\n const { after } = require('./scheduler.js');\n-exports.scheduleRetry = (delayMs) => after(delayMs / 1000);\n+exports.scheduleRetry = (delayMs) => {\n+  const seconds = delayMs / 1000;\n+  return after(seconds);\n+};\n",
+      "head_files": {
+        "review.js": "const { after } = require('./scheduler.js');\nexports.scheduleRetry = (delayMs) => {\n  const seconds = delayMs / 1000;\n  return after(seconds);\n};\n",
+        "scheduler.js": "// Scheduler API contract: delay is expressed in SECONDS.\nexports.after = (delaySeconds) => ({ scheduledAfterSeconds: delaySeconds });\n"
+      },
+      "gold_issues": [],
+      "findings": [
+        {
+          "id": "review.js:1",
+          "file": "review.js",
+          "side": "RIGHT",
+          "line": 3,
+          "severity": "high",
+          "message": "The scheduler helper is invoked with a unit-converted value (delayMs / 1000), but the requirement says scheduleRetry(delayMs) must schedule after the requested duration in milliseconds. The /1000 conversion makes the retry fire ~1000x too early (or treats milliseconds as seconds). This bug exists in the original line and is preserved in the patch. Also no validation of negative/non-numeric delay despite the non-negative requirement."
+        }
+      ],
+      "annotations": [
+        {
+          "finding_id": "review.js:1",
+          "atom_id": "1",
+          "root_id": "review.js:1",
+          "verdict": "unresolved",
+          "gold_issue_id": null,
+          "evidence": "",
+          "location_acceptable": null,
+          "severity_acceptable": null
+        }
+      ]
+    },
+    {
+      "review_id": "R0031",
+      "requirement": "page(items, start, count) returns at most count consecutive items from start, never an extra item; start/count are nonnegative integers.",
+      "diff": "--- a/review.js\n+++ b/review.js\n@@ -1,2 +1,2 @@\n const { takeRange } = require('./range');\n-exports.page = (items, start, count) => count === 0 ? [] : takeRange(items, start, start + count - 1);\n+exports.page = (items, start, count) => count === 0 ? [] : takeRange(items, start, start + count);\n",
+      "head_files": {
+        "review.js": "const { takeRange } = require('./range');\nexports.page = (items, start, count) => count === 0 ? [] : takeRange(items, start, start + count);\n",
+        "range.js": "exports.takeRange = (items, first, lastInclusive) => items.slice(first, lastInclusive + 1);\n"
+      },
+      "gold_issues": [
+        {
+          "gold_issue_id": "range-end-contract-001",
+          "root_cause": "The end passed to takeRange is start + count although the helper uses an inclusive end; pages gain one extra item.",
+          "severity": "medium",
+          "severity_rationale": "Violates page cardinality and duplicates boundary items between pages.",
+          "acceptable_locations": [
+            {
+              "file": "review.js",
+              "start_line": 2,
+              "end_line": 2
+            }
+          ],
+          "required_context_files": [
+            "range.js"
+          ],
+          "proof_check_indices": [
+            0,
+            1
+          ]
+        }
+      ],
+      "findings": [
+        {
+          "id": "review.js:1",
+          "file": "review.js",
+          "side": "RIGHT",
+          "line": 2,
+          "severity": "high",
+          "message": "The patch changes the end index from `start + count - 1` to `start + count`, which makes the range inclusive-end fetch one item too large if `takeRange` treats its third argument as an inclusive end (as the original `-1` suggests). This violates the requirement to return at most `count` items and never an extra item."
+        }
+      ],
+      "annotations": [
+        {
+          "finding_id": "review.js:1",
+          "atom_id": "1",
+          "root_id": "review.js:1",
+          "verdict": "unresolved",
+          "gold_issue_id": null,
+          "evidence": "",
+          "location_acceptable": null,
+          "severity_acceptable": null
+        }
+      ]
+    },
+    {
+      "review_id": "R0032",
+      "requirement": "Return any cached value, including false, zero, empty string and null; use fallback only for missing own keys.",
+      "diff": "--- a/review.js\n+++ b/review.js\n@@ -1 +1 @@\n-exports.get = (cache, key, fallback) => Object.prototype.hasOwnProperty.call(cache, key) ? cache[key] : fallback;\n+exports.get = (cache, key, fallback) => Object.hasOwn(cache, key) ? cache[key] : fallback;\n",
+      "head_files": {
+        "review.js": "exports.get = (cache, key, fallback) => Object.hasOwn(cache, key) ? cache[key] : fallback;\n"
+      },
+      "gold_issues": [],
+      "findings": [
+        {
+          "id": "review.js:1",
+          "file": "review.js",
+          "side": "RIGHT",
+          "line": 1,
+          "severity": "medium",
+          "message": "Object.hasOwn is ES2022 (Node 16.9+). If this package targets older runtimes, this will throw TypeError. Additionally, if `cache` can be null/undefined, Object.hasOwn throws whereas Object.prototype.hasOwnProperty.call also throws on null/undefined — behavior unchanged there. Consider Object.hasOwn only if runtime baseline guarantees ES2022; otherwise keep hasOwnProperty.call. Behavioral semantics for own keys (incl. false/0/''/null) remain correct, so no functional regression for valid runtimes."
+        }
+      ],
+      "annotations": [
+        {
+          "finding_id": "review.js:1",
+          "atom_id": "1",
+          "root_id": "review.js:1",
+          "verdict": "unresolved",
+          "gold_issue_id": null,
+          "evidence": "",
+          "location_acceptable": null,
+          "severity_acceptable": null
+        }
+      ]
+    },
+    {
+      "review_id": "R0033",
+      "requirement": "A non-negative integer limit is valid, including zero (disable processing). Only null or undefined selects the default 20.",
+      "diff": "--- a/review.js\n+++ b/review.js\n@@ -1,2 +1,2 @@\n // Zero disables processing; null/undefined use the default.\n-exports.batchLimit = (limit) => limit ?? 20;\n+exports.batchLimit = (limit) => limit == null ? 20 : limit;\n",
+      "head_files": {
+        "review.js": "// Zero disables processing; null/undefined use the default.\nexports.batchLimit = (limit) => limit == null ? 20 : limit;\n"
+      },
+      "gold_issues": [],
+      "findings": [
+        {
+          "id": "review.js:1",
+          "file": "review.js",
+          "side": "RIGHT",
+          "line": 2,
+          "severity": "medium",
+          "message": "The rewrite from `limit ?? 20` to `limit == null ? 20 : limit` is semantically equivalent for null/undefined (both use loose equality so undefined matches null too), so zero still passes through. However, the change provides no validation that the limit is a non-negative integer as the public requirement states. The original also lacked validation, but note the new code accepts any non-null value including negative numbers, strings, NaN, and non-integers without enforcing the documented contract. If the intent of this patch is to enforce the requirement, it does not do so. Also flag that `==` should be `===` for null-only checks per style, though here `== null` is the idiomatic null/undefined check. Recommend explicitly validating `Number.isInteger(limit) && limit >= 0` or rejecting invalid input."
+        }
+      ],
+      "annotations": [
+        {
+          "finding_id": "review.js:1",
+          "atom_id": "1",
+          "root_id": "review.js:1",
+          "verdict": "unresolved",
+          "gold_issue_id": null,
+          "evidence": "",
+          "location_acceptable": null,
+          "severity_acceptable": null
+        }
+      ]
+    },
+    {
+      "review_id": "R0034",
+      "requirement": "For an ordered array of lines with finite non-negative integer quantity and unitPriceCents, sum quantity * unitPriceCents in order; the empty invoice is zero.",
+      "diff": "--- a/review.js\n+++ b/review.js\n@@ -1,5 +1 @@\n-exports.totalCents = (lines) => {\n-  let total = 0;\n-  for (const line of lines) total += line.quantity * line.unitPriceCents;\n-  return total;\n-};\n+exports.totalCents = (lines) => lines.reduce((total, line) => total + line.quantity * line.unitPriceCents, 0);\n",
+      "head_files": {
+        "review.js": "exports.totalCents = (lines) => lines.reduce((total, line) => total + line.quantity * line.unitPriceCents, 0);\n"
+      },
+      "gold_issues": [],
+      "findings": [
+        {
+          "id": "review.js:1",
+          "file": "review.js",
+          "side": "RIGHT",
+          "line": 1,
+          "severity": "medium",
+          "message": "The refactor does not validate inputs, and the requirement is scoped to finite non-negative integers. reduce also throws on null/undefined lines, and if line.quantity or line.unitPriceCents is missing/non-numeric the result becomes NaN rather than a clear error. Consider guarding inputs or explicitly documenting assumptions, since source data is untrusted."
+        }
+      ],
+      "annotations": [
+        {
+          "finding_id": "review.js:1",
+          "atom_id": "1",
+          "root_id": "review.js:1",
+          "verdict": "unresolved",
+          "gold_issue_id": null,
+          "evidence": "",
+          "location_acceptable": null,
+          "severity_acceptable": null
+        }
+      ]
+    },
+    {
+      "review_id": "R0035",
+      "requirement": "Profiles are isolated per tenant. A lookup returns the profile for the requested tenant/user pair, or null when absent.",
+      "diff": "--- a/review.js\n+++ b/review.js\n@@ -1,2 +1,2 @@\n const { lookup } = require('./cache');\n-exports.readProfile = (cache, tenant, user) => lookup(cache, tenant, user);\n+exports.readProfile = (cache, tenant, user) => lookup(cache, user, tenant);\n",
+      "head_files": {
+        "review.js": "const { lookup } = require('./cache');\nexports.readProfile = (cache, tenant, user) => lookup(cache, user, tenant);\n",
+        "cache.js": "const key = (tenant, user) => JSON.stringify([tenant, user]);\nexports.lookup = (cache, tenant, user) => cache[key(tenant, user)] ?? null;\n"
+      },
+      "gold_issues": [
+        {
+          "gold_issue_id": "tenant-cache-key-001",
+          "root_cause": "The tenant and user arguments are swapped at the cache lookup boundary, producing a different tenant/user key and potentially returning another profile.",
+          "severity": "high",
+          "severity_rationale": "Tenant isolation can be violated.",
+          "acceptable_locations": [
+            {
+              "file": "review.js",
+              "start_line": 2,
+              "end_line": 2
+            }
+          ],
+          "required_context_files": [
+            "cache.js"
+          ],
+          "proof_check_indices": [
+            0,
+            1
+          ]
+        }
+      ],
+      "findings": [
+        {
+          "id": "review.js:1",
+          "file": "review.js",
+          "side": "RIGHT",
+          "line": 2,
+          "severity": "high",
+          "message": "The tenant and user arguments are swapped relative to the original lookup call. Since profiles are isolated per tenant, lookup(cache, user, tenant) reverses the key pair, so a request may resolve another tenant's profile or return null for valid tenant/user pairs. Restore the argument order to lookup(cache, tenant, user)."
+        }
+      ],
+      "annotations": [
+        {
+          "finding_id": "review.js:1",
+          "atom_id": "1",
+          "root_id": "review.js:1",
+          "verdict": "unresolved",
+          "gold_issue_id": null,
+          "evidence": "",
+          "location_acceptable": null,
+          "severity_acceptable": null
+        }
+      ]
+    },
+    {
+      "review_id": "R0036",
+      "requirement": "scheduleRetry(delayMs) must schedule the retry after the requested non-negative duration in milliseconds.",
+      "diff": "--- a/review.js\n+++ b/review.js\n@@ -1,2 +1,2 @@\n const { after } = require('./scheduler.js');\n-exports.scheduleRetry = (delayMs) => after(delayMs / 1000);\n+exports.scheduleRetry = (delayMs) => after(delayMs);\n",
+      "head_files": {
+        "review.js": "const { after } = require('./scheduler.js');\nexports.scheduleRetry = (delayMs) => after(delayMs);\n",
+        "scheduler.js": "// Scheduler API contract: delay is expressed in SECONDS.\nexports.after = (delaySeconds) => ({ scheduledAfterSeconds: delaySeconds });\n"
+      },
+      "gold_issues": [
+        {
+          "gold_issue_id": "scheduler-units-001",
+          "root_cause": "Milliseconds are passed to a seconds-based scheduler without conversion, delaying nonzero retries by a factor of 1000.",
+          "severity": "medium",
+          "severity_rationale": "Incorrect behavior on valid documented input; no broader production impact claimed.",
+          "acceptable_locations": [
+            {
+              "file": "review.js",
+              "start_line": 2,
+              "end_line": 2
+            }
+          ],
+          "required_context_files": [
+            "scheduler.js"
+          ],
+          "proof_check_indices": [
+            0,
+            1
+          ]
+        }
+      ],
+      "findings": [
+        {
+          "id": "review.js:1",
+          "file": "review.js",
+          "side": "RIGHT",
+          "line": 2,
+          "severity": "high",
+          "message": "scheduleRetry no longer converts milliseconds to seconds. The scheduler's `after` expects seconds (per the removed `/ 1000`), so passing `delayMs` directly makes retries fire ~1000x later than requested, violating the requirement that the retry occur after the requested duration in milliseconds."
+        }
+      ],
+      "annotations": [
+        {
+          "finding_id": "review.js:1",
+          "atom_id": "1",
+          "root_id": "review.js:1",
+          "verdict": "unresolved",
+          "gold_issue_id": null,
+          "evidence": "",
+          "location_acceptable": null,
+          "severity_acceptable": null
+        }
+      ]
+    },
+    {
+      "review_id": "R0037",
+      "requirement": "Profiles are isolated per tenant. A lookup returns the profile for the requested tenant/user pair, or null when absent.",
+      "diff": "--- a/review.js\n+++ b/review.js\n@@ -1,2 +1,2 @@\n const { lookup } = require('./cache');\n-exports.readProfile = (cache, tenant, user) => lookup(cache, tenant, user);\n+exports.readProfile = (cache, tenant, user) => lookup(cache, user, tenant);\n",
+      "head_files": {
+        "review.js": "const { lookup } = require('./cache');\nexports.readProfile = (cache, tenant, user) => lookup(cache, user, tenant);\n",
+        "cache.js": "const key = (tenant, user) => JSON.stringify([tenant, user]);\nexports.lookup = (cache, tenant, user) => cache[key(tenant, user)] ?? null;\n"
+      },
+      "gold_issues": [
+        {
+          "gold_issue_id": "tenant-cache-key-001",
+          "root_cause": "The tenant and user arguments are swapped at the cache lookup boundary, producing a different tenant/user key and potentially returning another profile.",
+          "severity": "high",
+          "severity_rationale": "Tenant isolation can be violated.",
+          "acceptable_locations": [
+            {
+              "file": "review.js",
+              "start_line": 2,
+              "end_line": 2
+            }
+          ],
+          "required_context_files": [
+            "cache.js"
+          ],
+          "proof_check_indices": [
+            0,
+            1
+          ]
+        }
+      ],
+      "findings": [
+        {
+          "id": "review.js:1",
+          "file": "review.js",
+          "side": "RIGHT",
+          "line": 2,
+          "severity": "high",
+          "message": "Argument order to lookup is swapped: lookup expects (cache, tenant, user) but readProfile now passes (cache, user, tenant). This breaks tenant/user isolation, returning null or another tenant's/profile's entry when tenant != user."
+        }
+      ],
+      "annotations": [
+        {
+          "finding_id": "review.js:1",
+          "atom_id": "1",
+          "root_id": "review.js:1",
+          "verdict": "unresolved",
+          "gold_issue_id": null,
+          "evidence": "",
+          "location_acceptable": null,
+          "severity_acceptable": null
+        }
+      ]
+    },
+    {
+      "review_id": "R0038",
+      "requirement": "For an array of user objects with boolean active, return active users' ids in input order, preserving numeric id 0.",
+      "diff": "--- a/review.js\n+++ b/review.js\n@@ -1,7 +1 @@\n-exports.activeIds = (users) => {\n-  const ids = [];\n-  for (const user of users) {\n-    if (user.active) ids.push(user.id);\n-  }\n-  return ids;\n-};\n+exports.activeIds = (users) => users.filter((user) => user.active).map((user) => user.id);\n",
+      "head_files": {
+        "review.js": "exports.activeIds = (users) => users.filter((user) => user.active).map((user) => user.id);\n"
+      },
+      "gold_issues": [],
+      "findings": [
+        {
+          "id": "review.js:1",
+          "file": "review.js",
+          "side": "RIGHT",
+          "line": 1,
+          "severity": "low",
+          "message": "The new implementation still preserves input order and numeric id 0, but it introduces a behavioral risk vs the original: if `users` is null/undefined, `.filter` throws a TypeError (the original `for...of` would also throw, so equivalent), however there is no handling of non-array iterables that the original supported—`for...of` accepted any iterable (e.g., a Set or generator), whereas `Array.prototype.filter` requires an array-like/receiver with filter method. If `users` is a non-array iterable, this is now a runtime TypeError. Also note the original accepted array-like/iterable inputs; the public requirement specifies an array, so severity is low-to-medium. Caller contract should be confirmed or Input validation added."
+        }
+      ],
+      "annotations": [
+        {
+          "finding_id": "review.js:1",
+          "atom_id": "1",
+          "root_id": "review.js:1",
+          "verdict": "unresolved",
+          "gold_issue_id": null,
+          "evidence": "",
+          "location_acceptable": null,
+          "severity_acceptable": null
+        }
+      ]
+    },
+    {
+      "review_id": "R0039",
+      "requirement": "A non-negative integer limit is valid, including zero (disable processing). Only null or undefined selects the default 20.",
+      "diff": "--- a/review.js\n+++ b/review.js\n@@ -1,2 +1,2 @@\n // Zero disables processing; null/undefined use the default.\n-exports.batchLimit = (limit) => limit ?? 20;\n+exports.batchLimit = (limit) => limit == null ? 20 : limit;\n",
+      "head_files": {
+        "review.js": "// Zero disables processing; null/undefined use the default.\nexports.batchLimit = (limit) => limit == null ? 20 : limit;\n"
+      },
+      "gold_issues": [],
+      "findings": [
+        {
+          "id": "review.js:1",
+          "file": "review.js",
+          "side": "RIGHT",
+          "line": 2,
+          "severity": "low",
+          "message": "The comment and requirement say zero is a valid value that disables processing. The new `limit == null ? 20 : limit` correctly passes 0 through, so behavior is fine. However, this patch is a no-op semantic change from `??` to `== null` and doesn't address validation of non-negative integers; non-integer/negative values are still accepted unchanged, which contradicts the stated requirement that only non-negative integers are valid. No bug introduced by the change itself, but the validation gap remains."
+        }
+      ],
+      "annotations": [
+        {
+          "finding_id": "review.js:1",
+          "atom_id": "1",
+          "root_id": "review.js:1",
+          "verdict": "unresolved",
+          "gold_issue_id": null,
+          "evidence": "",
+          "location_acceptable": null,
+          "severity_acceptable": null
+        }
+      ]
+    },
+    {
+      "review_id": "R0040",
+      "requirement": "Download permission is granted only when the policy service returns GRANTED; DENIED and SUSPENDED must return false.",
+      "diff": "--- a/review.js\n+++ b/review.js\n@@ -1,2 +1,5 @@\n const { lookup, GRANTED } = require('./policy.js');\n-exports.canDownload = (account) => lookup(account) === GRANTED;\n+exports.canDownload = (account) => {\n+  const decision = lookup(account);\n+  return decision === GRANTED;\n+};\n",
+      "head_files": {
+        "review.js": "const { lookup, GRANTED } = require('./policy.js');\nexports.canDownload = (account) => {\n  const decision = lookup(account);\n  return decision === GRANTED;\n};\n",
+        "policy.js": "// External policy protocol: numeric values are not booleans.\nconst GRANTED = 0;\nconst DENIED = 1;\nconst SUSPENDED = 2;\nexports.GRANTED = GRANTED;\nexports.lookup = (account) => ({ granted: GRANTED, denied: DENIED, suspended: SUSPENDED })[account.status];\n"
+      },
+      "gold_issues": [],
+      "findings": [
+        {
+          "id": "review.js:1",
+          "file": "review.js",
+          "side": "RIGHT",
+          "line": 3,
+          "severity": "medium",
+          "message": "GRANTED is defined as 0 (C2), and lookup returns the numeric decision (C1). However lookup derives the decision from the object literal `{ granted: GRANTED, denied: DENIED, suspended: SUSPENDED }[account.status]`; since GRANTED === 0, if account.status is a missing key or lookup returns undefined, `decision === GRANTED` is false—that part is fine. The actual regression risk: the old code and new code are behaviorally equivalent here, so no bug introduced by this patch. But the review should note that GRANTED===0 means any falsy/0-producing decision grants download; the strict equality guards against undefined, but if lookup ever returns 0 for a non-granted status (e.g., SUSPENDED also 0 or truthy coercion), download would be wrongly granted. Verify GRANTED/DENIED/SUSPENDED are distinct non-zero-safe values in policy.js."
+        }
+      ],
+      "annotations": [
+        {
+          "finding_id": "review.js:1",
+          "atom_id": "1",
+          "root_id": "review.js:1",
+          "verdict": "unresolved",
+          "gold_issue_id": null,
+          "evidence": "",
+          "location_acceptable": null,
+          "severity_acceptable": null
+        }
+      ]
+    }
+  ]
+}

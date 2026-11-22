@@ -1,0 +1,90 @@
+{
+  "provider_kind": "live",
+  "provider_version": "bailian-deepseek-1017-v1",
+  "context_kind": "none",
+  "context_version": null,
+  "analysis_status": "COMPLETE",
+  "findings": [
+    {
+      "id": "review.js:1",
+      "file": "review.js",
+      "side": "RIGHT",
+      "line": 2,
+      "severity": "low",
+      "message": "This refactor is behaviorally identical to the original single-expression arrow function: `lookup(cache, tenant, user)` is still called with the same arguments and its return value is still returned. No bug is introduced by the patch. The stated requirement (tenant/user isolation) is enforced by the callee `lookup`, not by this wrapper, so this diff neither strengthens nor weakens it. Recommend an LGTM, or at most note that tenant isolation should be verified inside `./cache` — but that is outside this patch and not evidenced here.",
+      "evidenceIds": [],
+      "validation": "VERIFIED"
+    }
+  ],
+  "omissions": [],
+  "snippets": [],
+  "metrics": {
+    "model": "deepseek-v4.1-flash-1017",
+    "effectiveParameters": {
+      "model": "deepseek-v4.1-flash-1017",
+      "enable_thinking": false,
+      "response_format": {
+        "type": "json_object"
+      },
+      "max_tokens": 800,
+      "maxRetries": 0
+    },
+    "promptVersion": "inspector-c-v1+public-requirement-v1",
+    "durationMs": 2044,
+    "calls": 1,
+    "inputTokens": 284,
+    "outputTokens": 155,
+    "attempts": [
+      {
+        "file": "review.js",
+        "attempt": 1,
+        "timeoutMs": 30000,
+        "durationMs": 1867,
+        "estimatedInputTokens": 344,
+        "reservedOutputTokens": 800,
+        "inputTokens": 284,
+        "outputTokens": 155,
+        "responseModel": "deepseek-v4.1-flash-1017",
+        "outcome": "RESPONSE"
+      }
+    ],
+    "tokenizerId": "@huggingface/tokenizers@0.2.0/DeepSeek-V4.1-Flash-1017@08c8657f02291e11b6f6b63e0e16014f8e748518+chat-allowance-64",
+    "modelDurationMs": 2043,
+    "contextDurationMs": 0
+  },
+  "raw": [
+    {
+      "response": {
+        "id": "chatcmpl-5052ff17-71c7-9d40-a069-21da99ec0961",
+        "object": "chat.completion",
+        "created": 1795335910,
+        "model": "deepseek-v4.1-flash-1017",
+        "choices": [
+          {
+            "index": 0,
+            "message": {
+              "role": "assistant",
+              "reasoning_content": "",
+              "content": "{\"reviews\":[{\"lgtm\":false,\"review_comment\":\"This refactor is behaviorally identical to the original single-expression arrow function: `lookup(cache, tenant, user)` is still called with the same arguments and its return value is still returned. No bug is introduced by the patch. The stated requirement (tenant/user isolation) is enforced by the callee `lookup`, not by this wrapper, so this diff neither strengthens nor weakens it. Recommend an LGTM, or at most note that tenant isolation should be verified inside `./cache` — but that is outside this patch and not evidenced here.\",\"file\":\"review.js\",\"side\":\"RIGHT\",\"line\":2,\"severity\":\"low\",\"evidenceIds\":[]}]}"
+            },
+            "finish_reason": "stop",
+            "logprobs": null
+          }
+        ],
+        "usage": {
+          "prompt_tokens": 284,
+          "total_tokens": 439,
+          "completion_tokens": 155,
+          "prompt_tokens_details": {
+            "cached_tokens": 0,
+            "image_tokens": 0,
+            "text_tokens": 284
+          },
+          "completion_tokens_details": {
+            "text_tokens": 155
+          }
+        }
+      }
+    }
+  ]
+}

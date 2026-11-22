@@ -4,6 +4,7 @@ const fs=require('node:fs');
 const {load,hash}=require('./data.cjs');
 const {verifyRuns}=require('./runner.cjs');
 const {random}=require('./plan.cjs');
+const {costCurrency}=require('./cost.cjs');
 const ratio=(a,b)=>b?a/b:null;
 const mean=xs=>{const a=xs.filter(x=>x!==null);return a.length?a.reduce((x,y)=>x+y,0)/a.length:null;};
 function template(root,dir){
@@ -57,7 +58,7 @@ function score(root,dir,labels){
       recall:ratio(hits,gold.length),precision_lower:ratio(tp,claims.length),precision_upper:ratio(tp+unresolved,claims.length),
       clean_eligible:clean&&novel===0&&unresolved===0,clean_reclassification_needed:clean&&novel>0,
       clean_success:clean&&novel===0&&unresolved===0?(r.status==='complete'&&claims.length===0?1:0):null,
-      latency_ms:r.latency_ms,cost_usd:r.cost_usd,input_tokens:r.input_tokens,output_tokens:r.output_tokens,
+      latency_ms:r.latency_ms,cost_currency:costCurrency(plan.config),cost_amount:Object.hasOwn(r,'cost_amount')?r.cost_amount:r.cost_usd,cost_usd:r.cost_usd,input_tokens:r.input_tokens,output_tokens:r.output_tokens,
       // Coordinates/severity belong to individual assertions, even when their bug root repeats.
       location:atoms.filter(x=>x.verdict==='gold'||x.verdict==='novel').map(x=>x.location_acceptable),severity:atoms.filter(x=>x.verdict==='gold'||x.verdict==='novel').map(x=>x.severity_acceptable)});
   }
@@ -83,7 +84,9 @@ function score(root,dir,labels){
       macro_precision_lower:caseMacro('precision_lower'),macro_precision_upper:caseMacro('precision_upper'),
       clean_success:caseMacro('clean_success'),clean_eligible_runs:rs.filter(r=>r.clean_eligible).length,clean_unresolved_runs:rs.filter(r=>!r.frozen_gold&&r.unresolved>0).length,clean_reclassification_needed:rs.filter(r=>r.clean_reclassification_needed).length,
       latency_p50_ms:quant(.5),latency_p95_ms:quant(.95),timeout_rate:ratio(rs.filter(r=>rowMap.get(r.run_key).error==='worker_timeout'||rowMap.get(r.run_key).raw_file&&require('./data.cjs').read(require('node:path').join(dir,rowMap.get(r.run_key).raw_file)).omissions?.some(o=>o.reason==='TIMEOUT')).length,rs.length),
-      cost_basis:'configured-rate estimate; not provider invoice',cost_known_subtotal_usd:rs.reduce((a,r)=>a+(r.cost_usd??0),0),cost_unknown_runs:rs.filter(r=>r.cost_usd===null).length,
+      cost_basis:'configured-rate estimate; not provider invoice',cost_currency:costCurrency(plan.config),
+      cost_known_subtotal:rs.reduce((a,r)=>a+(r.cost_amount??0),0),
+      cost_known_subtotal_usd:costCurrency(plan.config)==='USD'?rs.reduce((a,r)=>a+(r.cost_usd??0),0):null,cost_unknown_runs:rs.filter(r=>r.cost_amount===null).length,
       input_tokens_known_subtotal:rs.reduce((a,r)=>a+(r.input_tokens??0),0),input_tokens_unknown_runs:rs.filter(r=>r.input_tokens===null).length,
       output_tokens_known_subtotal:rs.reduce((a,r)=>a+(r.output_tokens??0),0),output_tokens_unknown_runs:rs.filter(r=>r.output_tokens===null).length,
       location_assessed_atoms:rs.flatMap(r=>r.location).filter(x=>x!==null).length,
@@ -107,7 +110,7 @@ function score(root,dir,labels){
     samples.sort((a,b)=>a-b);bootstrap[category]={family_count:families.length,delta:mean(diffs),ci95:[samples[49],samples[1949]],method:'paired family bootstrap within category strata, trial means first; 2000 resamples',warning:'Small synthetic family count; interval does not prove generalization'};
   }
   return {schema_version:1,scorer_sha256:hash(fs.readFileSync(__filename)),plan_id:plan.plan_id,provider_kind:runs.provider_kind,purpose:plan.config.purpose,evaluation_scope:runs.evaluation_scope,output_boundary:runs.output_boundary,
-    review_status:humanReviewed?'reviewed':'pending',
+    review_status:humanReviewed?'reviewed':'pending',cost_currency:costCurrency(plan.config),
     evidence_status:runs.provider_kind==='scripted'?'PLUMBING_CONTROL_NOT_MODEL_EVIDENCE':plan.config.purpose==='formal'&&complete&&humanReviewed&&!rows.some(r=>r.unresolved||r.clean_reclassification_needed)?'FORMAL_COMPONENT_RESULTS':'EXPLORATORY_OR_INCOMPLETE',
     paired_plan_complete:complete,clean_reclassification_cases:cleanReclassificationCases,conditions,paired_recall:bootstrap,rows,
     limitations:['Synthetic cases only; no real-PR generalization','Family labels may remain provisional; see run records','No product gate/UX/human-efficiency conclusions','No mixed-scope F1; novel precision and frozen recall are intentionally separate']};

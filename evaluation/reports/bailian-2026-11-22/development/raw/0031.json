@@ -1,0 +1,111 @@
+{
+  "provider_kind": "live",
+  "provider_version": "bailian-deepseek-1017-v1",
+  "context_kind": "actual-retrieval",
+  "context_version": "sha256:f931b0b8be81db2aaa98df301d2348cf2f51c03102e1583274762ff73774b143",
+  "analysis_status": "COMPLETE",
+  "findings": [
+    {
+      "id": "review.js:1",
+      "file": "review.js",
+      "side": "RIGHT",
+      "line": 3,
+      "severity": "medium",
+      "message": "scheduleRetry converts milliseconds to seconds (delayMs / 1000) and passes the result to after(), but the stated requirement is that the retry is scheduled after the requested duration in milliseconds. Depending on what after() expects, this conversion either drops/alters the requested delay or introduces unit mismatch. Per C1, after(delaySeconds) consumes seconds, so a delayMs value is being divided by 1000 and then likely interpreted as seconds, yielding a delay 1000x smaller than requested. Also, a raw division without validation allows negative or NaN delays, which violates the 'non-negative duration' part of the requirement.",
+      "evidenceIds": [
+        "C1"
+      ],
+      "validation": "VERIFIED"
+    }
+  ],
+  "omissions": [],
+  "snippets": [
+    {
+      "id": "C0",
+      "file": "review.js",
+      "ref": "f6c7a6bfbbebee94712d6ae120a00242a00ed63278a0da56a269c3cb2f82074e",
+      "startLine": 1,
+      "endLine": 5,
+      "code": "const { after } = require('./scheduler.js');\nexports.scheduleRetry = (delayMs) => {\n  const seconds = delayMs / 1000;\n  return after(seconds);\n};",
+      "reason": "local-window"
+    },
+    {
+      "id": "C1",
+      "file": "scheduler.js",
+      "ref": "f6c7a6bfbbebee94712d6ae120a00242a00ed63278a0da56a269c3cb2f82074e",
+      "startLine": 2,
+      "endLine": 2,
+      "code": "exports.after = (delaySeconds) => ({ scheduledAfterSeconds: delaySeconds });",
+      "reason": "direct-definition"
+    }
+  ],
+  "metrics": {
+    "model": "deepseek-v4.1-flash-1017",
+    "effectiveParameters": {
+      "model": "deepseek-v4.1-flash-1017",
+      "enable_thinking": false,
+      "response_format": {
+        "type": "json_object"
+      },
+      "max_tokens": 800,
+      "maxRetries": 0
+    },
+    "promptVersion": "inspector-c-v1+public-requirement-v1",
+    "durationMs": 1848,
+    "calls": 1,
+    "inputTokens": 500,
+    "outputTokens": 175,
+    "attempts": [
+      {
+        "file": "review.js",
+        "attempt": 1,
+        "timeoutMs": 30000,
+        "durationMs": 1669,
+        "estimatedInputTokens": 560,
+        "reservedOutputTokens": 800,
+        "inputTokens": 500,
+        "outputTokens": 175,
+        "responseModel": "deepseek-v4.1-flash-1017",
+        "outcome": "RESPONSE"
+      }
+    ],
+    "tokenizerId": "@huggingface/tokenizers@0.2.0/DeepSeek-V4.1-Flash-1017@08c8657f02291e11b6f6b63e0e16014f8e748518+chat-allowance-64",
+    "modelDurationMs": 1841,
+    "contextDurationMs": 5
+  },
+  "raw": [
+    {
+      "response": {
+        "id": "chatcmpl-0ff230ce-6c41-9633-8afe-d076c47c0244",
+        "object": "chat.completion",
+        "created": 1795335928,
+        "model": "deepseek-v4.1-flash-1017",
+        "choices": [
+          {
+            "index": 0,
+            "message": {
+              "role": "assistant",
+              "reasoning_content": "",
+              "content": "{\"reviews\":[{\"lgtm\":false,\"review_comment\":\"scheduleRetry converts milliseconds to seconds (delayMs / 1000) and passes the result to after(), but the stated requirement is that the retry is scheduled after the requested duration in milliseconds. Depending on what after() expects, this conversion either drops/alters the requested delay or introduces unit mismatch. Per C1, after(delaySeconds) consumes seconds, so a delayMs value is being divided by 1000 and then likely interpreted as seconds, yielding a delay 1000x smaller than requested. Also, a raw division without validation allows negative or NaN delays, which violates the 'non-negative duration' part of the requirement.\",\"file\":\"review.js\",\"side\":\"RIGHT\",\"line\":3,\"severity\":\"medium\",\"evidenceIds\":[\"C1\"]}]}"
+            },
+            "finish_reason": "stop",
+            "logprobs": null
+          }
+        ],
+        "usage": {
+          "prompt_tokens": 500,
+          "total_tokens": 675,
+          "completion_tokens": 175,
+          "prompt_tokens_details": {
+            "cached_tokens": 0,
+            "image_tokens": 0,
+            "text_tokens": 500
+          },
+          "completion_tokens_details": {
+            "text_tokens": 175
+          }
+        }
+      }
+    }
+  ]
+}

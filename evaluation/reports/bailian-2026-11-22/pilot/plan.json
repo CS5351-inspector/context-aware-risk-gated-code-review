@@ -1,0 +1,126 @@
+{
+  "schema_version": 1,
+  "config": {
+    "protocol_version": "eval-v0.2",
+    "purpose": "development",
+    "split": "development",
+    "conditions": [
+      "B1",
+      "B2"
+    ],
+    "trials": 1,
+    "seed": 5351,
+    "evaluation_scope": "component",
+    "output_boundary": "C.reviewFiles.validated-findings",
+    "provider_kind": "live",
+    "model": "deepseek-v4.1-flash-1017",
+    "base_url": "https://ws-v81df78v5yv7opxv.cn-beijing.maas.aliyuncs.com/compatible-mode/v1",
+    "effective_parameters": {
+      "model": "deepseek-v4.1-flash-1017",
+      "enable_thinking": false,
+      "response_format": {
+        "type": "json_object"
+      },
+      "max_tokens": 800,
+      "maxRetries": 0
+    },
+    "tokenizer_id": "@huggingface/tokenizers@0.2.0/DeepSeek-V4.1-Flash-1017@08c8657f02291e11b6f6b63e0e16014f8e748518+chat-allowance-64",
+    "token_count_method": "model-content-tokenizer-plus-64-framing-allowance",
+    "token_count_is_exact": false,
+    "prompt_version": "inspector-c-v1+public-requirement-v1",
+    "context_version": "sha256:f931b0b8be81db2aaa98df301d2348cf2f51c03102e1583274762ff73774b143",
+    "adapter_sha256": "122d28d12dd2fe7a79895bc216b1a0023ccd210619a7b7dc4adaebf34f93f88e",
+    "budget": {
+      "maxFiles": 5,
+      "maxCalls": 7,
+      "maxRetries": 1,
+      "requestTimeoutMs": 30000,
+      "analysisTimeoutMs": 240000,
+      "publishReserveMs": 30000,
+      "maxInputTokens": 8000,
+      "reservedOutputTokens": 800,
+      "localWindowLines": 4,
+      "maxDefinitionsPerFile": 2,
+      "maxDefinitionLines": 60
+    },
+    "limits": {
+      "max_runs": 12,
+      "max_wall_ms": 3060000,
+      "worker_timeout_ms": 250000,
+      "max_tokens": 739200,
+      "max_cost": 6
+    },
+    "pricing": {
+      "model": "deepseek-v4.1-flash-1017",
+      "currency": "CNY",
+      "checked_at": "2026-11-22",
+      "input_per_million": 2,
+      "output_per_million": 8
+    },
+    "pricing_source": "https://help.aliyun.cn/zh/model-studio/deepseek-v4-1-flash",
+    "pricing_basis": "Published regional peak uncached list rates; conservative estimate, not account billing or actual charges",
+    "formal_approval": null,
+    "case_ids": [
+      "DEV-001",
+      "DEV-002",
+      "DEV-005",
+      "DEV-006",
+      "DEV-009",
+      "DEV-010"
+    ]
+  },
+  "implementation_sha256": "52cc3a94c47b6d0f6723e9872a4eeb24636a8c12feaa34a952c02bacb9d9e713",
+  "dataset_sha256": "0af0b804120de301c07c633fad2d6f8978b183291b9654769946eda93fc53e5a",
+  "code_sha": "8961812816a6ff0e73ccde760cf10e668fb83534",
+  "pairs": [
+    {
+      "case_id": "DEV-001",
+      "trial_id": 1,
+      "conditions": [
+        "B1",
+        "B2"
+      ]
+    },
+    {
+      "case_id": "DEV-002",
+      "trial_id": 1,
+      "conditions": [
+        "B2",
+        "B1"
+      ]
+    },
+    {
+      "case_id": "DEV-006",
+      "trial_id": 1,
+      "conditions": [
+        "B2",
+        "B1"
+      ]
+    },
+    {
+      "case_id": "DEV-005",
+      "trial_id": 1,
+      "conditions": [
+        "B2",
+        "B1"
+      ]
+    },
+    {
+      "case_id": "DEV-010",
+      "trial_id": 1,
+      "conditions": [
+        "B2",
+        "B1"
+      ]
+    },
+    {
+      "case_id": "DEV-009",
+      "trial_id": 1,
+      "conditions": [
+        "B2",
+        "B1"
+      ]
+    }
+  ],
+  "plan_id": "b291ef3179490919d28097fe117c13f17f9fcc46cee2cba17cf95d456d270a95"
+}

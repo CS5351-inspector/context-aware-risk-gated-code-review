@@ -11,9 +11,9 @@ function arg(name,required=true){const i=args.indexOf(name);if(i<0){if(required)
 function save(file,value){assert(!fs.existsSync(file),'Refusing to overwrite existing evidence file');write(file,value);console.log(file);}
 function report(s){
   const lines=['# Evaluation result',`Evidence: **${s.evidence_status}**`, `Scope: ${s.evaluation_scope}; boundary: ${s.output_boundary}`,`Paired plan complete: ${s.paired_plan_complete}`,'',
-    '| Condition | Started | Recall (micro) | Precision | Precision bounds | Clean success | Known cost USD | Unknown cost runs |','| --- | --- | --- | --- | --- | --- | --- | --- |'];
+    `| Condition | Started | Recall (micro) | Precision | Precision bounds | Clean success | Known cost ${s.cost_currency||'USD'} | Unknown cost runs |`,'| --- | --- | --- | --- | --- | --- | --- | --- |'];
   const fmt=n=>n===null?'N/A':typeof n==='number'?Number(n.toFixed(4)):n;
-  for(const [k,v] of Object.entries(s.conditions))lines.push(`| ${k} | ${v.started} | ${fmt(v.micro_recall)} | ${fmt(v.precision)} | ${v.precision_bounds.map(fmt).join(' to ')} | ${fmt(v.clean_success)} | ${fmt(v.cost_known_subtotal_usd)} | ${v.cost_unknown_runs} |`);
+  for(const [k,v] of Object.entries(s.conditions))lines.push(`| ${k} | ${v.started} | ${fmt(v.micro_recall)} | ${fmt(v.precision)} | ${v.precision_bounds.map(fmt).join(' to ')} | ${fmt(v.clean_success)} | ${fmt(Object.hasOwn(v,'cost_known_subtotal')?v.cost_known_subtotal:v.cost_known_subtotal_usd)} | ${v.cost_unknown_runs} |`);
   lines.push('','Full per-trial counts, status, latency, cost and family intervals are in summary.json.','',...s.limitations.map(x=>'- '+x),'');return lines.join('\n');
 }
 try{

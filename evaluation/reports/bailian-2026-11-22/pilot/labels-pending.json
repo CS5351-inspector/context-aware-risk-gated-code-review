@@ -1,0 +1,108 @@
+{
+  "schema_version": 1,
+  "plan_id": "b291ef3179490919d28097fe117c13f17f9fcc46cee2cba17cf95d456d270a95",
+  "runs_sha256": "1773959e427da75e48b702d9c45b24eeef10cf9de43cabb03cc64f3d40f961c8",
+  "review_status": "pending",
+  "instructions": "Split multi-issue comments into atomic claims; assign a shared root_id only for true duplicates. After human confirmation set review_status to reviewed; names and dates are not required. Final verdicts still need concrete evidence. Unmatched is unresolved, not automatically false_positive.",
+  "judgments": [
+    {
+      "run_key": "DEV-001/B1/1",
+      "finding_id": "review.js:1",
+      "atom_id": "1",
+      "root_id": "review.js:1",
+      "verdict": "unresolved",
+      "gold_issue_id": null,
+      "evidence": "",
+      "location_acceptable": null,
+      "severity_acceptable": null
+    },
+    {
+      "run_key": "DEV-001/B2/1",
+      "finding_id": "review.js:1",
+      "atom_id": "1",
+      "root_id": "review.js:1",
+      "verdict": "unresolved",
+      "gold_issue_id": null,
+      "evidence": "",
+      "location_acceptable": null,
+      "severity_acceptable": null
+    },
+    {
+      "run_key": "DEV-002/B2/1",
+      "finding_id": "review.js:1",
+      "atom_id": "1",
+      "root_id": "review.js:1",
+      "verdict": "unresolved",
+      "gold_issue_id": null,
+      "evidence": "",
+      "location_acceptable": null,
+      "severity_acceptable": null
+    },
+    {
+      "run_key": "DEV-006/B2/1",
+      "finding_id": "review.js:1",
+      "atom_id": "1",
+      "root_id": "review.js:1",
+      "verdict": "unresolved",
+      "gold_issue_id": null,
+      "evidence": "",
+      "location_acceptable": null,
+      "severity_acceptable": null
+    },
+    {
+      "run_key": "DEV-006/B1/1",
+      "finding_id": "review.js:1",
+      "atom_id": "1",
+      "root_id": "review.js:1",
+      "verdict": "unresolved",
+      "gold_issue_id": null,
+      "evidence": "",
+      "location_acceptable": null,
+      "severity_acceptable": null
+    },
+    {
+      "run_key": "DEV-005/B2/1",
+      "finding_id": "review.js:1",
+      "atom_id": "1",
+      "root_id": "review.js:1",
+      "verdict": "unresolved",
+      "gold_issue_id": null,
+      "evidence": "",
+      "location_acceptable": null,
+      "severity_acceptable": null
+    },
+    {
+      "run_key": "DEV-005/B1/1",
+      "finding_id": "review.js:1",
+      "atom_id": "1",
+      "root_id": "review.js:1",
+      "verdict": "unresolved",
+      "gold_issue_id": null,
+      "evidence": "",
+      "location_acceptable": null,
+      "severity_acceptable": null
+    },
+    {
+      "run_key": "DEV-010/B1/1",
+      "finding_id": "review.js:1",
+      "atom_id": "1",
+      "root_id": "review.js:1",
+      "verdict": "unresolved",
+      "gold_issue_id": null,
+      "evidence": "",
+      "location_acceptable": null,
+      "severity_acceptable": null
+    },
+    {
+      "run_key": "DEV-009/B1/1",
+      "finding_id": "review.js:1",
+      "atom_id": "1",
+      "root_id": "review.js:1",
+      "verdict": "unresolved",
+      "gold_issue_id": null,
+      "evidence": "",
+      "location_acceptable": null,
+      "severity_acceptable": null
+    }
+  ]
+}
