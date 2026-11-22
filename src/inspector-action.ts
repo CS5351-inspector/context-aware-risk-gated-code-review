@@ -8,7 +8,7 @@ import { calculateRisk } from './review/risk.js';
 import { decideGate } from './review/gate.js';
 import { createPublisher } from './review/publication.js';
 import { createGitHubPorts } from './review/github.js';
-import { renderSprintReport, sprintConfig } from './review/sprint2.js';
+import { renderSprintPublicationFailure, renderSprintReport, sprintConfig } from './review/sprint2.js';
 import { validateReviewConfig } from './review/config.js';
 import type { Mode, ReviewResult } from './review/contracts.js';
 
@@ -92,7 +92,18 @@ async function main() {
     if (productionGate) {
       const receipt = await createPublisher(write.publication, currentGate)(result, report);
       record.publication = receipt; record.outcome = receipt.status;
-      if (receipt.status === 'FAILED') throw new Error(receipt.error ?? 'Publication failed');
+      if (receipt.status === 'FAILED') {
+        const fallback = renderSprintPublicationFailure(result, receipt);
+        record.publicationFallback = fallback;
+        record.publicationFallbackDelivery = 'ACTIONS_RECEIPT_ONLY';
+        if (env.GITHUB_STEP_SUMMARY) {
+          try {
+            fs.appendFileSync(env.GITHUB_STEP_SUMMARY, fallback + '\n');
+            record.publicationFallbackDelivery = 'STEP_SUMMARY_AND_ACTIONS_RECEIPT';
+          } catch { record.feedbackError = 'Could not write the publication failure summary'; }
+        }
+        throw new Error(receipt.error ?? 'Publication failed');
+      }
     } else {
       record.outcome = 'COMPARISON_ONLY';
       if (env.GITHUB_STEP_SUMMARY) fs.appendFileSync(env.GITHUB_STEP_SUMMARY, report + '\n');
