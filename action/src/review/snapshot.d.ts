@@ -27,6 +27,8 @@ export interface SnapshotFile {
 export interface SnapshotGitHubPort {
     getPullRequest(repo: Repo, prNumber: number): Promise<PullRequestSnapshotMetadata>;
     listChangedFiles(repo: Repo, prNumber: number): Promise<SnapshotFile[]>;
+    /** Production adapters bind the diff itself to commits; legacy controlled ports may omit this. */
+    listChangedFilesAtRef?(repo: Repo, diffBaseSha: string, headSha: string): Promise<SnapshotFile[]>;
     getMergeBase(request: {
         repo: Repo;
         sourceRepo: Repo;

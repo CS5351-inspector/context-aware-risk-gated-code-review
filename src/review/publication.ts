@@ -40,6 +40,8 @@ export function createPublisher(
       receipt.error = 'Invalid gate state';
       return receipt;
     }
+    if (refreshGate) receipt.finalGate = { ...result.gate,
+      reasons: [...result.gate.reasons], validApprovers: [...result.gate.validApprovers] };
     const initialState = gateState === 'ERROR' ? 'failure' : 'pending';
     const body = `${report}\n\n---\nInspector run: \`${runId}\` · reviewed commit: \`${headSha}\`.\nThis report applies only to that commit.\n`;
     let operation = 'read current PR head';
@@ -72,6 +74,7 @@ export function createPublisher(
         if (!refreshGate) return;
         operation = 'refresh current reviews and permissions';
         const current = await refreshGate(result);
+        receipt.finalGate = { ...current, reasons: [...current.reasons], validApprovers: [...current.validApprovers] };
         if (current.state === 'STALE') return { ...receipt, status: 'STALE' };
         if (current.state === 'PASS') return;
         const state = current.state === 'ERROR' ? 'failure' : 'pending';

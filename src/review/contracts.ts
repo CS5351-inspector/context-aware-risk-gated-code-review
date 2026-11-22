@@ -178,6 +178,8 @@ export interface ReviewResult extends AnalysisResult {
 }
 /** A gate decision is separate from whether GitHub accepted its publication. */
 export interface PublicationReceipt {
+  /** Last gate computed by a live publication recheck, distinct from report-time gate. */
+  finalGate?: GateResult;
   status: 'PUBLISHED' | 'STALE' | 'FAILED';
   commentId: number | null;
   commitStatus: 'success' | 'pending' | 'failure' | null;

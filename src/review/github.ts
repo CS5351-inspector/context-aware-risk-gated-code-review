@@ -1,7 +1,7 @@
 import { TextDecoder } from 'node:util';
 import type { ApprovalReview, GateContext, Permission, Repo } from './contracts.js';
 import type { PublicationPort } from './publication.js';
-import type { PullRequestSnapshotMetadata, SnapshotGitHubPort } from './snapshot.js';
+import type { PullRequestSnapshotMetadata, SnapshotGitHubPort, SnapshotFile } from './snapshot.js';
 
 export class GitHubHttpError extends Error {
   constructor(public readonly status: number) {
@@ -145,16 +145,31 @@ export function createGitHubPorts(options: GitHubPortsOptions) {
     }
   }
 
+  const fileFields = (file: Record<string, unknown>): SnapshotFile => ({
+    path: string(file.filename), status: string(file.status),
+    ...(file.previous_filename === undefined ? {} : { previousPath: string(file.previous_filename) }),
+    additions: integer(file.additions), deletions: integer(file.deletions),
+    patch: file.patch == null || file.patch === '' ? null : string(file.patch),
+  });
+
   const snapshot: SnapshotGitHubPort = {
     getPullRequest: async (repo, number) => (await metadata(repo, number)).snapshot,
     async listChangedFiles(repo, number) {
       const files = await pages(`${pull(repo, number)}/files`);
-      return files.map(file => ({
-        path: string(file.filename), status: string(file.status),
-        ...(file.previous_filename === undefined ? {} : { previousPath: string(file.previous_filename) }),
-        additions: integer(file.additions), deletions: integer(file.deletions),
-        patch: file.patch == null || file.patch === '' ? null : string(file.patch),
-      }));
+      return files.map(fileFields);
+    },
+    async listChangedFilesAtRef(repo, diffBaseSha, headSha) {
+      const frozenBase = sha(diffBaseSha), frozenHead = sha(headSha);
+      const comparison = await json(`${base(repo)}/compare/${frozenBase}...${frozenHead}?per_page=1`);
+      if (sha(object(comparison.base_commit).sha) !== frozenBase
+        || sha(object(comparison.merge_base_commit).sha) !== frozenBase) {
+        throw new Error('Comparison does not start at the captured merge base');
+      }
+      // Compare API exposes at most 300 files. At the cap truncation is ambiguous.
+      if (!Array.isArray(comparison.files) || comparison.files.length >= 300) {
+        throw new Error('Immutable comparison file list unavailable or potentially truncated');
+      }
+      return comparison.files.map(item => fileFields(object(item)));
     },
     async getMergeBase({ repo, baseSha, headSha }) {
       const comparison = await json(`${base(repo)}/compare/${sha(baseSha)}...${sha(headSha)}?per_page=1`);
