@@ -9,11 +9,18 @@ const { validate } = require('../validate.cjs');
 const { exportInput } = require('../export-input.cjs');
 const root = path.resolve(__dirname, '..');
 
+function copyDataset(destination) {
+  // Other test files prepare/remove runtime assets concurrently. They are not
+  // dataset inputs and must never be traversed while making a mutation fixture.
+  fs.cpSync(root, destination, { recursive: true, filter: source =>
+    !['.cache', 'runs', 'reports'].includes(path.relative(root, source).split(path.sep)[0]) });
+}
+
 function mutate(edit, preserveReviews = false) {
   const temp = fs.mkdtempSync(path.join(os.tmpdir(), 'cs5351-dataset-negative-'));
   try {
     const copy = path.join(temp, 'evaluation');
-    fs.cpSync(root, copy, { recursive: true });
+    copyDataset(copy);
     // Most negative checks target source/data invariants, not stale review hashes.
     // Reset review metadata so a stale sign-off cannot mask the intended failure.
     if (!preserveReviews) {
@@ -131,7 +138,7 @@ test('rejects partial family review upgrades',()=>mutate(r=>{
 test('allows versioned human-review records, rejects stale evidence after a label edit',()=>{
  const {hash,write}=require('../lib/data.cjs');const temp=fs.mkdtempSync(path.join(os.tmpdir(),'review-record-check-'));
  try{
-  const r=path.join(temp,'evaluation');fs.cpSync(root,r,{recursive:true});
+  const r=path.join(temp,'evaluation');copyDataset(r);
   changeJson(r,'families/grant-enum/family.json',f=>{f.label_status='reviewed';f.human_reviewers=['synthetic-review-a','synthetic-review-b'];});
   for(const id of ['DEV-001','DEV-002']){
     changeJson(r,`cases/${id}.json`,c=>{c.label_status='reviewed';});
