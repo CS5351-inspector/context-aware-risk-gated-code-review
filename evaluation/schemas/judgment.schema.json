@@ -61,5 +61,5 @@
       ]
     }
   },
-  "$comment": "Envelope requires plan_id, runs_sha256, reviewer/date for adjudicated claims. Runtime score validates actual gold identity, atoms and duplicate roots."
+  "$comment": "Envelope requires plan_id and runs_sha256. New envelopes use review_status:pending|reviewed; final verdicts require reviewed status and nonblank per-claim evidence, without names or dates. Legacy identity/date envelopes remain accepted only when review_status is absent. Runtime score validates actual gold identity, atoms and duplicate roots."
 }

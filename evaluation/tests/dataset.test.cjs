@@ -9,11 +9,25 @@ const { validate } = require('../validate.cjs');
 const { exportInput } = require('../export-input.cjs');
 const root = path.resolve(__dirname, '..');
 
-function mutate(edit) {
+function mutate(edit, preserveReviews = false) {
   const temp = fs.mkdtempSync(path.join(os.tmpdir(), 'cs5351-dataset-negative-'));
   try {
     const copy = path.join(temp, 'evaluation');
     fs.cpSync(root, copy, { recursive: true });
+    // Most negative checks target source/data invariants, not stale review hashes.
+    // Reset review metadata so a stale sign-off cannot mask the intended failure.
+    if (!preserveReviews) {
+      for (const folder of ['cases', 'gold']) for (const name of fs.readdirSync(path.join(copy, folder)).filter(n => n.endsWith('.json'))) {
+        changeJson(copy, `${folder}/${name}`, value => {
+          value.label_status = 'provisional';
+          if ('human_reviewers' in value) value.human_reviewers = [];
+        });
+      }
+      for (const family of fs.readdirSync(path.join(copy, 'families'))) {
+        changeJson(copy, `families/${family}/family.json`, value => { value.label_status = 'provisional'; value.human_reviewers = []; });
+      }
+      for (const name of fs.readdirSync(path.join(copy, 'reviews')).filter(n => n.endsWith('.json'))) fs.unlinkSync(path.join(copy, 'reviews', name));
+    }
     edit(copy);
     assert.throws(() => validate(copy));
   } finally { fs.rmSync(temp, { recursive: true, force: true }); }
@@ -89,13 +103,31 @@ test('exports only allowed model input and labels full context as oracle', () =>
   assert.throws(() => exportInput('DEV-001', 'B2'), /not implemented/);
 });
 
-test('rejects a forged reviewed label without two independent review records',()=>mutate(r=>{
+test('rejects a reviewed label without a content-bound human confirmation',()=>mutate(r=>{
   for(const id of ['DEV-001','DEV-002']){
     changeJson(r,`cases/${id}.json`,c=>{c.label_status='reviewed';});
-    changeJson(r,`gold/${id}.json`,g=>{g.label_status='reviewed';g.human_reviewers=['reviewer-a','reviewer-b'];});
+    changeJson(r,`gold/${id}.json`,g=>{g.label_status='reviewed';g.human_reviewers=[];});
   }
-  changeJson(r,'families/grant-enum/family.json',f=>{f.label_status='reviewed';f.human_reviewers=['reviewer-a','reviewer-b'];});
+  changeJson(r,'families/grant-enum/family.json',f=>{f.label_status='reviewed';f.human_reviewers=[];});
 }));
+test('accepts the actual single-human confirmation without retaining a name or date',()=>{
+ assert.equal(validate(root).reviewed_snapshots,20);
+ for(const id of Array.from({length:20},(_,i)=>`DEV-${String(i+1).padStart(3,'0')}`)){
+  const record=JSON.parse(fs.readFileSync(path.join(root,`reviews/${id}.json`)));
+  assert.equal(record.reviews.length,1);
+  assert.equal(record.reviews[0].is_human,true);
+  assert.equal(record.reviews[0].decision,'accepted');
+  assert(!('reviewer' in record.reviews[0]));assert(!('reviewed_at' in record.reviews[0]));
+ }
+});
+test('rejects pending, automated and missing human confirmations',()=>{
+ for(const edit of [r=>{r.reviews[0].decision='pending';},r=>{r.reviews[0].is_human=false;},r=>{r.reviews=[];}]){
+  mutate(r=>changeJson(r,'reviews/DEV-001.json',edit),true);
+ }
+});
+test('rejects partial family review upgrades',()=>mutate(r=>{
+ changeJson(r,'cases/DEV-001.json',c=>{c.label_status='provisional';});
+},true));
 test('allows versioned human-review records, rejects stale evidence after a label edit',()=>{
  const {hash,write}=require('../lib/data.cjs');const temp=fs.mkdtempSync(path.join(os.tmpdir(),'review-record-check-'));
  try{
@@ -107,7 +139,7 @@ test('allows versioned human-review records, rejects stale evidence after a labe
     const c=JSON.parse(fs.readFileSync(path.join(r,`cases/${id}.json`))),f=JSON.parse(fs.readFileSync(path.join(r,'families/grant-enum/family.json'))),g=JSON.parse(fs.readFileSync(path.join(r,`gold/${id}.json`)));
     write(path.join(r,`reviews/${id}.json`),{case_id:id,content_sha256:hash({case:c,requirement:f.requirement,hashes:f.file_hashes,checks:f.behavior_checks,issues:g.issues}),reviews:g.human_reviewers.map(reviewer=>({reviewer,is_human:true,decision:'accepted',reviewed_at:'2026-11-08T00:00:00Z',evidence:'Test fixture only, never a dataset human sign-off'}))});
   }
-  assert.equal(validate(r).reviewed_snapshots,2);
+  assert.equal(validate(r).reviewed_snapshots,20);
   changeJson(r,'gold/DEV-001.json',g=>{g.issues[0].severity='medium';});assert.throws(()=>validate(r),/stale/);
  }finally{fs.rmSync(temp,{recursive:true,force:true});}
 });

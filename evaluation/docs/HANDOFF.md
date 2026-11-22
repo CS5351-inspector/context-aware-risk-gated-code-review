@@ -1,37 +1,37 @@
-# F evaluation handoff — 2026-11-08
+# F evaluation handoff — Sprint2
 
-## Repository baseline and ownership
+## Current baseline and ownership
 
-Read-only GitHub checks this session showed PR #2–#6 merged. PR #4's original branch `feat/evaluation-mvp` was fast-forwarded to main `c9b4e40` before this work. This release continues that branch with a new follow-up PR; a merged PR #4 cannot be updated as a new review. No main push or automatic merge is part of this handoff.
+The working baseline is main `0c1a0b6` plus the current evaluation changes on `feat/evaluation-mvp`. Earlier evaluation PRs #4 and #7 are merged; submit this follow-up as a new PR on the same branch. Do not push main or merge automatically.
 
-A's merged `src/review/contracts.ts` and `docs/SPRINT1_HANDOFF.md` supersede the earlier unmerged-contract assumptions in the personal planning document. B/C people remain as specified by the team's latest assignment; D/E remain pending. All members keep their own module tests; F maintains evaluation assets and experiments only.
+A owns integration and reliability acceptance; B owns actual context retrieval; C owns the live model client, tokenization and resource control; D owns gate rules/lifecycle; E owns user-facing reports. F owns evaluation assets, experiments and evidence aggregation. Each owner retains their module tests.
 
-## What is actually ready
+## Completed locally
 
-- Revised data format no longer hardcodes 10 cases or 6 families; now 12/20 with per-case split/label state and review-record support. Original cases and A's integrity improvements preserved.
-- All cases have executable behavioral evidence. New families add tenant cache-key, inclusive endpoint, numeric sort, falsy cache, copy/reverse and own-key filter scenarios. None is claimed as a sourced real-world PR.
-- Experiment plan, strict C component bridge, whole-pair budgeted process runner, checkpoints/raw results, blind export, atomic human judgments and statistics are executable.
-- Deterministic known-output checks exercise scoring/duplicate/novel/unknown/denominator behavior; integration controls call the existing C module, not `expected` as output.
-- A complete scripted control run is saved under `reports/control-v0.2/`. It is specifically **not** live model evidence. It deliberately produces no findings on either condition.
+- The user reviewed all 20 synthetic snapshots without changes. Workflow: **先 AI 生成结果，然后由我人工复核**. One human confirmation is sufficient; no reviewer identity or review date is collected.
+- The 12 families, 20 cases and gold records are `reviewed`, with a content-bound accepted record per case. The data remains `development`, not an independent heldout benchmark.
+- The [Chinese review packet](../review-packet/README.md) preserves requirements, source, counterexamples, AI suggestions and accepted limitations. Context necessity is not assumed just because a family is cross-file.
+- The [Sprint2 provider](SPRINT2_ADAPTER.md) connects the actual merged B collector, C client and matching tokenizer. Pilot and full development configurations can be generated without making a request.
+- Offline checks exercise actual B/C integration with scripted responses, including an isolated worker and tokenizer assets. They are not real-model scores.
+- Runner, blind grading, root-cause scoring and version-bound evidence remain available. Output-review envelopes use pending/reviewed status and per-claim evidence instead of requiring names/dates.
 
-## What still needs people or other modules
+## Remaining work and dependencies
 
-| Dependency | Owner / next action | F can do meanwhile |
-| --- | --- | --- |
-| Case/gold human review | Two independent humans; F prepares proof and review template | Data/scoring tooling, provisional exploratory work |
-| Real client and accurate message-aware tokenizer | A/C supply a versioned trusted provider module | Scripted C integration controls; never fake a live tokenizer |
-| Actual retrieved context | B supplies `collectContext` under common contracts | Oracle diagnostic only, clearly named; no claim about B2 |
-| Independent evaluation families | F curates licensed source-separated data and obtains human gold review | Develop on current synthetic controls; do not relabel tuned families heldout |
-| Final product output boundary | A/E provide actual reporting path; D if required by the integrated pipeline | C component pilot with explicit scope |
-| Risk strategy / human efficiency | D policy + independent labels / real participants | Protocol and record templates; no results invented |
+| Task | Dependency / next action |
+| --- | --- |
+| Freeze executable live configuration | Confirm account-specific model access, applicable pricing, total spending limit and the evaluated code version; do not invent rates or silently substitute a service |
+| Paired pilot | Run the six preselected snapshots in B1 and actual B2; preserve all outcomes, raw responses, snippets, calls, usage and time |
+| Development comparison | Freeze a separate plan for all confirmed cases after pilot integration checks; do not select favorable runs or mix implementations |
+| Human output grading | Let the user review actual findings; only then mark output judgments reviewed. Dataset approval does not approve model output |
+| Evidence and conclusion | Recompute metrics, summarize scope/failures/limitations and link A/D's real reliability evidence; unresolved acceptance items stay unresolved |
+| Team delivery | Commit, push `feat/evaluation-mvp`, open a new PR and obtain team review |
 
-## Next execution sequence
+The current component experiment stops at C's validated findings. It does not execute D/E publication or validate branch protection; A/D's real PR records cover those separate claims. Independent heldout data, source licensing and leakage review are prerequisites for a later formal benchmark, not results supplied by this development run.
 
-1. Run `npm run test:evaluation`; inspect the 12 family proofs and review logs. Choose real source families only after checking license, snapshot date and independence.
-2. Organize actual human review; use `review-template`. Preserve unresolved issues and provisional labels. Upgrade a complete family with fresh bound records, not just its `label_status` field.
-3. With A/B/C, build the ignored live-provider module described in `ADAPTERS.md`, freeze exact settings and budget, select a small development pilot and run with explicit `--live`.
-4. Blind human adjudication; inspect failures, missing usage, scope and retrieved source. Recompute summaries from raw/labels. Revise tools on development data, not heldout.
-5. Freeze new reviewed independent data and protocol before formal comparison. Keep exact run evidence and report negative results as well as positive ones.
-6. Submit later changes on the agreed `feat/` workflow, review before merge. Do not silently change A's CI, production guard, B retrieval or C retry/parser in an evaluation PR.
+## Execution and historical evidence
 
-The toolkit blocks formal plans without appropriate reviewed data and configuration. Passing tooling checks does not mean F's full empirical study is complete; report which stage has actually finished.
+Follow [the current execution checklist](SPRINT2_EXECUTION.md), [adapter commands](SPRINT2_ADAPTER.md) and [annotation guide](ANNOTATION.md). After changing data, configuration or implementation, rebuild and generate a new plan. Record unknown usage as unknown; started failures remain in evaluation denominators.
+
+`reports/control-v0.2/` is a historical scripted no-finding control frozen against provisional metadata. Its fingerprint differs from the reviewed dataset even though case source and expected behavior are unchanged. Reproduce it from its matching historical checkout. Never rewrite historical hashes or silently apply the current dataset to old receipts.
+
+The evidence audit is [here](SPRINT2_EVIDENCE_AUDIT.md). Passing local checks or accepting the dataset does not establish model quality, resource improvements or full NFR acceptance.

@@ -8,13 +8,17 @@ const ratio=(a,b)=>b?a/b:null;
 const mean=xs=>{const a=xs.filter(x=>x!==null);return a.length?a.reduce((x,y)=>x+y,0)/a.length:null;};
 function template(root,dir){
   const {plan,runs}=verifyRuns(root,dir);
-  return {schema_version:1,plan_id:plan.plan_id,runs_sha256:hash(runs),reviewer:null,reviewed_at:null,
-    instructions:'Split multi-issue comments into atomic claims; assign a shared root_id only for true duplicates. Verdicts need human evidence. Unmatched is unresolved, not automatically false_positive.',
+  return {schema_version:1,plan_id:plan.plan_id,runs_sha256:hash(runs),review_status:'pending',
+    instructions:'Split multi-issue comments into atomic claims; assign a shared root_id only for true duplicates. After human confirmation set review_status to reviewed; names and dates are not required. Final verdicts still need concrete evidence. Unmatched is unresolved, not automatically false_positive.',
     judgments:runs.records.flatMap(r=>r.findings.map(f=>({run_key:r.run_key,finding_id:f.id,atom_id:'1',root_id:f.id,verdict:'unresolved',gold_issue_id:null,evidence:'',location_acceptable:null,severity_acceptable:null}))) };
 }
 function score(root,dir,labels){
   const {plan,runs,complete}=verifyRuns(root,dir);assert.equal(labels.plan_id,plan.plan_id);assert.equal(labels.runs_sha256,hash(runs),'Labels refer to different run records');
   assert(Array.isArray(labels.judgments));
+  // An explicit pending state must not be bypassed by legacy identity fields.
+  if(Object.hasOwn(labels,'review_status'))assert(['pending','reviewed'].includes(labels.review_status),'Invalid review status');
+  const humanReviewed=Object.hasOwn(labels,'review_status')?labels.review_status==='reviewed':
+    typeof labels.reviewer==='string'&&Boolean(labels.reviewer.trim())&&Number.isFinite(Date.parse(labels.reviewed_at));
   const rowMap=new Map(runs.records.map(r=>[r.run_key,r]));const cases=new Map(load(root).map(x=>[x.case.case_id,x]));
   const seen=new Set();const groups=new Map();
   assert.equal(labels.schema_version,1,'Unsupported judgment schema');
@@ -23,7 +27,7 @@ function score(root,dir,labels){
     assert(typeof j.atom_id==='string'&&j.atom_id.trim(),'Atom ID must be a nonblank string');
     const key=JSON.stringify([j.run_key,j.finding_id,j.atom_id]);assert(!seen.has(key),'Duplicate atom');seen.add(key);
     assert(typeof j.root_id==='string'&&j.root_id.trim(),'Root ID must be a nonblank string');assert(['gold','novel','false_positive','out_of_scope','unresolved'].includes(j.verdict));
-    if(j.verdict!=='unresolved')assert(labels.reviewer?.trim() && Number.isFinite(Date.parse(labels.reviewed_at)) && j.evidence?.trim(),'Adjudication requires reviewer, date and evidence');
+    if(j.verdict!=='unresolved')assert(humanReviewed && typeof j.evidence==='string' && j.evidence.trim(),'Adjudication requires completed human review and evidence');
     const gold=cases.get(r.case_id).gold.issues;
     if(j.verdict==='gold')assert(gold.some(g=>g.gold_issue_id===j.gold_issue_id),'Unknown gold root');
     else assert.equal(j.gold_issue_id,null);
@@ -103,7 +107,8 @@ function score(root,dir,labels){
     samples.sort((a,b)=>a-b);bootstrap[category]={family_count:families.length,delta:mean(diffs),ci95:[samples[49],samples[1949]],method:'paired family bootstrap within category strata, trial means first; 2000 resamples',warning:'Small synthetic family count; interval does not prove generalization'};
   }
   return {schema_version:1,scorer_sha256:hash(fs.readFileSync(__filename)),plan_id:plan.plan_id,provider_kind:runs.provider_kind,purpose:plan.config.purpose,evaluation_scope:runs.evaluation_scope,output_boundary:runs.output_boundary,
-    evidence_status:runs.provider_kind==='scripted'?'PLUMBING_CONTROL_NOT_MODEL_EVIDENCE':plan.config.purpose==='formal'&&complete&&!rows.some(r=>r.unresolved||r.clean_reclassification_needed)?'FORMAL_COMPONENT_RESULTS':'EXPLORATORY_OR_INCOMPLETE',
+    review_status:humanReviewed?'reviewed':'pending',
+    evidence_status:runs.provider_kind==='scripted'?'PLUMBING_CONTROL_NOT_MODEL_EVIDENCE':plan.config.purpose==='formal'&&complete&&humanReviewed&&!rows.some(r=>r.unresolved||r.clean_reclassification_needed)?'FORMAL_COMPONENT_RESULTS':'EXPLORATORY_OR_INCOMPLETE',
     paired_plan_complete:complete,clean_reclassification_cases:cleanReclassificationCases,conditions,paired_recall:bootstrap,rows,
     limitations:['Synthetic cases only; no real-PR generalization','Family labels may remain provisional; see run records','No product gate/UX/human-efficiency conclusions','No mixed-scope F1; novel precision and frozen recall are intentionally separate']};
 }

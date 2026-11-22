@@ -5,7 +5,7 @@
   "code_variant": "faulty",
   "evaluation_layer": "L2-input-preparation",
   "semantic_gold_eligible": true,
-  "label_status": "provisional",
+  "label_status": "reviewed",
   "input": {
     "base_dir": "families/tenant-cache-key/base",
     "head_dir": "families/tenant-cache-key/faulty",
