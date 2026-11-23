@@ -15,23 +15,51 @@ if (!Number.isSafeInteger(port) || port < 1 || port > 65535) throw new Error('In
 const appRoot = __dirname;
 const docsRoot = path.resolve(appRoot, '..');
 const types = { '.html': 'text/html; charset=utf-8', '.css': 'text/css; charset=utf-8',
-  '.js': 'text/javascript; charset=utf-8', '.cjs': 'text/javascript; charset=utf-8',
-  '.json': 'application/json; charset=utf-8', '.md': 'text/markdown; charset=utf-8', '.svg': 'image/svg+xml',
-  '.ico': 'image/x-icon' };
+  '.js': 'text/javascript; charset=utf-8',
+  '.md': 'text/markdown; charset=utf-8', '.ico': 'image/x-icon' };
+
+const routes = new Map([['/', path.join(appRoot, 'index.html')]]);
+for (const file of ['index.html', 'styles.css', 'app.js', 'report-data.js', 'report-parser.js', 'favicon.ico']) {
+  routes.set(`/${file}`, path.join(appRoot, file));
+}
+routes.set('/SPRINT2_REPORT_EXAMPLES.md', path.join(docsRoot, 'SPRINT2_REPORT_EXAMPLES.md'));
+for (const name of ['normal', 'partial', 'failed', 'publication-failure']) {
+  routes.set(`/report-examples/${name}.md`, path.join(docsRoot, 'report-examples', `${name}.md`));
+}
+
+function reply(response, status, message) {
+  response.writeHead(status, { 'content-type': 'text/plain; charset=utf-8' });
+  response.end(message);
+}
 
 const server = http.createServer((request, response) => {
-  const pathname = decodeURIComponent(new URL(request.url, 'http://localhost').pathname);
-  const relative = pathname === '/' ? 'index.html' : pathname.replace(/^\/+/, '');
-  const candidates = [path.resolve(appRoot, relative), path.resolve(docsRoot, relative)];
-  const file = candidates.find(candidate => (candidate.startsWith(appRoot + path.sep) || candidate.startsWith(docsRoot + path.sep))
-    && fs.existsSync(candidate) && fs.statSync(candidate).isFile());
-  if (!file) {
-    response.writeHead(404, { 'content-type': 'text/plain; charset=utf-8' });
-    response.end('Not found');
+  if (request.method !== 'GET' && request.method !== 'HEAD') {
+    response.setHeader('allow', 'GET, HEAD');
+    reply(response, 405, 'Method not allowed');
     return;
   }
-  response.writeHead(200, { 'content-type': types[path.extname(file)] || 'application/octet-stream',
-    'cache-control': 'no-store', 'x-content-type-options': 'nosniff' });
-  fs.createReadStream(file).pipe(response);
+  let pathname;
+  try {
+    pathname = decodeURIComponent(new URL(request.url, 'http://localhost').pathname);
+  } catch {
+    reply(response, 400, 'Invalid request target');
+    return;
+  }
+  const file = routes.get(pathname);
+  if (!file) {
+    reply(response, 404, 'Not found');
+    return;
+  }
+
+  fs.readFile(file, (error, contents) => {
+    if (error) {
+      if (error.code === 'ENOENT') reply(response, 404, 'Not found');
+      else reply(response, 500, 'Could not read preview file');
+      return;
+    }
+    response.writeHead(200, { 'content-type': types[path.extname(file)], 'content-length': contents.length,
+      'cache-control': 'no-store', 'x-content-type-options': 'nosniff' });
+    response.end(request.method === 'HEAD' ? undefined : contents);
+  });
 });
 server.listen(port, host, () => console.log(`Inspector Report Explorer: http://${host}:${port}/`));
