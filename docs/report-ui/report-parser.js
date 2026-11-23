@@ -32,7 +32,7 @@
     const coverage = /Coverage: (\d+)\/(\d+) supported files analyzed; (\d+) excluded/.exec(markdown);
     const publication = /Publication: (PUBLISHED|STALE|FAILED) · Last confirmed commit status: ([^·]+) · Comment: ([^.]+)\./.exec(markdown);
     const model = /Model: ([^·]+) · Duration: (\d+) ms · Calls including retries: (\d+)/.exec(markdown);
-    const tokens = /Input\/output tokens: ([^·]+) · Tokenizer: ([^.\n]+)/.exec(markdown);
+    const tokens = /^Input\/output tokens: ([^·\r\n]+) · Tokenizer: ([^\r\n]+)/m.exec(markdown);
     const parts = sections(markdown);
     const preamble = parts.preamble.join('\n');
     const value = (regex, source = preamble) => clean((regex.exec(source) || [])[1]);
@@ -54,7 +54,8 @@
         && !line.startsWith('Validation confirms')).map(clean).join(' '),
       evidence: list(parts.Evidence),
       resources: model ? { model: clean(model[1]), durationMs: Number(model[2]), calls: Number(model[3]),
-        tokens: tokens ? clean(tokens[1]) : 'unknown/unknown', tokenizer: tokens ? clean(tokens[2]) : 'unknown' } : null,
+        tokens: tokens ? clean(tokens[1]) : 'unknown/unknown',
+        tokenizer: tokens ? clean(tokens[2]).replace(/\.$/, '') : 'unknown' } : null,
       resourceNotes: (parts['Analysis resources'] || []).filter(line => !line.startsWith('Model:')
         && !line.startsWith('Input/output tokens:') && !line.startsWith('Effective parameters:')).map(clean),
     };

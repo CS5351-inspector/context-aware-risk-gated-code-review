@@ -2,6 +2,7 @@
   "name": "inspector-report-explorer",
   "version": "1.0.0",
   "private": true,
+  "type": "commonjs",
   "description": "Static explorer for reproducible Inspector report examples",
   "scripts": {
     "dev": "node server.cjs",

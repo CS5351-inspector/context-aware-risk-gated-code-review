@@ -3,7 +3,7 @@ const assert = require('node:assert/strict');
 const fs = require('node:fs');
 const path = require('node:path');
 const vm = require('node:vm');
-const parser = require('../report-parser.cjs');
+const parser = require('../report-parser.js');
 
 const context = { window: {} };
 vm.runInNewContext(fs.readFileSync(path.join(__dirname, '..', 'report-data.js'), 'utf8'), context);
@@ -34,6 +34,14 @@ test('normal and partial views preserve coverage, evidence, findings, and resour
   assert.equal(partial.resources.tokens, '910/unknown');
 });
 
+test('preserves periods in versioned tokenizer identifiers', () => {
+  const normal = reports[0];
+  const tokenizer = 'js-tiktoken@1.0.21/o200k_base';
+  const report = normal.report.replace('Tokenizer: example-tokenizer.', `Tokenizer: ${tokenizer}.`);
+  assert.equal(parser.parse({ ...normal, report }).resources.tokenizer, tokenizer);
+  assert.equal(normal.resources.tokenizer, 'example-tokenizer');
+});
+
 test('failed analysis remains visibly incomplete rather than a clean result', () => {
   const failed = reports.find(report => report.slug === 'failed');
   assert.equal(failed.outcome.analysis, 'FAILED');
@@ -59,6 +67,10 @@ test('static entry has responsive metadata, working local references, and handle
   assert.doesNotMatch(html, /href="#"/);
   assert.match(html, /href="#report-main"/);
   assert.match(html, /id="report-main"/);
+  for (const [, source] of html.matchAll(/<script src="\.\/(.*?)"/g)) {
+    assert.equal(path.extname(source), '.js', `${source} must have a browser script extension`);
+    assert(fs.existsSync(path.join(root, source)), `Missing script: ${source}`);
+  }
   for (const id of ['copy-report', 'copy-sha', 'overview-tab', 'markdown-tab']) {
     assert(html.includes(`id="${id}"`));
     if (id.endsWith('-tab')) assert(app.includes("document.querySelectorAll('[role=\"tab\"]')"));

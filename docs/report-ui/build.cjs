@@ -4,7 +4,7 @@ const root = __dirname;
 const dist = path.join(root, 'dist');
 fs.rmSync(dist, { recursive: true, force: true });
 fs.mkdirSync(dist, { recursive: true });
-for (const file of ['index.html', 'styles.css', 'app.js', 'report-data.js', 'report-parser.cjs', 'favicon.ico']) {
+for (const file of ['index.html', 'styles.css', 'app.js', 'report-data.js', 'report-parser.js', 'favicon.ico']) {
   fs.copyFileSync(path.join(root, file), path.join(dist, file));
 }
 fs.copyFileSync(path.join(root, '..', 'SPRINT2_REPORT_EXAMPLES.md'), path.join(dist, 'SPRINT2_REPORT_EXAMPLES.md'));
