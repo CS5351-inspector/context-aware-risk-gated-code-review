@@ -12,9 +12,9 @@ A complete LOW-risk analysis with one located finding and immutable evidence.
 **LOW risk · PASS · COMPLETE**
 Reviewed SHA: `aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa` · Mode: context · Provider: live
 Run: `45000000000-1` · Rule: inspector-sprint2-v1
-Decision: LOW\_RISK.
+Decision: COMPLETE\_LOW\_MEDIUM.
 Next action: Check the required status before merging.
-Risk factors: SMALL\_CHANGE.
+Risk factors: NO\_ESCALATION.
 Coverage: 1/1 supported files analyzed; 1 excluded.
 
 ### What was checked
@@ -46,11 +46,11 @@ One supported file timed out, the finding has no line number, and output usage i
 
 ```md
 ## Inspector code review
-**UNKNOWN risk · ERROR · PARTIAL**
+**UNKNOWN risk · WAITING · PARTIAL**
 Reviewed SHA: `aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa` · Mode: context · Provider: live
 Run: `45000000000-1` · Rule: inspector-sprint2-v1
-Decision: ANALYSIS\_INCOMPLETE.
-Next action: Inspect the Actions run, correct the error and rerun. Incomplete analysis is not a safe pass.
+Decision: APPROVAL\_REQUIRED.
+Next action: Resolve the decision reasons and have an eligible non-author Write+ reviewer approve this commit.
 Risk factors: ANALYSIS\_UNAVAILABLE.
 Coverage: 1/2 supported files analyzed; 0 excluded.
 
@@ -84,11 +84,11 @@ Invalid model output left no usable analysis; an empty finding list is explicitl
 
 ```md
 ## Inspector code review
-**UNKNOWN risk · ERROR · FAILED**
+**UNKNOWN risk · WAITING · FAILED**
 Reviewed SHA: `aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa` · Mode: context · Provider: live
 Run: `45000000000-1` · Rule: inspector-sprint2-v1
-Decision: ANALYSIS\_FAILED.
-Next action: Inspect the Actions run, correct the error and rerun. Incomplete analysis is not a safe pass.
+Decision: APPROVAL\_REQUIRED.
+Next action: Resolve the decision reasons and have an eligible non-author Write+ reviewer approve this commit.
 Risk factors: ANALYSIS\_UNAVAILABLE.
 Coverage: 0/1 supported files analyzed; 0 excluded.
 
@@ -122,7 +122,7 @@ The normal report could not be commented. This fallback is retained in the Actio
 
 ```md
 ## Inspector report publication failed
-**UNKNOWN risk · ERROR · FAILED**
+**UNKNOWN risk · WAITING · FAILED**
 Reviewed SHA: `aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa` · Run: `45000000000-1`
 Publication: FAILED · Last confirmed commit status: pending · Comment: not confirmed.
 Publication error: Failed to create review report.
