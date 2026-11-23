@@ -168,7 +168,9 @@ function validate(root = __dirname) {
       assert.deepEqual(gold.human_reviewers, []);
     } else {
       const reviewers = [...new Set(gold.human_reviewers)];
-      assert(reviewers.every(r => typeof r === 'string' && r.trim()), 'Invalid legacy reviewer identifier');
+      assert(reviewers.every(r => typeof r === 'string' && r.trim()), 'Invalid reviewer identifier');
+      const heldout = c.split === 'heldout';
+      if (heldout) assert(reviewers.length >= 2, 'Heldout requires two independent human sign-offs');
       const records = readJson(inside(root, `reviews/${c.case_id}.json`));
       assert.equal(records.case_id, c.case_id);
       const digest = hash(JSON.stringify({ case: c, requirement: f.requirement, hashes: f.file_hashes, checks: f.behavior_checks, issues: gold.issues }));
@@ -177,10 +179,12 @@ function validate(root = __dirname) {
       for (const record of records.reviews) {
         assert(record && record.decision === 'accepted' && record.is_human === true && typeof record.evidence === 'string' && record.evidence.trim(), 'Missing accepted human review');
       }
-      // New records retain the actual single-human confirmation without identity or date.
-      // Legacy named records remain readable, but must still match any declared names.
+      // Development accepts one content-bound confirmation without identity or date.
+      // Heldout preserves separate, dated sign-offs under each declared identifier.
       for (const reviewer of reviewers) {
-        assert(records.reviews.some(r => r.reviewer === reviewer), 'Missing declared legacy human review');
+        assert(records.reviews.some(r => r.reviewer === reviewer
+          && (!heldout || (typeof r.reviewed_at === 'string' && Number.isFinite(Date.parse(r.reviewed_at))))),
+        heldout ? 'Missing dated heldout human review' : 'Missing declared human review');
       }
       reviewed++;
     }

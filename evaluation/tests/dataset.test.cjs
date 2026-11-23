@@ -16,7 +16,7 @@ function copyDataset(destination) {
     !['.cache', 'runs', 'reports'].includes(path.relative(root, source).split(path.sep)[0]) });
 }
 
-function mutate(edit, preserveReviews = false) {
+function mutate(edit, preserveReviews = false, expectedError) {
   const temp = fs.mkdtempSync(path.join(os.tmpdir(), 'cs5351-dataset-negative-'));
   try {
     const copy = path.join(temp, 'evaluation');
@@ -36,7 +36,7 @@ function mutate(edit, preserveReviews = false) {
       for (const name of fs.readdirSync(path.join(copy, 'reviews')).filter(n => n.endsWith('.json'))) fs.unlinkSync(path.join(copy, 'reviews', name));
     }
     edit(copy);
-    assert.throws(() => validate(copy));
+    assert.throws(() => validate(copy), expectedError);
   } finally { fs.rmSync(temp, { recursive: true, force: true }); }
 }
 
@@ -117,6 +117,21 @@ test('rejects a reviewed label without a content-bound human confirmation',()=>m
   }
   changeJson(r,'families/grant-enum/family.json',f=>{f.label_status='reviewed';f.human_reviewers=[];});
 }));
+test('rejects using a single development confirmation for a heldout case', () => mutate((r) => {
+  changeJson(r, 'cases/DEV-009.json', (c) => { c.split = 'heldout'; });
+  const read = (file) => JSON.parse(fs.readFileSync(path.join(r, file), 'utf8'));
+  const item = read('cases/DEV-009.json');
+  const familyFile = `families/${item.family_id}/family.json`;
+  changeJson(r, familyFile, (family) => { family.split = 'heldout'; });
+  const family = read(familyFile);
+  const gold = read(item.gold_file);
+  const content = { case: item, requirement: family.requirement, hashes: family.file_hashes,
+    checks: family.behavior_checks, issues: gold.issues };
+  changeJson(r, 'reviews/DEV-009.json', (record) => {
+    record.content_sha256 = crypto.createHash('sha256').update(JSON.stringify(content)).digest('hex');
+  });
+}, true, /Heldout requires two independent human sign-offs/));
+
 test('accepts the actual single-human confirmation without retaining a name or date',()=>{
  assert.equal(validate(root).reviewed_snapshots,20);
  for(const id of Array.from({length:20},(_,i)=>`DEV-${String(i+1).padStart(3,'0')}`)){

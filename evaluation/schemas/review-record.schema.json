@@ -48,5 +48,5 @@
       }
     }
   },
-  "$comment": "A real single-human confirmation is sufficient. New records omit reviewer identity and date; optional legacy fields remain readable. Drafts intentionally fail until accepted with evidence. Runtime also verifies the content digest and family-wide label consistency."
+  "$comment": "A real single-human confirmation is sufficient for development. Runtime validation additionally requires two distinct, dated human sign-offs for heldout. New records omit reviewer identity and date; optional legacy fields remain readable. Drafts intentionally fail until accepted with evidence. Runtime also verifies the content digest and family-wide label consistency."
 }

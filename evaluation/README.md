@@ -17,7 +17,7 @@ This continues `feat/evaluation-mvp` after PR #4 and PR #7 were merged. It conne
 | Human grading and statistics | Blind packets, atomic findings, root-cause deduplication, novel/unknown handling, per-trial micro/macro metrics, paired family bootstrap |
 | Reproduction package | CLI, schemas, protocol, annotation guide, adapter contract, self-checks and saved offline control evidence |
 
-**Still pending for this evaluation:** account-specific live configuration, live runs over the reviewed dataset, human grading of those model outputs and the resulting measurements. Licensed real-PR data, independent heldout measurements, final-product conclusions and human-efficiency experiments remain separate extensions. The actual B collector and C client are already connected; existing team pilot records do not substitute for this dataset experiment.
+**Remaining evaluation work:** licensed real-PR data, independent heldout measurements, final-product conclusions and human-efficiency experiments. The archived Bailian runs and their human-confirmed judgments cover the current development dataset.
 
 ## Quick start: offline, no key or external model
 

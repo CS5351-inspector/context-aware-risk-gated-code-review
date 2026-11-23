@@ -10,7 +10,7 @@ The workflow is **先 AI 生成结果，然后由我人工复核**. One human re
 
 The generated digest binds the reviewed-format case, requirement, all source hashes, executable checks and issue list. For each case in a family, create `reviews/<case_id>.json` with that digest and one accepted record containing `is_human:true`, `decision:"accepted"` and nonempty `evidence`. Do not record reviewer identity or review date. Then upgrade **all** cases/golds and the family to `label_status:"reviewed"`; the compatibility `human_reviewers` arrays may remain empty. Do not label an automated agent as a human. Runtime validation checks acceptance and content binding; the confirmation must actually have come from the user.
 
-A rejected/uncertain case remains provisional and outside formal gold. Editing the data after approval requires fresh records. Do not change a development family's split to heldout after using it to tune prompts; add genuinely separate families and review for near-duplicate/source leakage. The format supports reviewed heldout cases but this release contains none.
+A rejected/uncertain case remains provisional and outside formal gold. Editing the data after approval requires fresh records. Do not change a development family's split to heldout after using it to tune prompts; add genuinely separate families and review for near-duplicate/source leakage. Heldout cases require separate, dated sign-offs from two independent humans with distinct identifiers. This release contains no heldout cases.
 
 ## Output adjudication (after a run)
 
