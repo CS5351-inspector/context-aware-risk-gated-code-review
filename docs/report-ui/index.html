@@ -1,0 +1,120 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="Inspect four reproducible code-review reports, their evidence, coverage, and publication outcomes.">
+  <title>Inspector Report Explorer</title>
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 48 48'%3E%3Crect x='8' y='8' width='32' height='32' rx='6' fill='%231b6e62'/%3E%3Cpath d='m16 25 6 6 11-14' fill='none' stroke='%23f4f7f5' stroke-width='4'/%3E%3C/svg%3E">
+  <link rel="stylesheet" href="./styles.css">
+  <script src="./report-data.js" defer></script>
+  <script src="./report-parser.js" defer></script>
+  <script src="./app.js" defer></script>
+</head>
+<body>
+  <a class="skip-link" href="#report-main">Skip to report explorer</a>
+  <header class="hero">
+    <div class="hero-inner">
+      <div class="brand-mark" aria-hidden="true">
+        <svg viewBox="0 0 48 48" fill="none"><path d="M10 12h28v24H10z" stroke="currentColor" stroke-width="2"/><path d="m17 24 5 5 10-11" stroke="currentColor" stroke-width="2.5"/><path d="M17 36h14" stroke="currentColor" stroke-width="2"/></svg>
+      </div>
+      <div class="hero-copy">
+        <p class="overline">INSPECTOR / REPORT LAB</p>
+        <h1>Review evidence,<br>without the guesswork.</h1>
+        <p class="hero-summary">Four reproducible runs. One reviewed commit. Every decision, omission, and delivery outcome in plain sight.</p>
+      </div>
+      <dl class="hero-facts">
+        <div><dt>Scenarios</dt><dd>04</dd></div>
+        <div><dt>Runtime calls</dt><dd>00</dd></div>
+        <div><dt>Data source</dt><dd>Synced</dd></div>
+      </dl>
+    </div>
+  </header>
+
+  <main class="shell" id="report-main">
+    <aside class="scenario-panel" aria-label="Report scenarios">
+      <div class="panel-heading"><h2>Verification runs</h2><span>SELECT ONE</span></div>
+      <div class="scenario-list" id="scenario-list"></div>
+      <div class="integrity-note">
+        <svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M12 3 5 6v5c0 4.6 2.9 8.1 7 10 4.1-1.9 7-5.4 7-10V6l-7-3Z" stroke="currentColor" stroke-width="1.7"/><path d="m9 12 2 2 4-4" stroke="currentColor" stroke-width="1.7"/></svg>
+        <p><strong>Production logic, synthetic inputs.</strong> Risk, gate, rendering, and guarded publication execute without model or GitHub requests.</p>
+      </div>
+    </aside>
+
+    <section class="report-panel" aria-labelledby="report-title">
+      <div class="report-heading">
+        <div><p class="overline" id="report-kicker"></p><h2 id="report-title"></h2><p id="report-description"></p></div>
+        <button class="primary-action" id="copy-report" type="button">
+          <svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><rect x="8" y="8" width="11" height="12" rx="2" stroke="currentColor" stroke-width="1.7"/><path d="M16 8V6a2 2 0 0 0-2-2H6a2 2 0 0 0-2 2v10a2 2 0 0 0 2 2h2" stroke="currentColor" stroke-width="1.7"/></svg>
+          Copy report
+        </button>
+      </div>
+      <div class="sha-strip">
+        <span>REVIEWED SHA</span><code id="report-sha"></code>
+        <button class="icon-action" id="copy-sha" type="button" aria-label="Copy reviewed SHA" title="Copy reviewed SHA">
+          <svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M8 7V5a2 2 0 0 1 2-2h9v14h-2" stroke="currentColor" stroke-width="1.7"/><rect x="4" y="7" width="11" height="14" rx="2" stroke="currentColor" stroke-width="1.7"/></svg>
+        </button>
+      </div>
+      <div class="outcome-badges" id="outcome-badges" aria-label="Report outcome"></div>
+
+      <div class="view-tabs" role="tablist" aria-label="Report presentation">
+        <button id="overview-tab" type="button" role="tab" aria-selected="true" aria-controls="overview-view" data-view="overview">Overview</button>
+        <button id="markdown-tab" type="button" role="tab" aria-selected="false" aria-controls="markdown-view" data-view="markdown" tabindex="-1">Source Markdown</button>
+      </div>
+
+      <div id="overview-view" role="tabpanel" aria-labelledby="overview-tab">
+        <section class="decision-block" aria-labelledby="decision-heading">
+          <div><p class="section-label" id="decision-heading">DECISION & NEXT ACTION</p><p class="decision-code" id="decision-code"></p></div>
+          <p class="next-action" id="next-action"></p>
+        </section>
+
+        <section class="publication-block" id="publication-block" aria-labelledby="publication-heading" hidden>
+          <p class="section-label" id="publication-heading">DELIVERY RECEIPT</p>
+          <dl class="publication-facts" id="publication-facts"></dl>
+        </section>
+
+        <section class="coverage-block" id="coverage-block" aria-labelledby="coverage-heading">
+          <div class="section-heading"><h3 id="coverage-heading">Analysis coverage</h3><span id="coverage-ratio"></span></div>
+          <div class="coverage-track" role="meter" aria-label="Supported files analyzed" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0" id="coverage-meter"><div id="coverage-fill"></div></div>
+          <p class="coverage-caption" id="coverage-caption"></p>
+        </section>
+
+        <div class="detail-grid">
+          <section class="detail-section" aria-labelledby="findings-heading">
+            <div class="section-heading"><h3 id="findings-heading">Findings</h3><span class="count" id="findings-count"></span></div>
+            <ul class="record-list" id="findings-list"></ul>
+          </section>
+          <section class="detail-section" aria-labelledby="evidence-heading">
+            <div class="section-heading"><h3 id="evidence-heading">Evidence</h3><span class="count" id="evidence-count"></span></div>
+            <ul class="record-list" id="evidence-list"></ul>
+          </section>
+        </div>
+
+        <details class="scope-details" id="scope-details">
+          <summary><span>Checked files, exclusions & omissions</span><span class="summary-hint">Expand</span></summary>
+          <div class="scope-grid">
+            <section><h3>Checked</h3><ul class="record-list compact" id="checked-list"></ul></section>
+            <section><h3>Skipped and why</h3><ul class="record-list compact" id="skipped-list"></ul></section>
+          </div>
+          <div class="stop-reason" id="stop-reason-block"><strong>Why the run stopped</strong><p id="stop-reason"></p></div>
+        </details>
+
+        <section class="resources-block" id="resources-block" aria-labelledby="resources-heading">
+          <div class="section-heading"><h3 id="resources-heading">Analysis resources</h3><span>MEASURED / UNKNOWN</span></div>
+          <dl class="resource-grid" id="resource-grid"></dl>
+          <p class="resource-note" id="resource-note"></p>
+        </section>
+      </div>
+
+      <div id="markdown-view" role="tabpanel" aria-labelledby="markdown-tab" hidden>
+        <div class="markdown-heading"><p>Generated directly from the same example as this overview.</p><span>UTF-8 / MARKDOWN</span></div>
+        <pre id="markdown-source" tabindex="0"></pre>
+      </div>
+      <noscript><p class="noscript">JavaScript is required to switch reports. The four standalone Markdown files remain available in the parent directory.</p></noscript>
+    </section>
+  </main>
+
+  <footer class="footer"><span>Inspector · reproducible report verification</span><a href="./SPRINT2_REPORT_EXAMPLES.md">Read the combined examples <span aria-hidden="true">↗</span></a></footer>
+  <div class="toast" id="toast" role="status" aria-live="polite" aria-atomic="true"></div>
+</body>
+</html>

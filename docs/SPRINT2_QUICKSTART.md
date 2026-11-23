@@ -4,6 +4,8 @@ Inspector reviews added or modified JavaScript and TypeScript files in GitHub pu
 
 See [normal, partial, failed, and publication-failure report examples](SPRINT2_REPORT_EXAMPLES.md). Reports distinguish checked files from skipped files, explain required and optional omissions, retain evidence refs, and preserve unknown usage as `unknown`. Long comments keep the decision, reviewed SHA, and next action before optional detail; the Actions receipt retains the structured data. If GitHub rejects report publication, a concise fallback is written to the step summary when available and always retained in the receipt.
 
+For an interactive view, use the [Report Explorer](report-ui/README.md). It switches between all four scenarios, shows coverage, findings, evidence, resources, delivery receipts, and source Markdown, and supports copying and keyboard tabs. Start it with `npm --prefix docs/report-ui run dev -- --host 127.0.0.1 --port 7100`, then open `http://localhost:7100/`. Its data is regenerated and checked by `npm run verify:report`; its parser and static build are checked by `npm run test:report-ui`.
+
 ## Run the local checks
 
 In a fresh checkout, use Node.js 24 and run the same checks as [Test and Build](../.github/workflows/test-build.yml).
@@ -13,11 +15,15 @@ npm ci
 npm run typecheck
 npm test -- --runInBand
 npm run test:evaluation
+npm run verify:report
+npm run test:report-ui
 npm run build
 node --check action/index.cjs
 git diff --exit-code -- action
 npm run smoke:model-budget -- --relaycore
 ```
+
+The report verification executes the production risk, gate, renderer, and guarded publisher against four synthetic examples. It writes four standalone files in an isolated directory, compares them byte-for-byte with the committed reports, checks evidence and coverage content, and confirms the actual comment-rejection receipt. Its machine-readable result is written to `.cache/report-verification.json`; it makes no model calls or GitHub requests.
 
 The smoke command uses simulated responses for nine scenarios, including model failure and budget limits. The commands above require no model key and make no inference requests. `npm ci` downloads dependencies. The build regenerates the tracked Action bundle. Run the build check from a clean checkout to confirm the bundle matches the committed files. The evaluation tests cover the input and scoring tools. The [evaluation README](../evaluation/README.md) explains how to prepare and adjudicate a paired study.
 
