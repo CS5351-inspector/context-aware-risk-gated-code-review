@@ -2,6 +2,8 @@
 
 Inspector reviews added or modified JavaScript and TypeScript files in GitHub pull requests. Context mode reads nearby code and selected direct definitions at the reviewed commit. Its report explains the risk, coverage and next action, and the gate writes a status to that commit. Diff-only mode provides an experiment result without changing the gate.
 
+See [normal, partial, failed, and publication-failure report examples](SPRINT2_REPORT_EXAMPLES.md). Reports distinguish checked files from skipped files, explain required and optional omissions, retain evidence refs, and preserve unknown usage as `unknown`. Long comments keep the decision, reviewed SHA, and next action before optional detail; the Actions receipt retains the structured data. If GitHub rejects report publication, a concise fallback is written to the step summary when available and always retained in the receipt.
+
 ## Run the local checks
 
 In a fresh checkout, use Node.js 24 and run the same checks as [Test and Build](../.github/workflows/test-build.yml).
