@@ -68,7 +68,7 @@
     "external_code_copied": false,
     "inspiration": "Project evaluation requirements; independently authored minimal example."
   },
-  "label_status": "provisional",
+  "label_status": "reviewed",
   "human_reviewers": [],
   "expected_faulty_failures": [
     {

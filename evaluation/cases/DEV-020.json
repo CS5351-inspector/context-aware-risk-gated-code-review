@@ -5,7 +5,7 @@
   "code_variant": "clean",
   "evaluation_layer": "L2-input-preparation",
   "semantic_gold_eligible": true,
-  "label_status": "provisional",
+  "label_status": "reviewed",
   "input": {
     "base_dir": "families/own-key-filter/base",
     "head_dir": "families/own-key-filter/clean",

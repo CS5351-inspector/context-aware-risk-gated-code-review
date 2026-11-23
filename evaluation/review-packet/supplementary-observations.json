@@ -1,0 +1,32 @@
+{
+  "scope": "AI supplemental observation; not added to frozen dataset or gold",
+  "observations": [
+    {
+      "family": "cached-false",
+      "variant": "base",
+      "source": "evaluation/families/cached-false/base/review.js",
+      "input": "Object.create({ inherited: 42 }), key=\"inherited\", fallback=\"miss\"",
+      "expected": "miss",
+      "actual": "miss",
+      "matches_contract": true
+    },
+    {
+      "family": "cached-false",
+      "variant": "faulty",
+      "source": "evaluation/families/cached-false/faulty/review.js",
+      "input": "Object.create({ inherited: 42 }), key=\"inherited\", fallback=\"miss\"",
+      "expected": "miss",
+      "actual": 42,
+      "matches_contract": false
+    },
+    {
+      "family": "cached-false",
+      "variant": "fixed",
+      "source": "evaluation/families/cached-false/fixed/review.js",
+      "input": "Object.create({ inherited: 42 }), key=\"inherited\", fallback=\"miss\"",
+      "expected": "miss",
+      "actual": "miss",
+      "matches_contract": true
+    }
+  ]
+}

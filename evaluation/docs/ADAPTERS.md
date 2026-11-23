@@ -12,10 +12,10 @@ Write a **local ignored** `evaluation/local-provider.cjs` that exports:
 
 - `metadata`: `kind:"live"`, a nonempty `version`, `tokenizer_id`; for B2 also `context_kind:"actual-retrieval"` and `context_version` identifying the real B implementation.
 - `createClient(config)`: C-compatible client with `effectiveParameters` and `completeReview(prompt, {signal, timeout, maxRetries, maxOutputTokens})`. Return the real provider completion including `finish_reason` and usage; honor cancellation. Use C's expected shape, not our gold or an expected output.
-- `countInputTokens(prompt, config)`: exact model/message-aware counter, including the decorated requirement and message framing; no character/byte estimate labelled exact.
+- `countInputTokens(prompt, config)`: documented model-aware budget counter, including the decorated requirement and a disclosed framing allowance. The Sprint2 counter uses the pinned model tokenizer plus a 64-token allowance; this is a request-budget estimate, not exact provider usage. Never label character/byte counts as tokens.
 - `collectContext(input, readFile, budget)`: B's actual function. Only needed for B2. Return versioned snippets and omissions under the common contract. Do not call full source delivery actual retrieval.
 
-This PR supplies no live provider or API key, and does not guess B's future export name. A/C own real client/tokenizer configuration; B owns retrieval. The default `scripted.cjs` contains an explicit zero-token counter **only because no model is invoked**; never reuse it in live execution. The bridge gives providers deeply frozen copies of the configuration and input, including changed-file patches and budgets. Treat these as read-only; create a private copy for local transformations. A client cannot change the expected model/settings by editing the configuration passed to it. Live adapters are trusted local code, not OS-isolated; avoid loading gold or the whole evaluation directory in them.
+The historical v0.2 release supplied no live provider. The Sprint2 preparation now connects the existing B/C implementations; see [Sprint2 adapter](SPRINT2_ADAPTER.md). Credentials and account pricing are not embedded. A/C own real client/tokenizer configuration; B owns retrieval. The default `scripted.cjs` contains an explicit zero-token counter **only because no model is invoked**; never reuse it in live execution. The bridge gives providers deeply frozen copies of the configuration and input, including changed-file patches and budgets. Treat these as read-only; create a private copy for local transformations. A client cannot change the expected model/settings by editing the configuration passed to it. Live adapters are trusted local code, not OS-isolated; avoid loading gold or the whole evaluation directory in them.
 
 ## Configure, freeze, execute
 
@@ -37,10 +37,10 @@ node evaluation/cli.cjs run --plan evaluation/runs/pilot-plan.json --adapter eva
 
 `--live` is a deliberate local execution switch, not automatic permission to exceed agreed budget. Preserve errors and unknown usage. Retry policy is handled by C; the experiment runner does not add another retry layer. Both conditions must use the same model/settings and output boundary. A changed tokenizer/prompt/context/adapter requires a new plan. Do not reuse the demo control report as live evidence.
 
-## When dependencies are missing
+## Historical dependency fallback (check current Sprint2 status first)
 
 - A contract already merged: use `src/review/contracts.ts`; old PR #3/#5 candidate interfaces are historical.
 - B unavailable: finish dataset/scoring and oracle diagnostics; no actual B2 result.
 - C tokenizer/client unavailable: run scripted plumbing only; do not invent token counts.
-- D/E unassigned: proceed with component evaluation. Final reporting/gate/human-use conclusions remain out of scope.
-- Human reviewers unavailable: retain provisional labels and exploratory status.
+- D/E final-product evidence unavailable: proceed with component evaluation. Final reporting/gate/human-use conclusions remain out of scope; D/E are assigned in Sprint2.
+- Human confirmation unavailable for new or changed cases: retain provisional labels. Current 20 cases have already received the user’s single-person confirmation; model-output grading is still separate.

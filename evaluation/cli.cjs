@@ -11,9 +11,9 @@ function arg(name,required=true){const i=args.indexOf(name);if(i<0){if(required)
 function save(file,value){assert(!fs.existsSync(file),'Refusing to overwrite existing evidence file');write(file,value);console.log(file);}
 function report(s){
   const lines=['# Evaluation result',`Evidence: **${s.evidence_status}**`, `Scope: ${s.evaluation_scope}; boundary: ${s.output_boundary}`,`Paired plan complete: ${s.paired_plan_complete}`,'',
-    '| Condition | Started | Recall (micro) | Precision | Precision bounds | Clean success | Known cost USD | Unknown cost runs |','| --- | --- | --- | --- | --- | --- | --- | --- |'];
+    `| Condition | Started | Recall (micro) | Precision | Precision bounds | Clean success | Known cost ${s.cost_currency||'USD'} | Unknown cost runs |`,'| --- | --- | --- | --- | --- | --- | --- | --- |'];
   const fmt=n=>n===null?'N/A':typeof n==='number'?Number(n.toFixed(4)):n;
-  for(const [k,v] of Object.entries(s.conditions))lines.push(`| ${k} | ${v.started} | ${fmt(v.micro_recall)} | ${fmt(v.precision)} | ${v.precision_bounds.map(fmt).join(' to ')} | ${fmt(v.clean_success)} | ${fmt(v.cost_known_subtotal_usd)} | ${v.cost_unknown_runs} |`);
+  for(const [k,v] of Object.entries(s.conditions))lines.push(`| ${k} | ${v.started} | ${fmt(v.micro_recall)} | ${fmt(v.precision)} | ${v.precision_bounds.map(fmt).join(' to ')} | ${fmt(v.clean_success)} | ${fmt(Object.hasOwn(v,'cost_known_subtotal')?v.cost_known_subtotal:v.cost_known_subtotal_usd)} | ${v.cost_unknown_runs} |`);
   lines.push('','Full per-trial counts, status, latency, cost and family intervals are in summary.json.','',...s.limitations.map(x=>'- '+x),'');return lines.join('\n');
 }
 try{
@@ -40,18 +40,20 @@ try{
        annotations:r.findings.map(f=>({finding_id:f.id,atom_id:'1',root_id:f.id,verdict:'unresolved',gold_issue_id:null,evidence:'',location_acceptable:null,severity_acceptable:null}))});
    });
    write(path.join(output,'private/mapping.json'),{plan_id:plan.plan_id,runs_sha256:hash(runs),mapping});
-   write(path.join(output,'review/packets.json'),{reviewer:null,reviewed_at:null,packets});console.log('Share only review/; keep private/ and raw runs from graders.');
+   write(path.join(output,'review/packets.json'),{review_status:'pending',packets});console.log('Share only review/; keep private/ and raw runs from graders.');
  }else if(command==='unblind'){
    const m=read(arg('--mapping')),packet=read(arg('--packets'));const seen=new Set(),judgments=[];
    for(const p of packet.packets){assert(m.mapping[p.review_id]&&!seen.has(p.review_id));seen.add(p.review_id);for(const j of p.annotations)judgments.push({...j,run_key:m.mapping[p.review_id]});}
    assert.equal(seen.size,Object.keys(m.mapping).length,'Missing review packet');
-   save(arg('--out'),{schema_version:1,plan_id:m.plan_id,runs_sha256:m.runs_sha256,reviewer:packet.reviewer,reviewed_at:packet.reviewed_at,judgments});
+   const review=Object.hasOwn(packet,'review_status')?{review_status:packet.review_status}:
+     {reviewer:packet.reviewer,reviewed_at:packet.reviewed_at}; // Preserve legacy evidence without inventing confirmation.
+   save(arg('--out'),{schema_version:1,plan_id:m.plan_id,runs_sha256:m.runs_sha256,...review,judgments});
  }else if(command==='review-template'){
    const id=arg('--case'),item=load(root).find(r=>r.case.case_id===id);assert(item,'Unknown case');
    const c=structuredClone(item.case);c.label_status='reviewed';
    save(arg('--out'),{case_id:id,content_sha256:hash({case:c,requirement:item.family.requirement,hashes:item.family.file_hashes,checks:item.family.behavior_checks,issues:item.gold.issues}),
-     instructions:'Human reviewers must independently verify requirements, proof, clean/fixed, context necessity and severity. Fill reviewers and evidence, then upgrade ALL cases in this family atomically. Do not invent sign-offs.',
-     reviews:[{reviewer:null,is_human:true,decision:'pending',reviewed_at:null,evidence:''},{reviewer:null,is_human:true,decision:'pending',reviewed_at:null,evidence:''}]});
+     instructions:'The user reviews requirements, proof, clean/fixed, context necessity and severity. Record an accepted decision and concrete evidence only after actual human confirmation, then upgrade ALL cases in this family atomically. Names and dates are not required; templates are not approval.',
+     reviews:[{is_human:true,decision:'pending',evidence:''}]});
  }else{
   console.log('Commands: plan --config FILE --out FILE; run --plan FILE --out DIR [--adapter FILE --live]; labels --runs DIR --out FILE; blind --runs DIR --out DIR; unblind --mapping FILE --packets FILE --out FILE; score --runs DIR --labels FILE --out DIR; review-template --case ID --out FILE');
   if(command)process.exitCode=1;

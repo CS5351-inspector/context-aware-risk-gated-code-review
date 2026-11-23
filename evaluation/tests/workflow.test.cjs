@@ -24,14 +24,14 @@ function injectFinding(out,runKey,findings,status='complete'){
 }
 const finding=(id='f1')=>({id,file:'review.js',side:'RIGHT',line:2,severity:'high',message:'Synthetic scoring control: enum coercion reverses access.',evidenceIds:[],validation:'VERIFIED'});
 function adjudicate(labels,j,verdict,gold=null){return {...j,verdict,gold_issue_id:gold,evidence:'Synthetic unit-test judgment, not a human dataset sign-off',location_acceptable:true,severity_acceptable:true};}
-function reviewedTemplate(out){const labels=template(root,out);labels.reviewer='synthetic-test-reviewer';labels.reviewed_at='2026-11-08T00:00:00Z';return labels;}
+function reviewedTemplate(out){const labels=template(root,out);labels.review_status='reviewed';return labels;}
 
 test('paired schedule deterministic, complete, and frozen against edits',()=>{
  const a=createPlan(root,config(),repo),b=createPlan(root,config(),repo);assert.deepEqual(a,b);assert.equal(a.pairs.length,2);
  const bad=structuredClone(a);bad.config.trials=2;assert.throws(()=>verifyPlan(bad,root),/changed/);
  const shorter=structuredClone(a);shorter.pairs.pop();delete shorter.plan_id;shorter.plan_id=hash(shorter);assert.throws(()=>verifyPlan(shorter,root),/Incomplete/);
 });
-test('formal protocol cannot run provisional development labels',()=>{
+test('formal protocol cannot run development labels even after human review',()=>{
  const c=config();c.purpose='formal';assert.throws(()=>createPlan(root,c,repo));
 });
 test('actual B2 never silently falls back to oracle context',async()=>{
@@ -108,9 +108,15 @@ test('blind packets hide condition/provider, and mapping round-trip preserves ru
  const out=fixture(dir);injectFinding(out,'DEV-001/B1/1',[finding()]);const dest=path.join(dir,'blind');
  const cli=path.join(root,'cli.cjs');let r=spawnSync(process.execPath,[cli,'blind','--runs',out,'--out',dest],{encoding:'utf8'});assert.equal(r.status,0,r.stderr);
  const packets=fs.readFileSync(path.join(dest,'review/packets.json'),'utf8');assert(!packets.includes('/B1/')&&!packets.includes('B2-oracle')&&!packets.includes('provider_kind'));
+ const parsed=JSON.parse(packets);assert.equal(parsed.review_status,'pending');assert(!Object.hasOwn(parsed,'reviewer'));assert(!Object.hasOwn(parsed,'reviewed_at'));
  const gradedFindings=JSON.parse(packets).packets.flatMap(p=>p.findings);assert.equal(gradedFindings[0].severity,'high');
  const labels=path.join(dir,'labels.json');r=spawnSync(process.execPath,[cli,'unblind','--mapping',path.join(dest,'private/mapping.json'),'--packets',path.join(dest,'review/packets.json'),'--out',labels],{encoding:'utf8'});assert.equal(r.status,0,r.stderr);
- assert.equal(read(labels).judgments[0].run_key,'DEV-001/B1/1');assert.equal(score(root,out,read(labels)).conditions.B1.unresolved,1);
+ assert.equal(read(labels).judgments[0].run_key,'DEV-001/B1/1');assert.equal(read(labels).review_status,'pending');assert.equal(score(root,out,read(labels)).conditions.B1.unresolved,1);
+ parsed.review_status='reviewed';
+ for(const packet of parsed.packets)for(const j of packet.annotations)Object.assign(j,{verdict:'gold',gold_issue_id:'grant-enum-001',evidence:'Synthetic round-trip review evidence only.'});
+ write(path.join(dest,'review/packets.json'),parsed);
+ const reviewed=path.join(dir,'reviewed-labels.json');r=spawnSync(process.execPath,[cli,'unblind','--mapping',path.join(dest,'private/mapping.json'),'--packets',path.join(dest,'review/packets.json'),'--out',reviewed],{encoding:'utf8'});assert.equal(r.status,0,r.stderr);
+ assert.equal(read(reviewed).review_status,'reviewed');assert(!Object.hasOwn(read(reviewed),'reviewer'));assert(!Object.hasOwn(read(reviewed),'reviewed_at'));assert.equal(score(root,out,read(reviewed)).conditions.B1.hits,1);
 }));
 
 test('paired recall interval resamples families within category and preserves condition pairing',()=>temp(dir=>{

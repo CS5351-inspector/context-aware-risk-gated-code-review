@@ -1,0 +1,86 @@
+{
+  "provider_kind": "live",
+  "provider_version": "bailian-deepseek-1017-v1",
+  "context_kind": "none",
+  "context_version": null,
+  "analysis_status": "FAILED",
+  "findings": [],
+  "omissions": [
+    {
+      "file": "review.js",
+      "stage": "model",
+      "reason": "INVALID_OUTPUT",
+      "required": true
+    }
+  ],
+  "snippets": [],
+  "metrics": {
+    "model": "deepseek-v4.1-flash-1017",
+    "effectiveParameters": {
+      "model": "deepseek-v4.1-flash-1017",
+      "enable_thinking": false,
+      "response_format": {
+        "type": "json_object"
+      },
+      "max_tokens": 800,
+      "maxRetries": 0
+    },
+    "promptVersion": "inspector-c-v1+public-requirement-v1",
+    "durationMs": 1471,
+    "calls": 1,
+    "inputTokens": 294,
+    "outputTokens": 106,
+    "attempts": [
+      {
+        "file": "review.js",
+        "attempt": 1,
+        "timeoutMs": 30000,
+        "durationMs": 1300,
+        "estimatedInputTokens": 354,
+        "reservedOutputTokens": 800,
+        "inputTokens": 294,
+        "outputTokens": 106,
+        "responseModel": "deepseek-v4.1-flash-1017",
+        "outcome": "INVALID_OUTPUT"
+      }
+    ],
+    "tokenizerId": "@huggingface/tokenizers@0.2.0/DeepSeek-V4.1-Flash-1017@08c8657f02291e11b6f6b63e0e16014f8e748518+chat-allowance-64",
+    "modelDurationMs": 1470,
+    "contextDurationMs": 0
+  },
+  "raw": [
+    {
+      "response": {
+        "id": "chatcmpl-b7733c08-08e5-9319-8d2a-761c27eab639",
+        "object": "chat.completion",
+        "created": 1795335878,
+        "model": "deepseek-v4.1-flash-1017",
+        "choices": [
+          {
+            "index": 0,
+            "message": {
+              "role": "assistant",
+              "reasoning_content": "",
+              "content": "{\"reviews\":[{\"lgtm\":true,\"review_comment\":\"No bugs found. The refactor preserves semantics: Object.keys returns own enumerable property names in the same order, and the filter retains values that are not null (zero, false, and empty string are kept). Both the old loop-based version and the new expression evaluate obj[key] once per key and produce identical results.\",\"file\":\"review.js\",\"side\":\"RIGHT\",\"line\":1,\"severity\":\"low\",\"evidenceIds\":[]}]}"
+            },
+            "finish_reason": "stop",
+            "logprobs": null
+          }
+        ],
+        "usage": {
+          "prompt_tokens": 294,
+          "total_tokens": 400,
+          "completion_tokens": 106,
+          "prompt_tokens_details": {
+            "cached_tokens": 0,
+            "image_tokens": 0,
+            "text_tokens": 294
+          },
+          "completion_tokens_details": {
+            "text_tokens": 106
+          }
+        }
+      }
+    }
+  ]
+}

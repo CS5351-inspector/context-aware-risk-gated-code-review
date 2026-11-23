@@ -3,6 +3,7 @@ const fs=require('node:fs'),path=require('node:path'),assert=require('node:asser
 const {spawnSync}=require('node:child_process');
 const {read,write,hash,load,inputFor,implementationHash}=require('./data.cjs');
 const {verifyPlan}=require('./plan.cjs');
+const {costCurrency,costLimit,usageCost,verifyCost}=require('./cost.cjs');
 function validateResult(r, config) {
   assert.equal(r.provider_kind,config.provider_kind);
   assert(['COMPLETE','PARTIAL','FAILED','NOT_APPLICABLE'].includes(r.analysis_status));
@@ -29,7 +30,7 @@ function runPlan(root, plan, output, adapter, bridge, allowLive=false) {
   assert.equal(implementationHash(path.dirname(root)),plan.implementation_sha256,'Implementation changed after plan freeze');
   assert(!fs.existsSync(output),'Output directory already exists; use a fresh run directory');
   assert(fs.existsSync(bridge),'Run node evaluation/build-adapter.cjs first');
-  const c=plan.config;
+  const c=plan.config,currency=costCurrency(c);
   assert(c.provider_kind!=='live'||allowLive,'Live run requires --live and a frozen live plan');
   const bridgeReceipt=read(path.join(path.dirname(bridge),'receipt.json'));
   assert.equal(bridgeReceipt.implementation_sha256,plan.implementation_sha256,'Rebuild stale bridge');
@@ -39,7 +40,7 @@ function runPlan(root, plan, output, adapter, bridge, allowLive=false) {
   fs.mkdirSync(output,{recursive:true});write(path.join(output,'plan.json'),plan);
   const result={schema_version:1,plan_id:plan.plan_id,dataset_sha256:plan.dataset_sha256,code_sha:plan.code_sha,
     bridge_sha256:hash(fs.readFileSync(bridge)),adapter_sha256:hash(fs.readFileSync(adapter)),provider_kind:c.provider_kind,
-    evaluation_scope:c.evaluation_scope,output_boundary:c.output_boundary,implementation_sha256:plan.implementation_sha256,records:[]};
+    evaluation_scope:c.evaluation_scope,output_boundary:c.output_boundary,implementation_sha256:plan.implementation_sha256,cost_currency:currency,records:[]};
   const start=Date.now();let reservedTokens=0,reservedCost=0,startedRuns=0;
   const tokensPerRun=c.budget.maxCalls*(c.budget.maxInputTokens+c.budget.reservedOutputTokens);
   const costPerRun=c.provider_kind==='live'?tokensPerRun*Math.max(c.pricing.input_per_million,c.pricing.output_per_million)/1e6:0;
@@ -47,14 +48,14 @@ function runPlan(root, plan, output, adapter, bridge, allowLive=false) {
   for(const pair of plan.pairs) {
     const row=rows.get(pair.case_id);assert(row,'Unknown case');
     const canRun=startedRuns+2<=c.limits.max_runs && reservedTokens+2*tokensPerRun<=c.limits.max_tokens
-      && reservedCost+2*costPerRun<=c.limits.max_cost_usd && Date.now()-start+2*c.limits.worker_timeout_ms<=c.limits.max_wall_ms;
+      && reservedCost+2*costPerRun<=costLimit(c) && Date.now()-start+2*c.limits.worker_timeout_ms<=c.limits.max_wall_ms;
     if(canRun){reservedTokens+=2*tokensPerRun;reservedCost+=2*costPerRun;}
     for(const condition of pair.conditions) {
       const input=inputFor(root,row),record={run_key:`${pair.case_id}/${condition}/${pair.trial_id}`,case_id:pair.case_id,
         family_id:row.case.family_id,category:row.family.category,code_variant:row.case.code_variant,label_status:row.case.label_status,
         review_condition:condition,trial_id:pair.trial_id,input_sha256:hash(input),status:'not_executed',
         stop_reason:canRun?null:'pair_budget_reservation',started_at:null,ended_at:null,latency_ms:null,
-        calls:null,input_tokens:null,output_tokens:null,cost_usd:null,raw_file:null,raw_sha256:null,findings:[],error:null};
+        calls:null,input_tokens:null,output_tokens:null,cost_currency:currency,cost_amount:null,cost_usd:null,raw_file:null,raw_sha256:null,findings:[],error:null};
       if(canRun) {
         startedRuns++;record.started_at=new Date().toISOString();const now=Date.now();
         const child=spawnSync(process.execPath,[path.join(__dirname,'worker.cjs'),path.resolve(adapter),path.resolve(bridge)],{
@@ -72,8 +73,8 @@ function runPlan(root, plan, output, adapter, bridge, allowLive=false) {
           assert.equal(raw.context_kind,condition==='B2'?'actual-retrieval':condition==='B1'?'none':'oracle');
           record.status=raw.analysis_status.toLowerCase();record.findings=raw.findings;
           record.calls=raw.metrics.calls;record.input_tokens=raw.metrics.inputTokens;record.output_tokens=raw.metrics.outputTokens;
-          if(c.provider_kind==='scripted')record.cost_usd=0;
-          else if(record.input_tokens!==null&&record.output_tokens!==null)record.cost_usd=(record.input_tokens*c.pricing.input_per_million+record.output_tokens*c.pricing.output_per_million)/1e6;
+          record.cost_amount=usageCost(c,record.input_tokens,record.output_tokens);
+          if(currency==='USD')record.cost_usd=record.cost_amount;
         }catch(e){
           record.status='failed';record.error=child.error?.code==='ETIMEDOUT'?'worker_timeout':'adapter_or_output_error';
           // Deliberately do not save arbitrary stderr: adapters may log credentials there.
@@ -86,7 +87,8 @@ function runPlan(root, plan, output, adapter, bridge, allowLive=false) {
       write(path.join(output,'runs.json'),result);
     }
   }
-  result.reserved_token_upper_bound=reservedTokens;result.reserved_cost_upper_bound_usd=reservedCost;
+  result.reserved_token_upper_bound=reservedTokens;result.cost_currency=currency;result.reserved_cost_upper_bound=reservedCost;
+  result.reserved_cost_upper_bound_usd=currency==='USD'?reservedCost:null;
   result.completed_plan=true;write(path.join(output,'runs.json'),result);return result;
 }
 function verifyRuns(root,dir) {
@@ -97,6 +99,12 @@ function verifyRuns(root,dir) {
   assert.equal(runs.provider_kind,plan.config.provider_kind);assert.equal(runs.output_boundary,plan.config.output_boundary);
   assert.equal(runs.evaluation_scope,plan.config.evaluation_scope);
   if(plan.config.provider_kind==='live')assert.equal(runs.adapter_sha256,plan.config.adapter_sha256,'Recorded adapter differs from frozen plan');
+  const currency=costCurrency(plan.config);
+  if(currency!=='USD'||Object.hasOwn(runs,'cost_currency'))assert.equal(runs.cost_currency,currency,'Run cost currency differs from frozen pricing');
+  if(Object.hasOwn(runs,'reserved_cost_upper_bound')){
+    assert(Number.isFinite(runs.reserved_cost_upper_bound)&&runs.reserved_cost_upper_bound>=0&&runs.reserved_cost_upper_bound<=costLimit(plan.config),'Invalid cost reservation');
+    assert.equal(runs.reserved_cost_upper_bound_usd,currency==='USD'?runs.reserved_cost_upper_bound:null,'USD reservation differs from pricing currency');
+  }
   const expected=new Set(plan.pairs.flatMap(p=>p.conditions.map(c=>`${p.case_id}/${c}/${p.trial_id}`))),seen=new Set();
   const cases=new Map(load(root).map(x=>[x.case.case_id,x]));
   for(const r of runs.records){
@@ -109,7 +117,7 @@ function verifyRuns(root,dir) {
     if(r.status!=='not_executed'){assert(Number.isFinite(r.latency_ms)&&r.latency_ms>=0);assert(Number.isFinite(Date.parse(r.started_at))&&Number.isFinite(Date.parse(r.ended_at)));}
     if(r.status==='not_executed'){
       for(const key of ['raw_file','raw_sha256','started_at','ended_at','latency_ms','calls','input_tokens','output_tokens','cost_usd','error'])assert.equal(r[key],null,`Unexecuted run has ${key}`);
-      assert.equal(r.stop_reason,'pair_budget_reservation');assert.equal(r.findings.length,0);continue;
+      assert.equal(r.stop_reason,'pair_budget_reservation');assert.equal(r.findings.length,0);verifyCost(r,plan.config,null);continue;
     }
     assert(/^raw\/[0-9]+\.json$/.test(r.raw_file));assert.equal(hash(fs.readFileSync(path.join(dir,r.raw_file))),r.raw_sha256,'Raw output changed');
     const raw=read(path.join(dir,r.raw_file));
@@ -117,13 +125,13 @@ function verifyRuns(root,dir) {
       assert.equal(raw.context_kind,r.review_condition==='B2'?'actual-retrieval':r.review_condition==='B1'?'none':'oracle','Recorded context differs from condition');
       if(r.review_condition==='B2'&&plan.config.provider_kind==='live')assert.equal(raw.context_version,plan.config.context_version);
       assert.equal(raw.metrics.calls,r.calls);assert.equal(raw.metrics.inputTokens,r.input_tokens);assert.equal(raw.metrics.outputTokens,r.output_tokens);
-      const c=plan.config;const expectedCost=c.provider_kind==='scripted'?0:r.input_tokens===null||r.output_tokens===null?null:(r.input_tokens*c.pricing.input_per_million+r.output_tokens*c.pricing.output_per_million)/1e6;
-      assert.equal(r.cost_usd,expectedCost,'Cost record does not match usage/pricing');
+      verifyCost(r,plan.config,usageCost(plan.config,r.input_tokens,r.output_tokens));
     } else {
       assert(['worker_timeout','adapter_or_output_error'].includes(r.error),'Unknown worker failure');
       assert.equal(raw.failure,r.error,'Worker failure contradicts raw output');assert.equal(raw.usage_unknown,true);
       assert.equal(r.status,'failed');assert.equal(r.findings.length,0);
       for(const key of ['calls','input_tokens','output_tokens','cost_usd'])assert.equal(r[key],null,'Worker failure must preserve unknown usage');
+      verifyCost(r,plan.config,null);
     }
   }
   return {plan,runs,complete:seen.size===expected.size&&runs.records.every(r=>r.status!=='not_executed')};

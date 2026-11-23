@@ -21,7 +21,7 @@
     "typecheck": "tsc --noEmit --incremental false --checkJs false",
     "smoke:model-budget": "esbuild scripts/sprint2-model-smoke.ts --bundle --platform=node --format=cjs --packages=external --outfile=.cache/sprint2-model-smoke.cjs && node .cache/sprint2-model-smoke.cjs",
     "test:evaluation": "node evaluation/validate.cjs && npm run typecheck:evaluation && node evaluation/build-adapter.cjs && node --test --test-reporter=tap evaluation/tests/*.test.cjs",
-    "typecheck:evaluation": "tsc --noEmit --target ESNext --module NodeNext --moduleResolution node --esModuleInterop --skipLibCheck --strict evaluation/adapters/production.ts"
+    "typecheck:evaluation": "tsc --noEmit --target ESNext --module NodeNext --moduleResolution node --esModuleInterop --skipLibCheck --strict evaluation/adapters/production.ts evaluation/adapters/sprint2-provider.ts evaluation/adapters/bailian-provider.ts"
   },
   "dependencies": {
     "@babel/parser": "7.21.3",

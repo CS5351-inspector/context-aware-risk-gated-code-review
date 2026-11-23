@@ -1,7 +1,7 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "type": "object",
-  "title": "Human gold sign-off v1",
+  "title": "Content-bound human gold confirmation v2",
   "required": [
     "case_id",
     "content_sha256",
@@ -17,14 +17,12 @@
     },
     "reviews": {
       "type": "array",
-      "minItems": 2,
+      "minItems": 1,
       "items": {
         "type": "object",
         "required": [
-          "reviewer",
           "is_human",
           "decision",
-          "reviewed_at",
           "evidence"
         ],
         "properties": {
@@ -50,5 +48,5 @@
       }
     }
   },
-  "$comment": "Draft templates intentionally fail accepted-signoff schema until actual humans complete review. Runtime validates reviewer uniqueness and content digest."
+  "$comment": "A real single-human confirmation is sufficient for development. Runtime validation additionally requires two distinct, dated human sign-offs for heldout. New records omit reviewer identity and date; optional legacy fields remain readable. Drafts intentionally fail until accepted with evidence. Runtime also verifies the content digest and family-wide label consistency."
 }

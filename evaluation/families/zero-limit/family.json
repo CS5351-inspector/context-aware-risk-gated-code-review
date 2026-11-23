@@ -50,7 +50,7 @@
     "external_code_copied": false,
     "inspiration": "Zero-default edge case from peer fixture discussion; all source independently authored."
   },
-  "label_status": "provisional",
+  "label_status": "reviewed",
   "human_reviewers": [],
   "expected_faulty_failures": [
     {

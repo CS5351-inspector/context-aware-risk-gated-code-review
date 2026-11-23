@@ -1,0 +1,938 @@
+
+> cr-bot@1.0.0 test:evaluation
+> node evaluation/validate.cjs && npm run typecheck:evaluation && node evaluation/build-adapter.cjs && node --test --test-reporter=tap evaluation/tests/*.test.cjs
+
+{
+  "dataset_id": "cs5351-quality-development-v0.2",
+  "status": "validated-data-not-model-results",
+  "label_status": "reviewed",
+  "reviewed_snapshots": 20,
+  "families": 12,
+  "snapshots": 20,
+  "categories": {
+    "cross-file": 4,
+    "diff-sufficient": 4,
+    "clean-only": 4
+  },
+  "gold_defects": 8,
+  "behavior_checks": 113,
+  "observed_contract_violations": 17,
+  "model_calls": 0,
+  "human_gold_review_complete": true,
+  "cases": [
+    {
+      "case_id": "DEV-001",
+      "family_id": "grant-enum",
+      "code_variant": "faulty",
+      "observations": [
+        {
+          "check_index": 0,
+          "matches_contract": false,
+          "actual": false
+        },
+        {
+          "check_index": 1,
+          "matches_contract": false,
+          "actual": true
+        },
+        {
+          "check_index": 2,
+          "matches_contract": false,
+          "actual": true
+        }
+      ]
+    },
+    {
+      "case_id": "DEV-002",
+      "family_id": "grant-enum",
+      "code_variant": "fixed",
+      "observations": [
+        {
+          "check_index": 0,
+          "matches_contract": true,
+          "actual": true
+        },
+        {
+          "check_index": 1,
+          "matches_contract": true,
+          "actual": false
+        },
+        {
+          "check_index": 2,
+          "matches_contract": true,
+          "actual": false
+        }
+      ]
+    },
+    {
+      "case_id": "DEV-003",
+      "family_id": "scheduler-units",
+      "code_variant": "faulty",
+      "observations": [
+        {
+          "check_index": 0,
+          "matches_contract": false,
+          "actual": {
+            "scheduledAfterSeconds": 250
+          }
+        },
+        {
+          "check_index": 1,
+          "matches_contract": false,
+          "actual": {
+            "scheduledAfterSeconds": 1000
+          }
+        },
+        {
+          "check_index": 2,
+          "matches_contract": true,
+          "actual": {
+            "scheduledAfterSeconds": 0
+          }
+        }
+      ]
+    },
+    {
+      "case_id": "DEV-004",
+      "family_id": "scheduler-units",
+      "code_variant": "fixed",
+      "observations": [
+        {
+          "check_index": 0,
+          "matches_contract": true,
+          "actual": {
+            "scheduledAfterSeconds": 0.25
+          }
+        },
+        {
+          "check_index": 1,
+          "matches_contract": true,
+          "actual": {
+            "scheduledAfterSeconds": 1
+          }
+        },
+        {
+          "check_index": 2,
+          "matches_contract": true,
+          "actual": {
+            "scheduledAfterSeconds": 0
+          }
+        }
+      ]
+    },
+    {
+      "case_id": "DEV-005",
+      "family_id": "zero-limit",
+      "code_variant": "faulty",
+      "observations": [
+        {
+          "check_index": 0,
+          "matches_contract": false,
+          "actual": 20
+        },
+        {
+          "check_index": 1,
+          "matches_contract": true,
+          "actual": 20
+        },
+        {
+          "check_index": 2,
+          "matches_contract": true,
+          "actual": 20
+        },
+        {
+          "check_index": 3,
+          "matches_contract": true,
+          "actual": 3
+        }
+      ]
+    },
+    {
+      "case_id": "DEV-006",
+      "family_id": "zero-limit",
+      "code_variant": "fixed",
+      "observations": [
+        {
+          "check_index": 0,
+          "matches_contract": true,
+          "actual": 0
+        },
+        {
+          "check_index": 1,
+          "matches_contract": true,
+          "actual": 20
+        },
+        {
+          "check_index": 2,
+          "matches_contract": true,
+          "actual": 20
+        },
+        {
+          "check_index": 3,
+          "matches_contract": true,
+          "actual": 3
+        }
+      ]
+    },
+    {
+      "case_id": "DEV-007",
+      "family_id": "index-boundary",
+      "code_variant": "faulty",
+      "observations": [
+        {
+          "check_index": 0,
+          "matches_contract": false,
+          "error_name": "TypeError",
+          "error_message": "Cannot read properties of undefined (reading 'id')"
+        },
+        {
+          "check_index": 1,
+          "matches_contract": false,
+          "error_name": "TypeError",
+          "error_message": "Cannot read properties of undefined (reading 'id')"
+        },
+        {
+          "check_index": 2,
+          "matches_contract": true,
+          "actual": "a"
+        },
+        {
+          "check_index": 3,
+          "matches_contract": true,
+          "actual": null
+        }
+      ]
+    },
+    {
+      "case_id": "DEV-008",
+      "family_id": "index-boundary",
+      "code_variant": "fixed",
+      "observations": [
+        {
+          "check_index": 0,
+          "matches_contract": true,
+          "actual": null
+        },
+        {
+          "check_index": 1,
+          "matches_contract": true,
+          "actual": null
+        },
+        {
+          "check_index": 2,
+          "matches_contract": true,
+          "actual": "a"
+        },
+        {
+          "check_index": 3,
+          "matches_contract": true,
+          "actual": null
+        }
+      ]
+    },
+    {
+      "case_id": "DEV-009",
+      "family_id": "active-users",
+      "code_variant": "clean",
+      "observations": [
+        {
+          "check_index": 0,
+          "matches_contract": true,
+          "actual": []
+        },
+        {
+          "check_index": 1,
+          "matches_contract": true,
+          "actual": [
+            0,
+            3
+          ]
+        }
+      ]
+    },
+    {
+      "case_id": "DEV-010",
+      "family_id": "invoice-reduce",
+      "code_variant": "clean",
+      "observations": [
+        {
+          "check_index": 0,
+          "matches_contract": true,
+          "actual": 0
+        },
+        {
+          "check_index": 1,
+          "matches_contract": true,
+          "actual": 280
+        }
+      ]
+    },
+    {
+      "case_id": "DEV-011",
+      "family_id": "tenant-cache-key",
+      "code_variant": "faulty",
+      "observations": [
+        {
+          "check_index": 0,
+          "matches_contract": false,
+          "actual": {
+            "role": "owner"
+          }
+        },
+        {
+          "check_index": 1,
+          "matches_contract": false,
+          "actual": null
+        },
+        {
+          "check_index": 2,
+          "matches_contract": true,
+          "actual": null
+        }
+      ]
+    },
+    {
+      "case_id": "DEV-012",
+      "family_id": "tenant-cache-key",
+      "code_variant": "fixed",
+      "observations": [
+        {
+          "check_index": 0,
+          "matches_contract": true,
+          "actual": {
+            "role": "reader"
+          }
+        },
+        {
+          "check_index": 1,
+          "matches_contract": true,
+          "actual": {
+            "name": "A"
+          }
+        },
+        {
+          "check_index": 2,
+          "matches_contract": true,
+          "actual": null
+        }
+      ]
+    },
+    {
+      "case_id": "DEV-013",
+      "family_id": "range-end-contract",
+      "code_variant": "faulty",
+      "observations": [
+        {
+          "check_index": 0,
+          "matches_contract": false,
+          "actual": [
+            20,
+            30,
+            40
+          ]
+        },
+        {
+          "check_index": 1,
+          "matches_contract": false,
+          "actual": [
+            10,
+            20
+          ]
+        },
+        {
+          "check_index": 2,
+          "matches_contract": true,
+          "actual": []
+        },
+        {
+          "check_index": 3,
+          "matches_contract": true,
+          "actual": [
+            20
+          ]
+        }
+      ]
+    },
+    {
+      "case_id": "DEV-014",
+      "family_id": "range-end-contract",
+      "code_variant": "fixed",
+      "observations": [
+        {
+          "check_index": 0,
+          "matches_contract": true,
+          "actual": [
+            20,
+            30
+          ]
+        },
+        {
+          "check_index": 1,
+          "matches_contract": true,
+          "actual": [
+            10
+          ]
+        },
+        {
+          "check_index": 2,
+          "matches_contract": true,
+          "actual": []
+        },
+        {
+          "check_index": 3,
+          "matches_contract": true,
+          "actual": [
+            20
+          ]
+        }
+      ]
+    },
+    {
+      "case_id": "DEV-015",
+      "family_id": "numeric-priority",
+      "code_variant": "faulty",
+      "observations": [
+        {
+          "check_index": 0,
+          "matches_contract": false,
+          "actual": [
+            1,
+            10,
+            2
+          ]
+        },
+        {
+          "check_index": 1,
+          "matches_contract": true,
+          "actual": [
+            -10,
+            -2,
+            3
+          ]
+        },
+        {
+          "check_index": 2,
+          "matches_contract": true,
+          "actual": []
+        },
+        {
+          "check_index": 3,
+          "matches_contract": true,
+          "actual": [
+            4,
+            4
+          ]
+        }
+      ]
+    },
+    {
+      "case_id": "DEV-016",
+      "family_id": "numeric-priority",
+      "code_variant": "fixed",
+      "observations": [
+        {
+          "check_index": 0,
+          "matches_contract": true,
+          "actual": [
+            1,
+            2,
+            10
+          ]
+        },
+        {
+          "check_index": 1,
+          "matches_contract": true,
+          "actual": [
+            -10,
+            -2,
+            3
+          ]
+        },
+        {
+          "check_index": 2,
+          "matches_contract": true,
+          "actual": []
+        },
+        {
+          "check_index": 3,
+          "matches_contract": true,
+          "actual": [
+            4,
+            4
+          ]
+        }
+      ]
+    },
+    {
+      "case_id": "DEV-017",
+      "family_id": "cached-false",
+      "code_variant": "faulty",
+      "observations": [
+        {
+          "check_index": 0,
+          "matches_contract": false,
+          "actual": "miss"
+        },
+        {
+          "check_index": 1,
+          "matches_contract": false,
+          "actual": 9
+        },
+        {
+          "check_index": 2,
+          "matches_contract": false,
+          "actual": 9
+        },
+        {
+          "check_index": 3,
+          "matches_contract": false,
+          "actual": "miss"
+        },
+        {
+          "check_index": 4,
+          "matches_contract": true,
+          "actual": "miss"
+        },
+        {
+          "check_index": 5,
+          "matches_contract": true,
+          "actual": "ok"
+        }
+      ]
+    },
+    {
+      "case_id": "DEV-018",
+      "family_id": "cached-false",
+      "code_variant": "fixed",
+      "observations": [
+        {
+          "check_index": 0,
+          "matches_contract": true,
+          "actual": false
+        },
+        {
+          "check_index": 1,
+          "matches_contract": true,
+          "actual": 0
+        },
+        {
+          "check_index": 2,
+          "matches_contract": true,
+          "actual": null
+        },
+        {
+          "check_index": 3,
+          "matches_contract": true,
+          "actual": ""
+        },
+        {
+          "check_index": 4,
+          "matches_contract": true,
+          "actual": "miss"
+        },
+        {
+          "check_index": 5,
+          "matches_contract": true,
+          "actual": "ok"
+        }
+      ]
+    },
+    {
+      "case_id": "DEV-019",
+      "family_id": "copy-reverse",
+      "code_variant": "clean",
+      "observations": [
+        {
+          "check_index": 0,
+          "matches_contract": true,
+          "actual": [
+            1,
+            2,
+            1
+          ]
+        },
+        {
+          "check_index": 1,
+          "matches_contract": true,
+          "actual": [
+            3,
+            2,
+            1
+          ]
+        },
+        {
+          "check_index": 2,
+          "matches_contract": true,
+          "actual": []
+        }
+      ]
+    },
+    {
+      "case_id": "DEV-020",
+      "family_id": "own-key-filter",
+      "code_variant": "clean",
+      "observations": [
+        {
+          "check_index": 0,
+          "matches_contract": true,
+          "actual": [
+            "a",
+            "b",
+            "d"
+          ]
+        },
+        {
+          "check_index": 1,
+          "matches_contract": true,
+          "actual": []
+        },
+        {
+          "check_index": 2,
+          "matches_contract": true,
+          "actual": [
+            "x"
+          ]
+        }
+      ]
+    }
+  ]
+}
+
+> cr-bot@1.0.0 typecheck:evaluation
+> tsc --noEmit --target ESNext --module NodeNext --moduleResolution node --esModuleInterop --skipLibCheck --strict evaluation/adapters/production.ts evaluation/adapters/sprint2-provider.ts
+
+Built evaluation bridge to existing C/A modules (no model call).
+TAP version 13
+# Subtest: twelve families have real bug/fixed evidence and clean controls
+ok 1 - twelve families have real bug/fixed evidence and clean controls
+  ---
+  duration_ms: 96.141083
+  type: 'test'
+  ...
+# Subtest: rejects source tampering
+ok 2 - rejects source tampering
+  ---
+  duration_ms: 158.966167
+  type: 'test'
+  ...
+# Subtest: rejects a diff contradicting the head snapshot
+ok 3 - rejects a diff contradicting the head snapshot
+  ---
+  duration_ms: 143.7805
+  type: 'test'
+  ...
+# Subtest: rejects a missing defect answer
+ok 4 - rejects a missing defect answer
+  ---
+  duration_ms: 159.1815
+  type: 'test'
+  ...
+# Subtest: rejects a changed dependency omitted from the declared diff
+ok 5 - rejects a changed dependency omitted from the declared diff
+  ---
+  duration_ms: 152.184541
+  type: 'test'
+  ...
+# Subtest: rejects gold with no acceptable finding location
+ok 6 - rejects gold with no acceptable finding location
+  ---
+  duration_ms: 159.177417
+  type: 'test'
+  ...
+# Subtest: rejects fractional gold line numbers
+ok 7 - rejects fractional gold line numbers
+  ---
+  duration_ms: 195.3425
+  type: 'test'
+  ...
+# Subtest: rejects a purported counterexample that also fails on the correct base
+ok 8 - rejects a purported counterexample that also fails on the correct base
+  ---
+  duration_ms: 160.436083
+  type: 'test'
+  ...
+# Subtest: rejects family variants crossing into holdout
+ok 9 - rejects family variants crossing into holdout
+  ---
+  duration_ms: 126.109334
+  type: 'test'
+  ...
+# Subtest: exports only allowed model input and labels full context as oracle
+ok 10 - exports only allowed model input and labels full context as oracle
+  ---
+  duration_ms: 1.742584
+  type: 'test'
+  ...
+# Subtest: rejects a reviewed label without a content-bound human confirmation
+ok 11 - rejects a reviewed label without a content-bound human confirmation
+  ---
+  duration_ms: 111.989708
+  type: 'test'
+  ...
+# Subtest: accepts the actual single-human confirmation without retaining a name or date
+ok 12 - accepts the actual single-human confirmation without retaining a name or date
+  ---
+  duration_ms: 72.949917
+  type: 'test'
+  ...
+# Subtest: rejects pending, automated and missing human confirmations
+ok 13 - rejects pending, automated and missing human confirmations
+  ---
+  duration_ms: 304.98425
+  type: 'test'
+  ...
+# Subtest: rejects partial family review upgrades
+ok 14 - rejects partial family review upgrades
+  ---
+  duration_ms: 95.639667
+  type: 'test'
+  ...
+# Subtest: allows versioned human-review records, rejects stale evidence after a label edit
+ok 15 - allows versioned human-review records, rejects stale evidence after a label edit
+  ---
+  duration_ms: 148.152542
+  type: 'test'
+  ...
+# Subtest: rejects source files symlinked outside the dataset
+ok 16 - rejects source files symlinked outside the dataset
+  ---
+  duration_ms: 121.496583
+  type: 'test'
+  ...
+# Subtest: checks the nonmutation promise as well as returned values
+ok 17 - checks the nonmutation promise as well as returned values
+  ---
+  duration_ms: 159.698541
+  type: 'test'
+  ...
+# Subtest: provider cannot rewrite the frozen model/config to pass pre-invocation checks
+ok 18 - provider cannot rewrite the frozen model/config to pass pre-invocation checks
+  ---
+  duration_ms: 18.053917
+  type: 'test'
+  ...
+# Subtest: retrieval gets immutable patch/budget snapshots without freezing caller objects
+ok 19 - retrieval gets immutable patch/budget snapshots without freezing caller objects
+  ---
+  duration_ms: 13.551875
+  type: 'test'
+  ...
+# Subtest: saved completion cannot be relabelled as worker failure without matching raw evidence
+ok 20 - saved completion cannot be relabelled as worker failure without matching raw evidence
+  ---
+  duration_ms: 512.616666
+  type: 'test'
+  ...
+# Subtest: saved context treatment must match its planned condition
+ok 21 - saved context treatment must match its planned condition
+  ---
+  duration_ms: 564.474958
+  type: 'test'
+  ...
+# Subtest: unexecuted records cannot claim calls or measured cost
+ok 22 - unexecuted records cannot claim calls or measured cost
+  ---
+  duration_ms: 225.159875
+  type: 'test'
+  ...
+# Subtest: live raw metrics must bind model, prompt and effective parameters to the frozen config
+ok 23 - live raw metrics must bind model, prompt and effective parameters to the frozen config
+  ---
+  duration_ms: 10.339917
+  type: 'test'
+  ...
+# Subtest: hunk code starting with ++ or -- counts as changed source, not file headers
+ok 24 - hunk code starting with ++ or -- counts as changed source, not file headers
+  ---
+  duration_ms: 8.637333
+  type: 'test'
+  ...
+# Subtest: saved live execution must retain the frozen adapter identity
+ok 25 - saved live execution must retain the frozen adapter identity
+  ---
+  duration_ms: 503.037
+  type: 'test'
+  ...
+# Subtest: novel defect invalidates clean eligibility symmetrically across conditions and trials
+ok 26 - novel defect invalidates clean eligibility symmetrically across conditions and trials
+  ---
+  duration_ms: 837.864125
+  type: 'test'
+  ...
+# Subtest: location and severity assessments do not depend on duplicate annotation order
+ok 27 - location and severity assessments do not depend on duplicate annotation order
+  ---
+  duration_ms: 643.569083
+  type: 'test'
+  ...
+# Subtest: missing planned records are distinguished from explicit not-executed records
+ok 28 - missing planned records are distinguished from explicit not-executed records
+  ---
+  duration_ms: 395.822333
+  type: 'test'
+  ...
+# Subtest: atomic judgment IDs must be nonblank strings as declared by the schema
+ok 29 - atomic judgment IDs must be nonblank strings as declared by the schema
+  ---
+  duration_ms: 429.703917
+  type: 'test'
+  ...
+# Subtest: anonymous single-user review accepts evidenced judgments without identity or date
+ok 30 - anonymous single-user review accepts evidenced judgments without identity or date
+  ---
+  duration_ms: 518.3465
+  type: 'test'
+  ...
+# Subtest: pending review rejects final verdicts even if legacy identity fields are present
+ok 31 - pending review rejects final verdicts even if legacy identity fields are present
+  ---
+  duration_ms: 348.639667
+  type: 'test'
+  ...
+# Subtest: reviewed status never substitutes for per-claim evidence
+ok 32 - reviewed status never substitutes for per-claim evidence
+  ---
+  duration_ms: 322.899125
+  type: 'test'
+  ...
+# Subtest: legacy human judgments remain reproducible when no new review status is present
+ok 33 - legacy human judgments remain reproducible when no new review status is present
+  ---
+  duration_ms: 435.005292
+  type: 'test'
+  ...
+# Subtest: draft cannot become a live plan until cost assumptions are supplied
+ok 34 - draft cannot become a live plan until cost assumptions are supplied
+  ---
+  duration_ms: 57.06225
+  type: 'test'
+  ...
+# Subtest: C tokenizer counts content with explicit allowance; client fails before network when unconfigured
+ok 35 - C tokenizer counts content with explicit allowance; client fails before network when unconfigured
+  ---
+  duration_ms: 308.303333
+  type: 'test'
+  ...
+# Subtest: actual B/C bridge processes all 20 cases; scripted completions are not quality evidence
+ok 36 - actual B/C bridge processes all 20 cases; scripted completions are not quality evidence
+  ---
+  duration_ms: 113.5705
+  type: 'test'
+  ...
+# Subtest: real worker cwd resolves verified tokenizer assets without network inference
+ok 37 - real worker cwd resolves verified tokenizer assets without network inference
+  ---
+  duration_ms: 592.534416
+  type: 'test'
+  ...
+# Subtest: paired schedule deterministic, complete, and frozen against edits
+ok 38 - paired schedule deterministic, complete, and frozen against edits
+  ---
+  duration_ms: 398.300583
+  type: 'test'
+  ...
+# Subtest: formal protocol cannot run development labels even after human review
+ok 39 - formal protocol cannot run development labels even after human review
+  ---
+  duration_ms: 0.278875
+  type: 'test'
+  ...
+# Subtest: actual B2 never silently falls back to oracle context
+ok 40 - actual B2 never silently falls back to oracle context
+  ---
+  duration_ms: 7.742458
+  type: 'test'
+  ...
+# Subtest: bridge invokes real C with requirement in both modes and no labels in prompts
+ok 41 - bridge invokes real C with requirement in both modes and no labels in prompts
+  ---
+  duration_ms: 7.842792
+  type: 'test'
+  ...
+# Subtest: B read port blocks sibling versions and rejects fabricated source snippets
+ok 42 - B read port blocks sibling versions and rejects fabricated source snippets
+  ---
+  duration_ms: 10.696542
+  type: 'test'
+  ...
+# Subtest: end-to-end offline C control keeps buggy misses and clean successes, never model evidence
+ok 43 - end-to-end offline C control keeps buggy misses and clean successes, never model evidence
+  ---
+  duration_ms: 602.060125
+  type: 'test'
+  ...
+# Subtest: pair budget exhaustion creates not_executed for both modes, not false misses
+ok 44 - pair budget exhaustion creates not_executed for both modes, not false misses
+  ---
+  duration_ms: 323.204833
+  type: 'test'
+  ...
+# Subtest: worker failure is recorded with unknown cost and retained in recall denominator
+ok 45 - worker failure is recorded with unknown cost and retained in recall denominator
+  ---
+  duration_ms: 397.353
+  type: 'test'
+  ...
+# Subtest: raw output tamper and stale human judgments are rejected
+ok 46 - raw output tamper and stale human judgments are rejected
+  ---
+  duration_ms: 433.436125
+  type: 'test'
+  ...
+# Subtest: same gold root duplicates count once, unresolved outputs create precision bounds
+ok 47 - same gold root duplicates count once, unresolved outputs create precision bounds
+  ---
+  duration_ms: 523.127292
+  type: 'test'
+  ...
+# Subtest: a novel clean-case defect triggers reclassification, not an automatic false positive
+ok 48 - a novel clean-case defect triggers reclassification, not an automatic false positive
+  ---
+  duration_ms: 325.678666
+  type: 'test'
+  ...
+# Subtest: out-of-scope claims count against actionable precision; missing labels stay unresolved
+ok 49 - out-of-scope claims count against actionable precision; missing labels stay unresolved
+  ---
+  duration_ms: 318.736458
+  type: 'test'
+  ...
+# Subtest: repeat trials are averaged, never unioned into best-of-k recall
+ok 50 - repeat trials are averaged, never unioned into best-of-k recall
+  ---
+  duration_ms: 754.743583
+  type: 'test'
+  ...
+# Subtest: blind packets hide condition/provider, and mapping round-trip preserves run identity
+ok 51 - blind packets hide condition/provider, and mapping round-trip preserves run identity
+  ---
+  duration_ms: 542.413875
+  type: 'test'
+  ...
+# Subtest: paired recall interval resamples families within category and preserves condition pairing
+ok 52 - paired recall interval resamples families within category and preserves condition pairing
+  ---
+  duration_ms: 441.682209
+  type: 'test'
+  ...
+# Subtest: C invalid-response failures are never counted as clean successes
+ok 53 - C invalid-response failures are never counted as clean successes
+  ---
+  duration_ms: 4.67475
+  type: 'test'
+  ...
+# Subtest: live parameter mismatches are rejected before any provider request
+ok 54 - live parameter mismatches are rejected before any provider request
+  ---
+  duration_ms: 3.880417
+  type: 'test'
+  ...
+1..54
+# tests 54
+# suites 0
+# pass 54
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 5176.345

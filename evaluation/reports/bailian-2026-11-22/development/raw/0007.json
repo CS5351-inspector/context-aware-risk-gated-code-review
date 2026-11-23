@@ -1,0 +1,89 @@
+{
+  "provider_kind": "live",
+  "provider_version": "bailian-deepseek-1017-v1",
+  "context_kind": "actual-retrieval",
+  "context_version": "sha256:f931b0b8be81db2aaa98df301d2348cf2f51c03102e1583274762ff73774b143",
+  "analysis_status": "COMPLETE",
+  "findings": [],
+  "omissions": [],
+  "snippets": [
+    {
+      "id": "C0",
+      "file": "review.js",
+      "ref": "bd3edad00f9bba5926e445f8d265c40991fb456d7b954cd49ee564f615332b04",
+      "startLine": 1,
+      "endLine": 4,
+      "code": "exports.readId = (items, index) => {\n  if (index < 0 || index >= items.length) return null;\n  return items[index].id;\n};",
+      "reason": "local-window"
+    }
+  ],
+  "metrics": {
+    "model": "deepseek-v4.1-flash-1017",
+    "effectiveParameters": {
+      "model": "deepseek-v4.1-flash-1017",
+      "enable_thinking": false,
+      "response_format": {
+        "type": "json_object"
+      },
+      "max_tokens": 800,
+      "maxRetries": 0
+    },
+    "promptVersion": "inspector-c-v1+public-requirement-v1",
+    "durationMs": 865,
+    "calls": 1,
+    "inputTokens": 399,
+    "outputTokens": 7,
+    "attempts": [
+      {
+        "file": "review.js",
+        "attempt": 1,
+        "timeoutMs": 30000,
+        "durationMs": 688,
+        "estimatedInputTokens": 459,
+        "reservedOutputTokens": 800,
+        "inputTokens": 399,
+        "outputTokens": 7,
+        "responseModel": "deepseek-v4.1-flash-1017",
+        "outcome": "RESPONSE"
+      }
+    ],
+    "tokenizerId": "@huggingface/tokenizers@0.2.0/DeepSeek-V4.1-Flash-1017@08c8657f02291e11b6f6b63e0e16014f8e748518+chat-allowance-64",
+    "modelDurationMs": 859,
+    "contextDurationMs": 4
+  },
+  "raw": [
+    {
+      "response": {
+        "id": "chatcmpl-aa5352d0-37e4-9c8e-b92a-a81f9dc7b802",
+        "object": "chat.completion",
+        "created": 1795335883,
+        "model": "deepseek-v4.1-flash-1017",
+        "choices": [
+          {
+            "index": 0,
+            "message": {
+              "role": "assistant",
+              "reasoning_content": "",
+              "content": "{\"reviews\":[]}"
+            },
+            "finish_reason": "stop",
+            "logprobs": null
+          }
+        ],
+        "usage": {
+          "prompt_tokens": 399,
+          "total_tokens": 406,
+          "completion_tokens": 7,
+          "prompt_tokens_details": {
+            "cached_tokens": 0,
+            "image_tokens": 0,
+            "text_tokens": 399
+          },
+          "completion_tokens_details": {
+            "text_tokens": 7
+          }
+        }
+      }
+    }
+  ]
+}
