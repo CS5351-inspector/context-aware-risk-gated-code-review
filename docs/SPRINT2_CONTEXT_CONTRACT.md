@@ -17,10 +17,10 @@ B 产出的每个 `ContextSnippet` 是模型 finding 的「证据」。C 的 `Fi
 | `code` | 该区间原文 | `\n` 连接，不含末尾换行 |
 | `reason` | `local-window`（改动附近）或 `direct-definition`（import 的直接定义） | — |
 
-LEFT/RIGHT 约定（`test/review/sprint1-integrity.test.ts:79` 已锁死，C 必须保持一致）：
+LEFT/RIGHT 约定见 [Findings 校验](../src/review/findings.ts) 和 [契约测试](../test/review/sprint1-integrity.test.ts)：
 
-- RIGHT 侧 finding 的证据必须引用 `headSha`；LEFT 侧引用 `diffBaseSha`。
-- 证据 `ref` 与 finding `side` 不匹配会被判失败，不能借 head 内容冒充 LEFT。
+- RIGHT 侧 finding 的证据必须引用 `headSha`，LEFT 侧引用 `diffBaseSha`。当前 B 只从 `headSha` 检索代码。LEFT 侧 finding 可以依据旧侧 diff，使用空的 `evidenceIds`。
+- C 会移除不存在或版本不匹配的证据引用，将 finding 标记为 `UNVERIFIED`，并记录必要遗漏 `INVALID_EVIDENCE`。
 
 ## 2. 必要遗漏 vs 可选裁剪：`Omission.required`
 
@@ -33,7 +33,7 @@ LEFT/RIGHT 约定（`test/review/sprint1-integrity.test.ts:79` 已锁死，C 必
 | `CONTEXT_BUDGET` | false | 定义/窗口超过预算被裁剪 | 已尽力，可接受 |
 | `OPTIONAL_CONTEXT_UNAVAILABLE` | false | 可选定义读不到或无法解析 | 可接受 |
 
-关键约定（`src/pipeline.ts:20` `deriveAnalysisStatus`）：
+关键约定见 [`deriveAnalysisStatus`](../src/pipeline.ts)：
 
 - 任一 `required: true` 的 omission → `analysisStatus = PARTIAL`（无任何可分析文件时为 `FAILED`）。
 - 因此「必要内容缺失」绝不会被解释为 `COMPLETE` / 安全通过，必须走人工接管或明确失败。
@@ -88,5 +88,5 @@ export function isAllowed(role: string) {
 ## 4. 与 C（李宗蔚）的核对点
 
 1. `Finding.evidenceIds` 是否严格引用 `ContextSnippet.id`，且遵守 LEFT=`diffBaseSha` / RIGHT=`headSha` 的约束。
-2. C 的 `ModelAnalysis.omissions` 与 B 的 `ContextResult.omissions` 在 `pipeline.ts:115` 合并后，`required: true` 是否被 C 侧同样保留（不覆盖、不降级为可选）。
+2. C 的 `ModelAnalysis.omissions` 与 B 的 `ContextResult.omissions` 在 流水线合并后，`required: true` 是否被 C 侧同样保留（不覆盖、不降级为可选）。
 3. C 是否还需要 B 在 snippet 之外提供额外元数据（如每个 snippet 的 token 估计、来源说明）；当前 B 只提供契约内字段。
