@@ -28,6 +28,7 @@ jobs:
       - run: npm run typecheck
       - run: npm test -- --runInBand
       - run: npm run test:evaluation
+      - run: npm run verify:report
       - run: npm run build
       - run: node --check action/index.cjs
       - name: Check committed Action bundle and declarations

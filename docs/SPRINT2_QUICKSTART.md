@@ -13,11 +13,14 @@ npm ci
 npm run typecheck
 npm test -- --runInBand
 npm run test:evaluation
+npm run verify:report
 npm run build
 node --check action/index.cjs
 git diff --exit-code -- action
 npm run smoke:model-budget -- --relaycore
 ```
+
+The report verification executes the production risk, gate, renderer, and guarded publisher against four synthetic examples. It writes four standalone files in an isolated directory, compares them byte-for-byte with the committed reports, checks evidence and coverage content, and confirms the actual comment-rejection receipt. Its machine-readable result is written to `.cache/report-verification.json`; it makes no model calls or GitHub requests.
 
 The smoke command uses simulated responses for nine scenarios, including model failure and budget limits. The commands above require no model key and make no inference requests. `npm ci` downloads dependencies. The build regenerates the tracked Action bundle. Run the build check from a clean checkout to confirm the bundle matches the committed files. The evaluation tests cover the input and scoring tools. The [evaluation README](../evaluation/README.md) explains how to prepare and adjudicate a paired study.
 
