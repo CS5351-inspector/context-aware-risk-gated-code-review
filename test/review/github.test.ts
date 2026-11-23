@@ -35,9 +35,12 @@ it('paginates actual changed files and binds merge-base and content to immutable
   const { snapshot, getTarget, calls } = server({
     [pull]: { value: pr }, [listed('files')]: { value: [alpha], link: '<https://example.invalid/not-used>; rel="next"' },
     [listed('files', 2)]: { value: [beta] }, [comparison]: { value: { merge_base_commit: { sha: merge } } },
+    [`${base}/compare/${merge}...${head}?per_page=1`]: {
+      value: { base_commit: { sha: merge }, merge_base_commit: { sha: merge }, files: [alpha, beta] } },
     [fileUrl]: { value: { type: 'file', size: 3, encoding: 'base64', content: Buffer.from('aß').toString('base64') } },
   });
   await expect(getTarget(repo, 5)).resolves.toEqual({ open: true, baseRef: 'sprint2-demo', headRef: 'feature', headSha: head, baseSha: target, sourceRepo: repo });
+  expect(await snapshot.listChangedFiles(repo, 5)).toHaveLength(2);
   const { input, readFileAtRef } = await collectSnapshot({ repo, prNumber: 5, runId: 'run', mode: 'context', trigger: 'manual' }, snapshot);
   expect(input.diffBaseSha).toBe(merge);
   expect(input.changedFiles).toMatchObject([{ supported: true }, { supported: false, previousPath: 'lib/old.ts' }]);
@@ -105,4 +108,14 @@ it.each([
     { targetBranch: 'sprint2-demo' });
   await expect(publication.readCurrentHead(repo, 5)).rejects.toThrow();
   await expect(readGateContext(repo, 5, head)).rejects.toThrow();
+});
+
+it.each(['missing', 'cap', 'wrong-base', 'wrong-merge'])('rejects an unusable immutable comparison: %s', async kind => {
+  const comparison = { base_commit: { sha: merge }, merge_base_commit: { sha: merge }, files: [alpha] };
+  if (kind === 'missing') delete (comparison as any).files;
+  if (kind === 'cap') comparison.files = Array.from({ length: 300 }, () => alpha);
+  if (kind === 'wrong-base') comparison.base_commit.sha = target;
+  if (kind === 'wrong-merge') comparison.merge_base_commit.sha = target;
+  const { snapshot } = server({ [`${base}/compare/${merge}...${head}?per_page=1`]: { value: comparison } });
+  await expect(snapshot.listChangedFilesAtRef!(repo, merge, head)).rejects.toThrow();
 });

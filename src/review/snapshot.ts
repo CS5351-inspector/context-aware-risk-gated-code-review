@@ -31,6 +31,8 @@ export interface SnapshotFile {
 export interface SnapshotGitHubPort {
   getPullRequest(repo: Repo, prNumber: number): Promise<PullRequestSnapshotMetadata>;
   listChangedFiles(repo: Repo, prNumber: number): Promise<SnapshotFile[]>;
+  /** Production adapters bind the diff itself to commits; legacy controlled ports may omit this. */
+  listChangedFilesAtRef?(repo: Repo, diffBaseSha: string, headSha: string): Promise<SnapshotFile[]>;
   getMergeBase(request: { repo: Repo; sourceRepo: Repo; baseSha: string; headSha: string }): Promise<string | null>;
   readFile(repo: Repo, file: string, ref: string): Promise<string>;
 }
@@ -132,14 +134,22 @@ export async function collectSnapshot(request: SnapshotRequest, github: Snapshot
   requireValid(mode === 'diff-only' || mode === 'context', 'Invalid review mode');
   const before = copyMetadata(await github.getPullRequest(repo, prNumber));
   requireValid(sameRepo(repo, before.repo) && prNumber === before.prNumber, 'PR metadata does not match the requested PR');
-  const changedFiles = (await github.listChangedFiles(repo, prNumber)).map(classifyFile);
+  const resolveBase = async (): Promise<string> => {
+    const ref = await github.getMergeBase({ repo, sourceRepo: before.sourceRepo, baseSha: before.baseSha, headSha: before.headSha });
+    if (!ref || !validSha(ref)) {
+      throw new SnapshotError('MISSING_MERGE_BASE', 'A merge-base commit is required; baseSha is not a safe substitute');
+    }
+    return ref;
+  };
+  const pinnedBase = github.listChangedFilesAtRef ? await resolveBase() : null;
+  const files = pinnedBase && github.listChangedFilesAtRef
+    ? await github.listChangedFilesAtRef(repo, pinnedBase, before.headSha)
+    : await github.listChangedFiles(repo, prNumber);
+  const changedFiles = files.map(classifyFile);
   if (changedFiles.length !== before.changedFiles || new Set(changedFiles.map((file) => file.path)).size !== changedFiles.length) {
     throw new SnapshotError('INCOMPLETE_FILE_LIST', 'PR files are incomplete or contain duplicate paths');
   }
-  const diffBaseSha = await github.getMergeBase({ repo, sourceRepo: before.sourceRepo, baseSha: before.baseSha, headSha: before.headSha });
-  if (!diffBaseSha || !validSha(diffBaseSha)) {
-    throw new SnapshotError('MISSING_MERGE_BASE', 'A merge-base commit is required; baseSha is not a safe substitute');
-  }
+  const diffBaseSha = pinnedBase ?? await resolveBase();
   const after = copyMetadata(await github.getPullRequest(repo, prNumber));
   if (!sameRepo(before.repo, after.repo) || !sameRepo(before.sourceRepo, after.sourceRepo) ||
       before.prNumber !== after.prNumber || before.author !== after.author || before.baseSha !== after.baseSha ||
