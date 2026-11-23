@@ -105,3 +105,13 @@ test('publication failure fallback preserves the run, accepted writes and recove
     'Failed to create review report', 'correct GitHub permissions or API configuration',
     'does not change the analysis or gate decision']) expect(text).toContain(value);
 });
+
+test('publication failure fallback reports the gate recomputed during publication', () => {
+  const receipt: PublicationReceipt = {
+    status: 'FAILED', commentId: 42, commitStatus: 'pending', error: 'Failed to report changed gate',
+    finalGate: { state: 'WAITING', reasons: ['APPROVAL_REQUIRED'], requiredApprovals: 1, validApprovers: [] },
+  };
+  const text = renderSprintPublicationFailure(clone(), receipt);
+  expect(text).toContain('UNKNOWN risk · WAITING · PARTIAL');
+  expect(text).not.toContain('UNKNOWN risk · PASS · PARTIAL');
+});

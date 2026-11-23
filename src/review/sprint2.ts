@@ -150,9 +150,10 @@ export function renderSprintReport(result: ReviewResult, limit: number, cached: 
 
 /** A fallback for the Actions summary/receipt when GitHub did not accept the normal report. */
 export function renderSprintPublicationFailure(result: ReviewResult, receipt: PublicationReceipt): string {
+  const gate = receipt.finalGate ?? result.gate;
   return [
     '## Inspector report publication failed',
-    `**${result.risk.level} risk · ${result.gate.state} · ${result.analysisStatus}**`,
+    `**${result.risk.level} risk · ${gate.state} · ${result.analysisStatus}**`,
     `Reviewed SHA: \`${plain(result.headSha)}\` · Run: \`${plain(result.runId)}\``,
     `Publication: ${receipt.status} · Last confirmed commit status: ${receipt.commitStatus ?? 'not confirmed'} · Comment: ${receipt.commentId ?? 'not confirmed'}.`,
     `Publication error: ${plain(receipt.error ?? 'unspecified publication error')}.`,
