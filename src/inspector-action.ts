@@ -91,7 +91,9 @@ async function main() {
     const report = renderSprintReport(result, sprintConfig.maxReportCharacters, cached);
     if (productionGate) {
       const receipt = await createPublisher(write.publication, currentGate)(result, report);
-      record.publication = receipt; record.outcome = receipt.status;
+      record.publication = receipt;
+      record.finalGate = receipt.finalGate ?? result.gate;
+      record.outcome = receipt.status;
       if (receipt.status === 'FAILED') {
         const fallback = renderSprintPublicationFailure(result, receipt);
         record.publicationFallback = fallback;

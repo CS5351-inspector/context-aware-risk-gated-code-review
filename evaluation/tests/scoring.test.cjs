@@ -28,7 +28,7 @@ function inject(out, key, ids) {
 }
 function labels(out, verdict = 'gold', gold = 'grant-enum-001') {
   const value = template(root, out);
-  value.reviewer = 'synthetic-scoring-test'; value.reviewed_at = '2026-11-08T00:00:00Z';
+  value.review_status = 'reviewed';
   value.judgments = value.judgments.map(j => ({ ...j, verdict, gold_issue_id: gold,
     evidence: 'Synthetic test expectation, not human sign-off.', location_acceptable: true, severity_acceptable: true }));
   return value;
@@ -79,4 +79,37 @@ test('atomic judgment IDs must be nonblank strings as declared by the schema', (
   assert.throws(() => score(root, out, value), /atom/i);
   value.judgments[0].atom_id = '1'; value.judgments[0].root_id = '   ';
   assert.throws(() => score(root, out, value), /root/i);
+}));
+
+test('anonymous single-user review accepts evidenced judgments without identity or date', () => fixture(out => {
+  inject(out, 'DEV-001/B1/1', ['claim']);
+  const value = labels(out);
+  assert.equal(Object.hasOwn(value, 'reviewer'), false);
+  assert.equal(Object.hasOwn(value, 'reviewed_at'), false);
+  const result = score(root, out, value);
+  assert.equal(result.review_status, 'reviewed');
+  assert.equal(result.conditions.B1.hits, 1);
+}));
+
+test('pending review rejects final verdicts even if legacy identity fields are present', () => fixture(out => {
+  inject(out, 'DEV-001/B1/1', ['claim']);
+  const value = labels(out);
+  value.review_status = 'pending';
+  value.reviewer = 'legacy-test-only'; value.reviewed_at = '2026-11-08T00:00:00Z';
+  assert.throws(() => score(root, out, value), /completed human review/);
+  delete value.review_status; delete value.reviewer; delete value.reviewed_at;
+  assert.throws(() => score(root, out, value), /completed human review/);
+}));
+
+test('reviewed status never substitutes for per-claim evidence', () => fixture(out => {
+  inject(out, 'DEV-001/B1/1', ['claim']);
+  const value = labels(out); value.judgments[0].evidence = '   ';
+  assert.throws(() => score(root, out, value), /evidence/);
+}));
+
+test('legacy human judgments remain reproducible when no new review status is present', () => fixture(out => {
+  inject(out, 'DEV-001/B1/1', ['claim']);
+  const value = labels(out); delete value.review_status;
+  value.reviewer = 'synthetic-legacy-review'; value.reviewed_at = '2026-11-08T00:00:00Z';
+  assert.equal(score(root, out, value).conditions.B1.hits, 1);
 }));

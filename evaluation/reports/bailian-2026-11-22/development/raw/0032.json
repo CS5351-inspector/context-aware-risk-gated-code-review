@@ -1,0 +1,90 @@
+{
+  "provider_kind": "live",
+  "provider_version": "bailian-deepseek-1017-v1",
+  "context_kind": "none",
+  "context_version": null,
+  "analysis_status": "COMPLETE",
+  "findings": [
+    {
+      "id": "review.js:1",
+      "file": "review.js",
+      "side": "RIGHT",
+      "line": 3,
+      "severity": "high",
+      "message": "The scheduler helper is invoked with a unit-converted value (delayMs / 1000), but the requirement says scheduleRetry(delayMs) must schedule after the requested duration in milliseconds. The /1000 conversion makes the retry fire ~1000x too early (or treats milliseconds as seconds). This bug exists in the original line and is preserved in the patch. Also no validation of negative/non-numeric delay despite the non-negative requirement.",
+      "evidenceIds": [],
+      "validation": "VERIFIED"
+    }
+  ],
+  "omissions": [],
+  "snippets": [],
+  "metrics": {
+    "model": "deepseek-v4.1-flash-1017",
+    "effectiveParameters": {
+      "model": "deepseek-v4.1-flash-1017",
+      "enable_thinking": false,
+      "response_format": {
+        "type": "json_object"
+      },
+      "max_tokens": 800,
+      "maxRetries": 0
+    },
+    "promptVersion": "inspector-c-v1+public-requirement-v1",
+    "durationMs": 2890,
+    "calls": 1,
+    "inputTokens": 292,
+    "outputTokens": 133,
+    "attempts": [
+      {
+        "file": "review.js",
+        "attempt": 1,
+        "timeoutMs": 30000,
+        "durationMs": 2717,
+        "estimatedInputTokens": 352,
+        "reservedOutputTokens": 800,
+        "inputTokens": 292,
+        "outputTokens": 133,
+        "responseModel": "deepseek-v4.1-flash-1017",
+        "outcome": "RESPONSE"
+      }
+    ],
+    "tokenizerId": "@huggingface/tokenizers@0.2.0/DeepSeek-V4.1-Flash-1017@08c8657f02291e11b6f6b63e0e16014f8e748518+chat-allowance-64",
+    "modelDurationMs": 2887,
+    "contextDurationMs": 0
+  },
+  "raw": [
+    {
+      "response": {
+        "id": "chatcmpl-bf1c50af-808f-9ad5-85df-9c88c7b41863",
+        "object": "chat.completion",
+        "created": 1795335930,
+        "model": "deepseek-v4.1-flash-1017",
+        "choices": [
+          {
+            "index": 0,
+            "message": {
+              "role": "assistant",
+              "reasoning_content": "",
+              "content": "{\"reviews\":[{\"lgtm\":false,\"review_comment\":\"The scheduler helper is invoked with a unit-converted value (delayMs / 1000), but the requirement says scheduleRetry(delayMs) must schedule after the requested duration in milliseconds. The /1000 conversion makes the retry fire ~1000x too early (or treats milliseconds as seconds). This bug exists in the original line and is preserved in the patch. Also no validation of negative/non-numeric delay despite the non-negative requirement.\",\"file\":\"review.js\",\"side\":\"RIGHT\",\"line\":3,\"severity\":\"high\",\"evidenceIds\":[]}]}"
+            },
+            "finish_reason": "stop",
+            "logprobs": null
+          }
+        ],
+        "usage": {
+          "prompt_tokens": 292,
+          "total_tokens": 425,
+          "completion_tokens": 133,
+          "prompt_tokens_details": {
+            "cached_tokens": 0,
+            "image_tokens": 0,
+            "text_tokens": 292
+          },
+          "completion_tokens_details": {
+            "text_tokens": 133
+          }
+        }
+      }
+    }
+  ]
+}

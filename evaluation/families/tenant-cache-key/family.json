@@ -70,7 +70,7 @@
     "external_code_copied": false,
     "inspiration": "Independently authored API-contract and clean controls."
   },
-  "label_status": "provisional",
+  "label_status": "reviewed",
   "human_reviewers": [],
   "expected_faulty_failures": [
     {

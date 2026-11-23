@@ -1,0 +1,151 @@
+{
+  "currency": "CNY",
+  "cost_basis": "published peak uncached list-rate estimate; not account invoice",
+  "quality_review_status": "reviewed",
+  "experiments": {
+    "pilot": {
+      "plan_id": "b291ef3179490919d28097fe117c13f17f9fcc46cee2cba17cf95d456d270a95",
+      "paired_complete": true,
+      "model": "deepseek-v4.1-flash-1017",
+      "returned_models": [
+        "deepseek-v4.1-flash-1017"
+      ],
+      "responses": 12,
+      "nonempty_reasoning_responses": 0,
+      "spending_cap": 6,
+      "reserved_cost_upper_bound": 5.9136,
+      "cost_estimate": 0.022502,
+      "conditions": {
+        "B1": {
+          "runs": 6,
+          "statuses": {
+            "complete": 5,
+            "partial": 1,
+            "failed": 0,
+            "not_executed": 0
+          },
+          "validated_findings": 5,
+          "calls": 6,
+          "input_tokens": 1709,
+          "output_tokens": 808,
+          "usage_unknown_runs": 0,
+          "cost_estimate": 0.009882,
+          "worker_p50_ms": 1580,
+          "worker_p95_ms": 2360,
+          "request_p50_ms": 1263
+        },
+        "B2": {
+          "runs": 6,
+          "statuses": {
+            "complete": 5,
+            "partial": 0,
+            "failed": 1,
+            "not_executed": 0
+          },
+          "validated_findings": 4,
+          "calls": 6,
+          "input_tokens": 2686,
+          "output_tokens": 906,
+          "usage_unknown_runs": 0,
+          "cost_estimate": 0.01262,
+          "worker_p50_ms": 1736,
+          "worker_p95_ms": 2873,
+          "request_p50_ms": 1401
+        }
+      },
+      "exceptions": [
+        {
+          "run_key": "DEV-006/B1/1",
+          "status": "partial",
+          "omissions": [
+            {
+              "file": "review.js",
+              "stage": "model",
+              "reason": "UNVERIFIED_FINDING",
+              "required": true
+            }
+          ]
+        },
+        {
+          "run_key": "DEV-009/B2/1",
+          "status": "failed",
+          "omissions": [
+            {
+              "file": "review.js",
+              "stage": "model",
+              "reason": "INVALID_OUTPUT",
+              "required": true
+            }
+          ]
+        }
+      ]
+    },
+    "development": {
+      "plan_id": "8892d9c68195daea3200ac1db7e40fb2d79b4a2c39bf05a0a4854e4388ca1727",
+      "paired_complete": true,
+      "model": "deepseek-v4.1-flash-1017",
+      "returned_models": [
+        "deepseek-v4.1-flash-1017"
+      ],
+      "responses": 40,
+      "nonempty_reasoning_responses": 0,
+      "spending_cap": 24,
+      "reserved_cost_upper_bound": 19.712000000000003,
+      "cost_estimate": 0.07258799999999999,
+      "conditions": {
+        "B1": {
+          "runs": 20,
+          "statuses": {
+            "complete": 19,
+            "partial": 0,
+            "failed": 1,
+            "not_executed": 0
+          },
+          "validated_findings": 17,
+          "calls": 20,
+          "input_tokens": 5606,
+          "output_tokens": 2828,
+          "usage_unknown_runs": 0,
+          "cost_estimate": 0.033836,
+          "worker_p50_ms": 1745,
+          "worker_p95_ms": 3023,
+          "request_p50_ms": 1438
+        },
+        "B2": {
+          "runs": 20,
+          "statuses": {
+            "complete": 20,
+            "partial": 0,
+            "failed": 0,
+            "not_executed": 0
+          },
+          "validated_findings": 16,
+          "calls": 20,
+          "input_tokens": 8564,
+          "output_tokens": 2703,
+          "usage_unknown_runs": 0,
+          "cost_estimate": 0.03875200000000001,
+          "worker_p50_ms": 1608,
+          "worker_p95_ms": 2401,
+          "request_p50_ms": 1288
+        }
+      },
+      "exceptions": [
+        {
+          "run_key": "DEV-020/B1/1",
+          "status": "failed",
+          "omissions": [
+            {
+              "file": "review.js",
+              "stage": "model",
+              "reason": "INVALID_OUTPUT",
+              "required": true
+            }
+          ]
+        }
+      ]
+    }
+  },
+  "total_cost_estimate": 0.09508999999999998,
+  "total_spending_cap": 30
+}

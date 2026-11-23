@@ -1,0 +1,90 @@
+{
+  "provider_kind": "live",
+  "provider_version": "bailian-deepseek-1017-v1",
+  "context_kind": "none",
+  "context_version": null,
+  "analysis_status": "COMPLETE",
+  "findings": [
+    {
+      "id": "review.js:1",
+      "file": "review.js",
+      "side": "RIGHT",
+      "line": 2,
+      "severity": "high",
+      "message": "scheduleRetry no longer converts milliseconds to seconds. The scheduler's `after` expects seconds (per the removed `/ 1000`), so passing `delayMs` directly makes retries fire ~1000x later than requested, violating the requirement that the retry occur after the requested duration in milliseconds.",
+      "evidenceIds": [],
+      "validation": "VERIFIED"
+    }
+  ],
+  "omissions": [],
+  "snippets": [],
+  "metrics": {
+    "model": "deepseek-v4.1-flash-1017",
+    "effectiveParameters": {
+      "model": "deepseek-v4.1-flash-1017",
+      "enable_thinking": false,
+      "response_format": {
+        "type": "json_object"
+      },
+      "max_tokens": 800,
+      "maxRetries": 0
+    },
+    "promptVersion": "inspector-c-v1+public-requirement-v1",
+    "durationMs": 1579,
+    "calls": 1,
+    "inputTokens": 271,
+    "outputTokens": 104,
+    "attempts": [
+      {
+        "file": "review.js",
+        "attempt": 1,
+        "timeoutMs": 30000,
+        "durationMs": 1384,
+        "estimatedInputTokens": 331,
+        "reservedOutputTokens": 800,
+        "inputTokens": 271,
+        "outputTokens": 104,
+        "responseModel": "deepseek-v4.1-flash-1017",
+        "outcome": "RESPONSE"
+      }
+    ],
+    "tokenizerId": "@huggingface/tokenizers@0.2.0/DeepSeek-V4.1-Flash-1017@08c8657f02291e11b6f6b63e0e16014f8e748518+chat-allowance-64",
+    "modelDurationMs": 1578,
+    "contextDurationMs": 0
+  },
+  "raw": [
+    {
+      "response": {
+        "id": "chatcmpl-96a42792-d3b2-903b-807a-af258dead48e",
+        "object": "chat.completion",
+        "created": 1795335891,
+        "model": "deepseek-v4.1-flash-1017",
+        "choices": [
+          {
+            "index": 0,
+            "message": {
+              "role": "assistant",
+              "reasoning_content": "",
+              "content": "{\"reviews\":[{\"lgtm\":false,\"review_comment\":\"scheduleRetry no longer converts milliseconds to seconds. The scheduler's `after` expects seconds (per the removed `/ 1000`), so passing `delayMs` directly makes retries fire ~1000x later than requested, violating the requirement that the retry occur after the requested duration in milliseconds.\",\"file\":\"review.js\",\"side\":\"RIGHT\",\"line\":2,\"severity\":\"high\",\"evidenceIds\":[]}]}"
+            },
+            "finish_reason": "stop",
+            "logprobs": null
+          }
+        ],
+        "usage": {
+          "prompt_tokens": 271,
+          "total_tokens": 375,
+          "completion_tokens": 104,
+          "prompt_tokens_details": {
+            "cached_tokens": 0,
+            "image_tokens": 0,
+            "text_tokens": 271
+          },
+          "completion_tokens_details": {
+            "text_tokens": 104
+          }
+        }
+      }
+    }
+  ]
+}

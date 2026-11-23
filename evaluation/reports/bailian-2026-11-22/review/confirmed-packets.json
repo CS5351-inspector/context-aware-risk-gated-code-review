@@ -1,0 +1,640 @@
+{
+  "review_status": "reviewed",
+  "confirmation": "User confirmed all model-output judgment suggestions without changes. Unresolved judgments remain unresolved.",
+  "suggestions_sha256": "eda359fd85d15b0d3c315c592aaad1c5f7ba6ddfaae304075c108fbe7b1b004c",
+  "packets": [
+    {
+      "review_id": "R0001",
+      "annotations": []
+    },
+    {
+      "review_id": "R0002",
+      "annotations": []
+    },
+    {
+      "review_id": "R0003",
+      "annotations": [
+        {
+          "finding_id": "review.js:1",
+          "atom_id": "1",
+          "root_id": "R0003:known-root",
+          "verdict": "gold",
+          "gold_issue_id": "numeric-priority-001",
+          "claim": "默认 sort 使用字符串顺序，破坏数字升序",
+          "evidence": "review.js:1 的 sort() 删除数值比较器；有限数字 [10,2] 得到 [10,2] 而非 [2,10]，与 gold 同根因。slice() 仍保留输入及重复值。 定位落在 gold 可接受行。预测严重度 high，gold 为 medium；当前证据仅支持该限定函数的行为错误，未显示额外 high 级影响，建议严重度不一致。",
+          "location_acceptable": true,
+          "severity_acceptable": false
+        }
+      ]
+    },
+    {
+      "review_id": "R0004",
+      "annotations": []
+    },
+    {
+      "review_id": "R0005",
+      "annotations": [
+        {
+          "finding_id": "review.js:1",
+          "atom_id": "1",
+          "root_id": "R0005:1",
+          "verdict": "out_of_scope",
+          "gold_issue_id": null,
+          "claim": "为 undefined/NaN 等非整数索引新增校验",
+          "evidence": "review.js:2 对 undefined/NaN 确会绕过比较而在下一行抛错；但要求首句限定 integer indices。对整数，index<0 或 index>=length 正确返回null。新增非整数输入保证超出声明域，不是已知/新缺陷。",
+          "location_acceptable": null,
+          "severity_acceptable": null
+        }
+      ]
+    },
+    {
+      "review_id": "R0006",
+      "annotations": [
+        {
+          "finding_id": "review.js:1",
+          "atom_id": "1",
+          "root_id": "R0006:known-root",
+          "verdict": "gold",
+          "gold_issue_id": "index-boundary-001",
+          "claim": "上界包含 length 导致越界解引用",
+          "evidence": "review.js:2 使用 index <= items.length；对 [{id:1}]、index=1（有效整数域）会读取 undefined.id 并抛错，要求应返回 null。 定位落在 gold 可接受行。预测严重度 high，gold 为 medium；当前证据仅支持该限定函数的行为错误，未显示额外 high 级影响，建议严重度不一致。",
+          "location_acceptable": true,
+          "severity_acceptable": false
+        }
+      ]
+    },
+    {
+      "review_id": "R0007",
+      "annotations": [
+        {
+          "finding_id": "review.js:1",
+          "atom_id": "1",
+          "root_id": "R0007:known-root",
+          "verdict": "gold",
+          "gold_issue_id": "index-boundary-001",
+          "claim": "上界包含 length 导致越界解引用",
+          "evidence": "review.js:2 使用 index <= items.length；对 [{id:1}]、index=1（有效整数域）会读取 undefined.id 并抛错，要求应返回 null。 定位落在 gold 可接受行。预测严重度 high，gold 为 medium；当前证据仅支持该限定函数的行为错误，未显示额外 high 级影响，建议严重度不一致。",
+          "location_acceptable": true,
+          "severity_acceptable": false
+        }
+      ]
+    },
+    {
+      "review_id": "R0008",
+      "annotations": [
+        {
+          "finding_id": "review.js:1",
+          "atom_id": "1",
+          "root_id": "R0008:known-root",
+          "verdict": "gold",
+          "gold_issue_id": "grant-enum-001",
+          "claim": "权限枚举被转换为布尔值导致错误授权",
+          "evidence": "policy.js 明示 GRANTED=0、DENIED=1、SUSPENDED=2；review.js:2 的 Boolean(lookup(account)) 将合法授权变 false、拒绝/暂停变 true，违反仅 GRANTED 授权。 评论虽带条件性推测，packet 的依赖源码已确认该条件成立；判定依据是源码与行为，非措辞或坐标。 定位落在 gold 可接受行。预测严重度 high，gold 为 high；与所示影响一致。",
+          "location_acceptable": true,
+          "severity_acceptable": true
+        }
+      ]
+    },
+    {
+      "review_id": "R0009",
+      "annotations": []
+    },
+    {
+      "review_id": "R0010",
+      "annotations": [
+        {
+          "finding_id": "review.js:1",
+          "atom_id": "1",
+          "root_id": "R0010:known-root",
+          "verdict": "gold",
+          "gold_issue_id": "zero-limit-001",
+          "claim": "合法 limit=0 被替换成默认 20",
+          "evidence": "review.js:2 的 limit || 20 在 limit=0 时返回20；要求0禁止处理，只有 null/undefined 使用默认值。 定位落在 gold 可接受行。预测严重度 high，gold 为 medium；当前证据仅支持该限定函数的行为错误，未显示额外 high 级影响，建议严重度不一致。",
+          "location_acceptable": true,
+          "severity_acceptable": false
+        }
+      ]
+    },
+    {
+      "review_id": "R0011",
+      "annotations": [
+        {
+          "finding_id": "review.js:1",
+          "atom_id": "1",
+          "root_id": "R0011:known-root",
+          "verdict": "gold",
+          "gold_issue_id": "scheduler-units-001",
+          "claim": "毫秒未换算直接传给秒制调度器",
+          "evidence": "scheduler.js:1-2 明示 after 参数为秒；review.js:2 对 delayMs=1000 传入1000秒，而要求1000毫秒即1秒。 定位落在 gold 可接受行。预测严重度 high，gold 为 medium；当前证据仅支持该限定函数的行为错误，未显示额外 high 级影响，建议严重度不一致。",
+          "location_acceptable": true,
+          "severity_acceptable": false
+        }
+      ]
+    },
+    {
+      "review_id": "R0012",
+      "annotations": []
+    },
+    {
+      "review_id": "R0013",
+      "annotations": []
+    },
+    {
+      "review_id": "R0014",
+      "annotations": [
+        {
+          "finding_id": "review.js:1",
+          "atom_id": "1",
+          "root_id": "R0014:known-root",
+          "verdict": "gold",
+          "gold_issue_id": "grant-enum-001",
+          "claim": "权限枚举被转换为布尔值导致错误授权",
+          "evidence": "policy.js 明示 GRANTED=0、DENIED=1、SUSPENDED=2；review.js:2 的 Boolean(lookup(account)) 将合法授权变 false、拒绝/暂停变 true，违反仅 GRANTED 授权。 定位落在 gold 可接受行。预测严重度 high，gold 为 high；与所示影响一致。",
+          "location_acceptable": true,
+          "severity_acceptable": true
+        }
+      ]
+    },
+    {
+      "review_id": "R0015",
+      "annotations": [
+        {
+          "finding_id": "review.js:1",
+          "atom_id": "1",
+          "root_id": "R0015:known-root",
+          "verdict": "gold",
+          "gold_issue_id": "numeric-priority-001",
+          "claim": "默认 sort 使用字符串顺序，破坏数字升序",
+          "evidence": "review.js:1 的 sort() 删除数值比较器；有限数字 [10,2] 得到 [10,2] 而非 [2,10]，与 gold 同根因。slice() 仍保留输入及重复值。 定位落在 gold 可接受行。预测严重度 high，gold 为 medium；当前证据仅支持该限定函数的行为错误，未显示额外 high 级影响，建议严重度不一致。",
+          "location_acceptable": true,
+          "severity_acceptable": false
+        }
+      ]
+    },
+    {
+      "review_id": "R0016",
+      "annotations": [
+        {
+          "finding_id": "review.js:1",
+          "atom_id": "1",
+          "root_id": "R0016:1",
+          "verdict": "unresolved",
+          "gold_issue_id": null,
+          "claim": "Object.hasOwn 在旧运行时可能不可用",
+          "evidence": "head 使用 Object.hasOwn，diff 的旧实现为 hasOwnProperty.call，own-key 语义在支持该方法的运行时等价。packet 未给最低 Node/ECMAScript 版本、部署环境或兼容承诺，因此无法确认旧运行时是否在支持范围；需补运行时约束，暂不猜测为缺陷或误报。",
+          "location_acceptable": null,
+          "severity_acceptable": null
+        }
+      ]
+    },
+    {
+      "review_id": "R0017",
+      "annotations": [
+        {
+          "finding_id": "review.js:1",
+          "atom_id": "1",
+          "root_id": "R0017:1",
+          "verdict": "false_positive",
+          "gold_issue_id": null,
+          "claim": "减法比较器会对数字字符串执行字典序排序",
+          "evidence": "review.js:1 的 left-right 是数值减法，字符串操作数转为数字后相减，不是默认字典序比较。用 packet 源码实测 [\"1e2\",\"9\",\"10\",\"2\"] 排为 [\"2\",\"9\",\"10\",\"1e2\"]。评论所称 lexicographic coercion 错误；字符串本身亦不属有限数字输入域。",
+          "location_acceptable": null,
+          "severity_acceptable": null
+        },
+        {
+          "finding_id": "review.js:1",
+          "atom_id": "2",
+          "root_id": "R0017:finite-input-validation",
+          "verdict": "out_of_scope",
+          "gold_issue_id": null,
+          "claim": "为 NaN/Infinity 等非有限值新增过滤/校验",
+          "evidence": "要求的声明域为 finite numeric priorities；review.js:1 的数值比较器对域内输入满足升序、重复保留及输入不变。base 同样无非有限值过滤，需求也未规定如何接收或拒绝域外值。新增过滤/校验是域外健壮性建议，不能据此确认新缺陷。",
+          "location_acceptable": null,
+          "severity_acceptable": null
+        }
+      ]
+    },
+    {
+      "review_id": "R0018",
+      "annotations": [
+        {
+          "finding_id": "review.js:1",
+          "atom_id": "1",
+          "root_id": "R0018:1",
+          "verdict": "out_of_scope",
+          "gold_issue_id": null,
+          "claim": "用 !count 会掩盖 undefined/NaN 等非法输入",
+          "evidence": "要求 start/count 为非负整数；在此域内 !count 与 count===0 等价。review.js 保留 start+count-1，range.js 用 inclusive 结束位置，域内页数正确。评论最终承认域内无 bug；其保留主张是对 undefined/NaN/小数的校验或语义顾虑，超出合同。自我修正及放弃的负数/小数推测不制造额外 atom。",
+          "location_acceptable": null,
+          "severity_acceptable": null
+        }
+      ]
+    },
+    {
+      "review_id": "R0019",
+      "annotations": [
+        {
+          "finding_id": "review.js:1",
+          "atom_id": "1",
+          "root_id": "R0019:1",
+          "verdict": "out_of_scope",
+          "gold_issue_id": null,
+          "claim": "建议额外核查未改动 cache helper 的租户隔离",
+          "evidence": "评论明确确认 wrapper 行为等价并推荐 LGTM，未提出可证实的缺陷；仅保留“verify inside ./cache”的范围外检查建议。packet 的 cache.js 使用 JSON.stringify([tenant,user])，wrapper 原样传参；不能因它进入 findings 数组就视为真缺陷。",
+          "location_acceptable": null,
+          "severity_acceptable": null
+        }
+      ]
+    },
+    {
+      "review_id": "R0020",
+      "annotations": [
+        {
+          "finding_id": "review.js:1",
+          "atom_id": "1",
+          "root_id": "R0020:cache-membership",
+          "verdict": "gold",
+          "gold_issue_id": "cached-false-001",
+          "claim": "将缓存值真值当作 own-key membership，丢失 falsy 值",
+          "evidence": "review.js:1 用 cache[key] || fallback 取代 hasOwnProperty.call；get({x:0},x,F) 返回F而非0，false/空串/null同理，违反返回任意已缓存值的要求。 定位落在 gold 可接受行。预测严重度 high，gold 为 medium；当前证据仅支持该限定函数的行为错误，未显示额外 high 级影响，建议严重度不一致。",
+          "location_acceptable": true,
+          "severity_acceptable": false
+        },
+        {
+          "finding_id": "review.js:1",
+          "atom_id": "2",
+          "root_id": "R0020:cache-membership",
+          "verdict": "gold",
+          "gold_issue_id": "cached-false-001",
+          "claim": "以值真值替代 own-key 判断还会返回继承属性",
+          "evidence": "要求仅缺失 own key 时使用 fallback。review.js:1 对 get({},\"toString\",\"F\") 实际返回 Object.prototype.toString 函数而非F（已本地验证）。此 atom 是 gold 所述“Truthiness is used as cache membership”的另一后果，与 falsy 丢失共享根因；不是新增独立 gold/novel。恢复 own-property membership 同时纠正两者。评论泛称 prototype pollution，不据此假定额外利用链；当前证据不足支持 high。",
+          "location_acceptable": true,
+          "severity_acceptable": false
+        }
+      ]
+    },
+    {
+      "review_id": "R0021",
+      "annotations": [
+        {
+          "finding_id": "review.js:1",
+          "atom_id": "1",
+          "root_id": "R0021:known-root",
+          "verdict": "gold",
+          "gold_issue_id": "zero-limit-001",
+          "claim": "合法 limit=0 被替换成默认 20",
+          "evidence": "review.js:2 的 limit || 20 在 limit=0 时返回20；要求0禁止处理，只有 null/undefined 使用默认值。 定位落在 gold 可接受行。预测严重度 high，gold 为 medium；当前证据仅支持该限定函数的行为错误，未显示额外 high 级影响，建议严重度不一致。",
+          "location_acceptable": true,
+          "severity_acceptable": false
+        }
+      ]
+    },
+    {
+      "review_id": "R0022",
+      "annotations": [
+        {
+          "finding_id": "review.js:1",
+          "atom_id": "1",
+          "root_id": "R0022:cache-membership",
+          "verdict": "gold",
+          "gold_issue_id": "cached-false-001",
+          "claim": "将缓存值真值当作 own-key membership，丢失 falsy 值",
+          "evidence": "review.js:1 用 cache[key] || fallback 取代 hasOwnProperty.call；get({x:0},x,F) 返回F而非0，false/空串/null同理，违反返回任意已缓存值的要求。 定位落在 gold 可接受行。预测严重度 high，gold 为 medium；当前证据仅支持该限定函数的行为错误，未显示额外 high 级影响，建议严重度不一致。",
+          "location_acceptable": true,
+          "severity_acceptable": false
+        },
+        {
+          "finding_id": "review.js:1",
+          "atom_id": "2",
+          "root_id": "R0022:cache-membership",
+          "verdict": "gold",
+          "gold_issue_id": "cached-false-001",
+          "claim": "以值真值替代 own-key 判断还会返回继承属性",
+          "evidence": "要求仅缺失 own key 时使用 fallback。review.js:1 对 get({},\"toString\",\"F\") 实际返回 Object.prototype.toString 函数而非F（已本地验证）。此 atom 是 gold 所述“Truthiness is used as cache membership”的另一后果，与 falsy 丢失共享根因；不是新增独立 gold/novel。恢复 own-property membership 同时纠正两者。评论泛称 prototype pollution，不据此假定额外利用链；当前证据不足支持 high。",
+          "location_acceptable": true,
+          "severity_acceptable": false
+        }
+      ]
+    },
+    {
+      "review_id": "R0023",
+      "annotations": [
+        {
+          "finding_id": "review.js:1",
+          "atom_id": "1",
+          "root_id": "R0023:1",
+          "verdict": "out_of_scope",
+          "gold_issue_id": null,
+          "claim": "稀疏数组的 hole 从抛错变为跳过",
+          "evidence": "旧 for...of 取 hole 得到undefined后读active会抛错；新 filter 跳过hole。这是域外行为变化，要求输入为由带 boolean active 的 user 对象构成的数组，hole 不是这样的对象。对合法数组 map 保留 id=0 与输入顺序。",
+          "location_acceptable": null,
+          "severity_acceptable": null
+        },
+        {
+          "finding_id": "review.js:1",
+          "atom_id": "2",
+          "root_id": "R0023:iterable-compatibility",
+          "verdict": "out_of_scope",
+          "gold_issue_id": null,
+          "claim": "不再接受 Set/generator 等非数组 iterable",
+          "evidence": "旧 for...of 可遍历 Set/generator，新代码依赖 users.filter；此行为差异存在，但要求明确输入为 array of user objects，未承诺任意 iterable。对域内布尔 active 与 id=0，新代码行为正确。评论已说明 null/undefined 等原本也可能抛错，不单独算新缺陷。",
+          "location_acceptable": null,
+          "severity_acceptable": null
+        }
+      ]
+    },
+    {
+      "review_id": "R0024",
+      "annotations": [
+        {
+          "finding_id": "review.js:1",
+          "atom_id": "1",
+          "root_id": "R0024:1",
+          "verdict": "false_positive",
+          "gold_issue_id": null,
+          "claim": "旧循环跳过 null/undefined 元素，而 reduce 新增抛错",
+          "evidence": "diff 的旧循环直接读取 line.quantity 和 line.unitPriceCents，并不跳过 null/undefined；新 reduce 同样直接读取。已本地执行两侧 [null]，均抛 TypeError。评论的回归前提错误；需求也限定合法 line 对象。",
+          "location_acceptable": null,
+          "severity_acceptable": null
+        }
+      ]
+    },
+    {
+      "review_id": "R0025",
+      "annotations": [
+        {
+          "finding_id": "review.js:1",
+          "atom_id": "1",
+          "root_id": "R0025:unit-conversion-assertion",
+          "verdict": "false_positive",
+          "gold_issue_id": null,
+          "claim": "将 delayMs 除以1000使重试提前1000倍",
+          "evidence": "scheduler.js 明确接收秒；review.js:3 的 delayMs/1000 正是毫秒转秒，base 与 head 相同。以1000毫秒为例，实际 after(1) 返回 scheduledAfterSeconds:1，时长正确；该值已本地验证。评论将单位换算误当时长缩短。",
+          "location_acceptable": null,
+          "severity_acceptable": null
+        },
+        {
+          "finding_id": "review.js:1",
+          "atom_id": "2",
+          "root_id": "R0025:duration-input-validation",
+          "verdict": "out_of_scope",
+          "gold_issue_id": null,
+          "claim": "为负数/NaN/非数值 delay 新增校验",
+          "evidence": "要求限定 requested non-negative duration，未要求接收或拒绝域外负数/NaN；base 与 head 均无此校验。独立于上一条错误单位主张，属于新增健壮性范围，不应计为缺陷。",
+          "location_acceptable": null,
+          "severity_acceptable": null
+        }
+      ]
+    },
+    {
+      "review_id": "R0026",
+      "annotations": [
+        {
+          "finding_id": "review.js:1",
+          "atom_id": "1",
+          "root_id": "R0026:1",
+          "verdict": "out_of_scope",
+          "gold_issue_id": null,
+          "claim": "用 !count 会掩盖 undefined/NaN 等非法输入",
+          "evidence": "要求 start/count 为非负整数；在此域内 !count 与 count===0 等价。review.js 保留 start+count-1，range.js 用 inclusive 结束位置，域内页数正确。评论最终承认域内无 bug；其保留主张是对 undefined/NaN/小数的校验或语义顾虑，超出合同。自我修正及放弃的负数/小数推测不制造额外 atom。",
+          "location_acceptable": null,
+          "severity_acceptable": null
+        }
+      ]
+    },
+    {
+      "review_id": "R0027",
+      "annotations": [
+        {
+          "finding_id": "review.js:1",
+          "atom_id": "1",
+          "root_id": "R0027:known-root",
+          "verdict": "gold",
+          "gold_issue_id": "range-end-contract-001",
+          "claim": "inclusive 结束下标多取一个元素",
+          "evidence": "range.js:1 使用 slice(first,lastInclusive+1)；review.js:2 传 start+count，对 [a,b,c]、start=0、count=2 返回三个元素，超过要求。 定位落在 gold 可接受行。预测严重度 high，gold 为 medium；当前证据仅支持该限定函数的行为错误，未显示额外 high 级影响，建议严重度不一致。",
+          "location_acceptable": true,
+          "severity_acceptable": false
+        }
+      ]
+    },
+    {
+      "review_id": "R0028",
+      "annotations": []
+    },
+    {
+      "review_id": "R0029",
+      "annotations": [
+        {
+          "finding_id": "review.js:1",
+          "atom_id": "1",
+          "root_id": "R0029:finite-input-validation",
+          "verdict": "out_of_scope",
+          "gold_issue_id": null,
+          "claim": "为 NaN/Infinity 等非有限值新增过滤/校验",
+          "evidence": "要求的声明域为 finite numeric priorities；review.js:1 的数值比较器对域内输入满足升序、重复保留及输入不变。base 同样无非有限值过滤，需求也未规定如何接收或拒绝域外值。新增过滤/校验是域外健壮性建议，不能据此确认新缺陷。",
+          "location_acceptable": null,
+          "severity_acceptable": null
+        }
+      ]
+    },
+    {
+      "review_id": "R0030",
+      "annotations": [
+        {
+          "finding_id": "review.js:1",
+          "atom_id": "1",
+          "root_id": "R0030:unit-conversion-assertion",
+          "verdict": "false_positive",
+          "gold_issue_id": null,
+          "claim": "将 delayMs 除以1000使重试提前1000倍",
+          "evidence": "scheduler.js 明确接收秒；review.js:3 的 delayMs/1000 正是毫秒转秒，base 与 head 相同。以1000毫秒为例，实际 after(1) 返回 scheduledAfterSeconds:1，时长正确；该值已本地验证。评论将单位换算误当时长缩短。",
+          "location_acceptable": null,
+          "severity_acceptable": null
+        },
+        {
+          "finding_id": "review.js:1",
+          "atom_id": "2",
+          "root_id": "R0030:duration-input-validation",
+          "verdict": "out_of_scope",
+          "gold_issue_id": null,
+          "claim": "为负数/NaN/非数值 delay 新增校验",
+          "evidence": "要求限定 requested non-negative duration，未要求接收或拒绝域外负数/NaN；base 与 head 均无此校验。独立于上一条错误单位主张，属于新增健壮性范围，不应计为缺陷。",
+          "location_acceptable": null,
+          "severity_acceptable": null
+        }
+      ]
+    },
+    {
+      "review_id": "R0031",
+      "annotations": [
+        {
+          "finding_id": "review.js:1",
+          "atom_id": "1",
+          "root_id": "R0031:known-root",
+          "verdict": "gold",
+          "gold_issue_id": "range-end-contract-001",
+          "claim": "inclusive 结束下标多取一个元素",
+          "evidence": "range.js:1 使用 slice(first,lastInclusive+1)；review.js:2 传 start+count，对 [a,b,c]、start=0、count=2 返回三个元素，超过要求。 评论虽带条件性推测，packet 的依赖源码已确认该条件成立；判定依据是源码与行为，非措辞或坐标。 定位落在 gold 可接受行。预测严重度 high，gold 为 medium；当前证据仅支持该限定函数的行为错误，未显示额外 high 级影响，建议严重度不一致。",
+          "location_acceptable": true,
+          "severity_acceptable": false
+        }
+      ]
+    },
+    {
+      "review_id": "R0032",
+      "annotations": [
+        {
+          "finding_id": "review.js:1",
+          "atom_id": "1",
+          "root_id": "R0032:1",
+          "verdict": "unresolved",
+          "gold_issue_id": null,
+          "claim": "Object.hasOwn 在旧运行时可能不可用",
+          "evidence": "head 使用 Object.hasOwn，diff 的旧实现为 hasOwnProperty.call，own-key 语义在支持该方法的运行时等价。packet 未给最低 Node/ECMAScript 版本、部署环境或兼容承诺，因此无法确认旧运行时是否在支持范围；需补运行时约束，暂不猜测为缺陷或误报。R0032 提到 null/undefined 在新旧代码都抛错且自行说明不变，不另造缺陷 atom。",
+          "location_acceptable": null,
+          "severity_acceptable": null
+        }
+      ]
+    },
+    {
+      "review_id": "R0033",
+      "annotations": [
+        {
+          "finding_id": "review.js:1",
+          "atom_id": "1",
+          "root_id": "R0033:limit-input-validation",
+          "verdict": "out_of_scope",
+          "gold_issue_id": null,
+          "claim": "为负数/非整数 limit 新增校验",
+          "evidence": "要求声明合法域为非负整数，另定义 null/undefined 默认20；并未规定非法值的拒绝方式。review.js:2 的 limit==null?20:limit 在声明域内与 ?? 等价，保留0；base 亦未校验非法值。故这是域外校验建议，非此次变更缺陷。",
+          "location_acceptable": null,
+          "severity_acceptable": null
+        },
+        {
+          "finding_id": "review.js:1",
+          "atom_id": "2",
+          "root_id": "R0033:equality-style",
+          "verdict": "out_of_scope",
+          "gold_issue_id": null,
+          "claim": "提出 == 应改 === 的一般风格建议",
+          "evidence": "评论另说 == should be === for null-only checks，同时承认此处 ==null 是 null/undefined 的惯用检查。合同需要同时匹配 null 和 undefined，本代码正满足；泛化风格建议不属于 bug 评估范围，也不能将其解释为有效的 null-only 修复。",
+          "location_acceptable": null,
+          "severity_acceptable": null
+        }
+      ]
+    },
+    {
+      "review_id": "R0034",
+      "annotations": [
+        {
+          "finding_id": "review.js:1",
+          "atom_id": "1",
+          "root_id": "R0034:1",
+          "verdict": "out_of_scope",
+          "gold_issue_id": null,
+          "claim": "为非法 lines 容器及缺失/非数值字段新增输入校验",
+          "evidence": "要求输入是 ordered array of lines，quantity/unitPriceCents 为有限非负整数。review.js:1 的 reduce 按序相加并以0初始化，满足域内与空数组要求。null/undefined 容器及缺失/非数值字段超出合同，旧 for...of/乘法同样未校验；“source data is untrusted”在 packet 中无证据。",
+          "location_acceptable": null,
+          "severity_acceptable": null
+        }
+      ]
+    },
+    {
+      "review_id": "R0035",
+      "annotations": [
+        {
+          "finding_id": "review.js:1",
+          "atom_id": "1",
+          "root_id": "R0035:known-root",
+          "verdict": "gold",
+          "gold_issue_id": "tenant-cache-key-001",
+          "claim": "tenant/user 参数顺序颠倒",
+          "evidence": "cache.js 的 lookup(cache,tenant,user) 以 JSON.stringify([tenant,user]) 查键；review.js:2 却传 user,tenant。若 A/u 和 u/A 都有条目，readProfile(cache,A,u) 返回后者，违反租户隔离。 定位落在 gold 可接受行。预测严重度 high，gold 为 high；与所示影响一致。",
+          "location_acceptable": true,
+          "severity_acceptable": true
+        }
+      ]
+    },
+    {
+      "review_id": "R0036",
+      "annotations": [
+        {
+          "finding_id": "review.js:1",
+          "atom_id": "1",
+          "root_id": "R0036:known-root",
+          "verdict": "gold",
+          "gold_issue_id": "scheduler-units-001",
+          "claim": "毫秒未换算直接传给秒制调度器",
+          "evidence": "scheduler.js:1-2 明示 after 参数为秒；review.js:2 对 delayMs=1000 传入1000秒，而要求1000毫秒即1秒。 评论虽带条件性推测，packet 的依赖源码已确认该条件成立；判定依据是源码与行为，非措辞或坐标。 定位落在 gold 可接受行。预测严重度 high，gold 为 medium；当前证据仅支持该限定函数的行为错误，未显示额外 high 级影响，建议严重度不一致。",
+          "location_acceptable": true,
+          "severity_acceptable": false
+        }
+      ]
+    },
+    {
+      "review_id": "R0037",
+      "annotations": [
+        {
+          "finding_id": "review.js:1",
+          "atom_id": "1",
+          "root_id": "R0037:known-root",
+          "verdict": "gold",
+          "gold_issue_id": "tenant-cache-key-001",
+          "claim": "tenant/user 参数顺序颠倒",
+          "evidence": "cache.js 的 lookup(cache,tenant,user) 以 JSON.stringify([tenant,user]) 查键；review.js:2 却传 user,tenant。若 A/u 和 u/A 都有条目，readProfile(cache,A,u) 返回后者，违反租户隔离。 定位落在 gold 可接受行。预测严重度 high，gold 为 high；与所示影响一致。",
+          "location_acceptable": true,
+          "severity_acceptable": true
+        }
+      ]
+    },
+    {
+      "review_id": "R0038",
+      "annotations": [
+        {
+          "finding_id": "review.js:1",
+          "atom_id": "1",
+          "root_id": "R0038:iterable-compatibility",
+          "verdict": "out_of_scope",
+          "gold_issue_id": null,
+          "claim": "不再接受 Set/generator 等非数组 iterable",
+          "evidence": "旧 for...of 可遍历 Set/generator，新代码依赖 users.filter；此行为差异存在，但要求明确输入为 array of user objects，未承诺任意 iterable。对域内布尔 active 与 id=0，新代码行为正确。评论已说明 null/undefined 等原本也可能抛错，不单独算新缺陷。",
+          "location_acceptable": null,
+          "severity_acceptable": null
+        }
+      ]
+    },
+    {
+      "review_id": "R0039",
+      "annotations": [
+        {
+          "finding_id": "review.js:1",
+          "atom_id": "1",
+          "root_id": "R0039:limit-input-validation",
+          "verdict": "out_of_scope",
+          "gold_issue_id": null,
+          "claim": "为负数/非整数 limit 新增校验",
+          "evidence": "要求声明合法域为非负整数，另定义 null/undefined 默认20；并未规定非法值的拒绝方式。review.js:2 的 limit==null?20:limit 在声明域内与 ?? 等价，保留0；base 亦未校验非法值。故这是域外校验建议，非此次变更缺陷。",
+          "location_acceptable": null,
+          "severity_acceptable": null
+        }
+      ]
+    },
+    {
+      "review_id": "R0040",
+      "annotations": [
+        {
+          "finding_id": "review.js:1",
+          "atom_id": "1",
+          "root_id": "R0040:1",
+          "verdict": "false_positive",
+          "gold_issue_id": null,
+          "claim": "GRANTED=0 或枚举碰撞可能错误授权",
+          "evidence": "review.js:4 使用 decision===GRANTED，只有数字0匹配，并非“任何 falsy”匹配。policy.js 明示 GRANTED=0、DENIED=1、SUSPENDED=2，无重值或布尔强转；缺失键返回undefined时比较为false。实测 granted/denied/suspended/missing 分别 true/false/false/false。评论设想的碰撞前提被当前源码否定，且 diff 行为等价。",
+          "location_acceptable": null,
+          "severity_acceptable": null
+        }
+      ]
+    }
+  ]
+}

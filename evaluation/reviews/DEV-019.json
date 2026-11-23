@@ -1,0 +1,11 @@
+{
+  "case_id": "DEV-019",
+  "content_sha256": "0eedea6e2cd4addf5db646a7462a9ab7875f93f3a894473fbf814f30a6dc4305",
+  "reviews": [
+    {
+      "is_human": true,
+      "decision": "accepted",
+      "evidence": "用户已确认完成全部 20 个开发样例的人工复核，与 AI 输出内容无差异，并明确本轮仅需本人复核。确认覆盖本案例需求、源码、行为结果、标准答案及 AI 已列明的限制；无需记录复核人或日期。"
+    }
+  ]
+}

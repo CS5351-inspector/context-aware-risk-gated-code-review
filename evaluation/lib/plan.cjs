@@ -1,6 +1,7 @@
 'use strict';
 const assert = require('node:assert/strict');
 const { execFileSync } = require('node:child_process');
+const { costLimit } = require('./cost.cjs');
 const { validate } = require('../validate.cjs');
 const { hash, load, fingerprint, implementationHash } = require('./data.cjs');
 function random(seed) { let x = seed >>> 0; return () => { x = (1664525 * x + 1013904223) >>> 0; return x / 4294967296; }; }
@@ -16,10 +17,10 @@ function configCheck(c) {
   assert(c.budget.analysisTimeoutMs > c.budget.publishReserveMs); assert(c.budget.maxInputTokens > c.budget.reservedOutputTokens);
   for (const k of ['max_runs','max_wall_ms','worker_timeout_ms','max_tokens']) assert(Number.isSafeInteger(c.limits[k]) && c.limits[k] > 0, k);
   assert(c.limits.worker_timeout_ms > c.budget.analysisTimeoutMs);
-  assert(Number.isFinite(c.limits.max_cost_usd) && c.limits.max_cost_usd >= 0);
+  costLimit(c);
   if (c.provider_kind === 'live') {
     assert(c.pricing && ['input_per_million','output_per_million'].every(k => Number.isFinite(c.pricing[k]) && c.pricing[k] >= 0));
-    assert(c.pricing.currency === 'USD' && c.pricing.model && c.pricing.checked_at);
+    assert(['USD','CNY'].includes(c.pricing.currency) && c.pricing.model && c.pricing.checked_at);
     assert(c.adapter_sha256 && /^[a-f0-9]{64}$/.test(c.adapter_sha256));
     assert(c.model && c.prompt_version && c.effective_parameters && c.tokenizer_id, 'Pin live model, parameters, prompt and tokenizer');
     assert.equal(c.model, c.pricing.model);

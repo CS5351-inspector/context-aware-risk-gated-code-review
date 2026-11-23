@@ -1,0 +1,112 @@
+{
+  "provider_kind": "live",
+  "provider_version": "bailian-deepseek-1017-v1",
+  "context_kind": "actual-retrieval",
+  "context_version": "sha256:f931b0b8be81db2aaa98df301d2348cf2f51c03102e1583274762ff73774b143",
+  "analysis_status": "COMPLETE",
+  "findings": [
+    {
+      "id": "review.js:1",
+      "file": "review.js",
+      "side": "RIGHT",
+      "line": 2,
+      "severity": "high",
+      "message": "The change passes delayMs directly to after(), but scheduler.after expects delaySeconds (see C1: exports.after = (delaySeconds) => ...). The old code correctly converted ms to seconds via delayMs/1000; removing that conversion now schedules retries 1000x too late and breaks the millisecond-duration requirement.",
+      "evidenceIds": [
+        "C0",
+        "C1"
+      ],
+      "validation": "VERIFIED"
+    }
+  ],
+  "omissions": [],
+  "snippets": [
+    {
+      "id": "C0",
+      "file": "review.js",
+      "ref": "f9d9642d8c1896dc502223247bcc9270967e47b58e6f3d7e2659d71caabd75dc",
+      "startLine": 1,
+      "endLine": 2,
+      "code": "const { after } = require('./scheduler.js');\nexports.scheduleRetry = (delayMs) => after(delayMs);",
+      "reason": "local-window"
+    },
+    {
+      "id": "C1",
+      "file": "scheduler.js",
+      "ref": "f9d9642d8c1896dc502223247bcc9270967e47b58e6f3d7e2659d71caabd75dc",
+      "startLine": 2,
+      "endLine": 2,
+      "code": "exports.after = (delaySeconds) => ({ scheduledAfterSeconds: delaySeconds });",
+      "reason": "direct-definition"
+    }
+  ],
+  "metrics": {
+    "model": "deepseek-v4.1-flash-1017",
+    "effectiveParameters": {
+      "model": "deepseek-v4.1-flash-1017",
+      "enable_thinking": false,
+      "response_format": {
+        "type": "json_object"
+      },
+      "max_tokens": 800,
+      "maxRetries": 0
+    },
+    "promptVersion": "inspector-c-v1+public-requirement-v1",
+    "durationMs": 1473,
+    "calls": 1,
+    "inputTokens": 461,
+    "outputTokens": 116,
+    "attempts": [
+      {
+        "file": "review.js",
+        "attempt": 1,
+        "timeoutMs": 30000,
+        "durationMs": 1288,
+        "estimatedInputTokens": 521,
+        "reservedOutputTokens": 800,
+        "inputTokens": 461,
+        "outputTokens": 116,
+        "responseModel": "deepseek-v4.1-flash-1017",
+        "outcome": "RESPONSE"
+      }
+    ],
+    "tokenizerId": "@huggingface/tokenizers@0.2.0/DeepSeek-V4.1-Flash-1017@08c8657f02291e11b6f6b63e0e16014f8e748518+chat-allowance-64",
+    "modelDurationMs": 1466,
+    "contextDurationMs": 4
+  },
+  "raw": [
+    {
+      "response": {
+        "id": "chatcmpl-6d7850aa-dde4-998f-97a3-496f821c8e59",
+        "object": "chat.completion",
+        "created": 1795335890,
+        "model": "deepseek-v4.1-flash-1017",
+        "choices": [
+          {
+            "index": 0,
+            "message": {
+              "role": "assistant",
+              "reasoning_content": "",
+              "content": "{\"reviews\":[{\"lgtm\":false,\"review_comment\":\"The change passes delayMs directly to after(), but scheduler.after expects delaySeconds (see C1: exports.after = (delaySeconds) => ...). The old code correctly converted ms to seconds via delayMs/1000; removing that conversion now schedules retries 1000x too late and breaks the millisecond-duration requirement.\",\"file\":\"review.js\",\"side\":\"RIGHT\",\"line\":2,\"severity\":\"high\",\"evidenceIds\":[\"C0\",\"C1\"]}]}"
+            },
+            "finish_reason": "stop",
+            "logprobs": null
+          }
+        ],
+        "usage": {
+          "prompt_tokens": 461,
+          "total_tokens": 577,
+          "completion_tokens": 116,
+          "prompt_tokens_details": {
+            "cached_tokens": 0,
+            "image_tokens": 0,
+            "text_tokens": 461
+          },
+          "completion_tokens_details": {
+            "text_tokens": 116
+          }
+        }
+      }
+    }
+  ]
+}

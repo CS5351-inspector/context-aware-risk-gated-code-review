@@ -168,14 +168,23 @@ function validate(root = __dirname) {
       assert.deepEqual(gold.human_reviewers, []);
     } else {
       const reviewers = [...new Set(gold.human_reviewers)];
-      assert(reviewers.length >= 2 && reviewers.every(r => typeof r === 'string' && r.trim()), 'Two independent human reviewers required');
+      assert(reviewers.every(r => typeof r === 'string' && r.trim()), 'Invalid reviewer identifier');
+      const heldout = c.split === 'heldout';
+      if (heldout) assert(reviewers.length >= 2, 'Heldout requires two independent human sign-offs');
       const records = readJson(inside(root, `reviews/${c.case_id}.json`));
       assert.equal(records.case_id, c.case_id);
       const digest = hash(JSON.stringify({ case: c, requirement: f.requirement, hashes: f.file_hashes, checks: f.behavior_checks, issues: gold.issues }));
       assert.equal(records.content_sha256, digest, 'Review record is stale');
+      assert(Array.isArray(records.reviews) && records.reviews.length >= 1, 'Accepted human review required');
+      for (const record of records.reviews) {
+        assert(record && record.decision === 'accepted' && record.is_human === true && typeof record.evidence === 'string' && record.evidence.trim(), 'Missing accepted human review');
+      }
+      // Development accepts one content-bound confirmation without identity or date.
+      // Heldout preserves separate, dated sign-offs under each declared identifier.
       for (const reviewer of reviewers) {
-        const record = records.reviews.find(r => r.reviewer === reviewer);
-        assert(record && record.decision === 'accepted' && record.is_human === true && record.evidence?.trim() && Number.isFinite(Date.parse(record.reviewed_at)), 'Missing accepted human review');
+        assert(records.reviews.some(r => r.reviewer === reviewer
+          && (!heldout || (typeof r.reviewed_at === 'string' && Number.isFinite(Date.parse(r.reviewed_at))))),
+        heldout ? 'Missing dated heldout human review' : 'Missing declared human review');
       }
       reviewed++;
     }

@@ -1,0 +1,102 @@
+{
+  "provider_kind": "live",
+  "provider_version": "bailian-deepseek-1017-v1",
+  "context_kind": "actual-retrieval",
+  "context_version": "sha256:f931b0b8be81db2aaa98df301d2348cf2f51c03102e1583274762ff73774b143",
+  "analysis_status": "COMPLETE",
+  "findings": [
+    {
+      "id": "review.js:1",
+      "file": "review.js",
+      "side": "RIGHT",
+      "line": 2,
+      "severity": "high",
+      "message": "Replacing '??' with '||' changes behavior: a valid limit of 0 now falls through to the default 20, but the contract says zero is valid and disables processing. Only null/undefined should select the default. This silently overrides an explicit disable request.",
+      "evidenceIds": [
+        "C0"
+      ],
+      "validation": "VERIFIED"
+    }
+  ],
+  "omissions": [],
+  "snippets": [
+    {
+      "id": "C0",
+      "file": "review.js",
+      "ref": "ff5f1c4c63ee90b2d72c02977c2ee7b9b76937d97ac3f5edc372d2ed3c465086",
+      "startLine": 1,
+      "endLine": 2,
+      "code": "// Zero disables processing; null/undefined use the default.\nexports.batchLimit = (limit) => limit || 20;",
+      "reason": "local-window"
+    }
+  ],
+  "metrics": {
+    "model": "deepseek-v4.1-flash-1017",
+    "effectiveParameters": {
+      "model": "deepseek-v4.1-flash-1017",
+      "enable_thinking": false,
+      "response_format": {
+        "type": "json_object"
+      },
+      "max_tokens": 800,
+      "maxRetries": 0
+    },
+    "promptVersion": "inspector-c-v1+public-requirement-v1",
+    "durationMs": 1237,
+    "calls": 1,
+    "inputTokens": 366,
+    "outputTokens": 101,
+    "attempts": [
+      {
+        "file": "review.js",
+        "attempt": 1,
+        "timeoutMs": 30000,
+        "durationMs": 1053,
+        "estimatedInputTokens": 426,
+        "reservedOutputTokens": 800,
+        "inputTokens": 366,
+        "outputTokens": 101,
+        "responseModel": "deepseek-v4.1-flash-1017",
+        "outcome": "RESPONSE"
+      }
+    ],
+    "tokenizerId": "@huggingface/tokenizers@0.2.0/DeepSeek-V4.1-Flash-1017@08c8657f02291e11b6f6b63e0e16014f8e748518+chat-allowance-64",
+    "modelDurationMs": 1231,
+    "contextDurationMs": 4
+  },
+  "raw": [
+    {
+      "response": {
+        "id": "chatcmpl-da7578ea-acd2-9cb5-ab3f-0d3204aa2f33",
+        "object": "chat.completion",
+        "created": 1795335943,
+        "model": "deepseek-v4.1-flash-1017",
+        "choices": [
+          {
+            "index": 0,
+            "message": {
+              "role": "assistant",
+              "reasoning_content": "",
+              "content": "{\"reviews\":[{\"lgtm\":false,\"review_comment\":\"Replacing '??' with '||' changes behavior: a valid limit of 0 now falls through to the default 20, but the contract says zero is valid and disables processing. Only null/undefined should select the default. This silently overrides an explicit disable request.\",\"file\":\"review.js\",\"side\":\"RIGHT\",\"line\":2,\"severity\":\"high\",\"evidenceIds\":[\"C0\"]}]}"
+            },
+            "finish_reason": "stop",
+            "logprobs": null
+          }
+        ],
+        "usage": {
+          "prompt_tokens": 366,
+          "total_tokens": 467,
+          "completion_tokens": 101,
+          "prompt_tokens_details": {
+            "cached_tokens": 0,
+            "image_tokens": 0,
+            "text_tokens": 366
+          },
+          "completion_tokens_details": {
+            "text_tokens": 101
+          }
+        }
+      }
+    }
+  ]
+}

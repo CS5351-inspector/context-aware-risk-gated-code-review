@@ -1,0 +1,90 @@
+{
+  "provider_kind": "live",
+  "provider_version": "bailian-deepseek-1017-v1",
+  "context_kind": "none",
+  "context_version": null,
+  "analysis_status": "COMPLETE",
+  "findings": [
+    {
+      "id": "review.js:1",
+      "file": "review.js",
+      "side": "RIGHT",
+      "line": 2,
+      "severity": "high",
+      "message": "The tenant and user arguments are swapped relative to the original lookup call. Since profiles are isolated per tenant, lookup(cache, user, tenant) reverses the key pair, so a request may resolve another tenant's profile or return null for valid tenant/user pairs. Restore the argument order to lookup(cache, tenant, user).",
+      "evidenceIds": [],
+      "validation": "VERIFIED"
+    }
+  ],
+  "omissions": [],
+  "snippets": [],
+  "metrics": {
+    "model": "deepseek-v4.1-flash-1017",
+    "effectiveParameters": {
+      "model": "deepseek-v4.1-flash-1017",
+      "enable_thinking": false,
+      "response_format": {
+        "type": "json_object"
+      },
+      "max_tokens": 800,
+      "maxRetries": 0
+    },
+    "promptVersion": "inspector-c-v1+public-requirement-v1",
+    "durationMs": 1615,
+    "calls": 1,
+    "inputTokens": 275,
+    "outputTokens": 107,
+    "attempts": [
+      {
+        "file": "review.js",
+        "attempt": 1,
+        "timeoutMs": 30000,
+        "durationMs": 1438,
+        "estimatedInputTokens": 335,
+        "reservedOutputTokens": 800,
+        "inputTokens": 275,
+        "outputTokens": 107,
+        "responseModel": "deepseek-v4.1-flash-1017",
+        "outcome": "RESPONSE"
+      }
+    ],
+    "tokenizerId": "@huggingface/tokenizers@0.2.0/DeepSeek-V4.1-Flash-1017@08c8657f02291e11b6f6b63e0e16014f8e748518+chat-allowance-64",
+    "modelDurationMs": 1613,
+    "contextDurationMs": 0
+  },
+  "raw": [
+    {
+      "response": {
+        "id": "chatcmpl-4be5dda9-d406-9f70-9425-b8be8a3ea2eb",
+        "object": "chat.completion",
+        "created": 1795335948,
+        "model": "deepseek-v4.1-flash-1017",
+        "choices": [
+          {
+            "index": 0,
+            "message": {
+              "role": "assistant",
+              "reasoning_content": "",
+              "content": "{\"reviews\":[{\"lgtm\":false,\"review_comment\":\"The tenant and user arguments are swapped relative to the original lookup call. Since profiles are isolated per tenant, lookup(cache, user, tenant) reverses the key pair, so a request may resolve another tenant's profile or return null for valid tenant/user pairs. Restore the argument order to lookup(cache, tenant, user).\",\"file\":\"review.js\",\"side\":\"RIGHT\",\"line\":2,\"severity\":\"high\",\"evidenceIds\":[]}]}"
+            },
+            "finish_reason": "stop",
+            "logprobs": null
+          }
+        ],
+        "usage": {
+          "prompt_tokens": 275,
+          "total_tokens": 382,
+          "completion_tokens": 107,
+          "prompt_tokens_details": {
+            "cached_tokens": 0,
+            "image_tokens": 0,
+            "text_tokens": 275
+          },
+          "completion_tokens_details": {
+            "text_tokens": 107
+          }
+        }
+      }
+    }
+  ]
+}
