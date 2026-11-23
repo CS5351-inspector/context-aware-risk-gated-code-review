@@ -9,3 +9,4 @@ lib
 dist/
 lambda/
 .serverless/
+docs/report-ui/dist/

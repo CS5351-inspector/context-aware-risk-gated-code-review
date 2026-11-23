@@ -4,6 +4,8 @@ Inspector reviews added or modified JavaScript and TypeScript files in GitHub pu
 
 See [normal, partial, failed, and publication-failure report examples](SPRINT2_REPORT_EXAMPLES.md). Reports distinguish checked files from skipped files, explain required and optional omissions, retain evidence refs, and preserve unknown usage as `unknown`. Long comments keep the decision, reviewed SHA, and next action before optional detail; the Actions receipt retains the structured data. If GitHub rejects report publication, a concise fallback is written to the step summary when available and always retained in the receipt.
 
+For an interactive view, use the [Report Explorer](report-ui/README.md). It switches between all four scenarios, shows coverage, findings, evidence, resources, delivery receipts, and source Markdown, and supports copying and keyboard tabs. Start it with `npm --prefix docs/report-ui run dev -- --host 127.0.0.1 --port 7100`, then open `http://localhost:7100/`. Its data is regenerated and checked by `npm run verify:report`; its parser and static build are checked by `npm run test:report-ui`.
+
 ## Run the local checks
 
 In a fresh checkout, use Node.js 24 and run the same checks as [Test and Build](../.github/workflows/test-build.yml).
@@ -14,6 +16,7 @@ npm run typecheck
 npm test -- --runInBand
 npm run test:evaluation
 npm run verify:report
+npm run test:report-ui
 npm run build
 node --check action/index.cjs
 git diff --exit-code -- action

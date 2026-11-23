@@ -10,6 +10,10 @@ async function main() {
   for (const example of examples) {
     fs.writeFileSync(path.join(standaloneDir, `${example.slug}.md`), example.report + '\n');
   }
+  const uiDir = path.join(outputRoot, 'report-ui');
+  fs.mkdirSync(uiDir, { recursive: true });
+  fs.writeFileSync(path.join(uiDir, 'report-data.js'),
+    `window.INSPECTOR_REPORTS = ${JSON.stringify(examples, null, 2)};\n`);
   const section = (example: typeof examples[number]) => [
     `## ${example.title}`,
     '',

@@ -65,6 +65,11 @@ async function main() {
     const generatedIndex = fs.readFileSync(path.join(temporary, indexName), 'utf8');
     const committedIndex = fs.readFileSync(path.join(workspace, 'docs', indexName), 'utf8');
     assert(committedIndex === generatedIndex, 'The combined report-example document is stale');
+    const uiDataName = path.join('report-ui', 'report-data.js');
+    const generatedUiData = fs.readFileSync(path.join(temporary, uiDataName), 'utf8');
+    const committedUiData = fs.readFileSync(path.join(workspace, 'docs', uiDataName), 'utf8');
+    assert(committedUiData === generatedUiData, 'The report UI data is stale');
+    receipt.checks.push('synchronized-ui-data');
     fs.writeFileSync(path.join(workspace, '.cache', 'report-verification.json'), JSON.stringify(receipt, null, 2) + '\n');
     console.log(JSON.stringify(receipt, null, 2));
   } finally {
